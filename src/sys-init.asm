@@ -122,16 +122,16 @@ _sysinit:
 .size _sysinit, .-_sysinit   @ Define the size of the function
 
 @----------------------------------------------
-@ Section Limits
+@ kernel sections limits
 .section .rodata.k_sections, "a", %progbits
-	@ Kernel section limits
 	.word _sikdata
 	.word _skdata
 	.word _ekdata
 	.word _skbss
 	.word _ekbss
+
+@ application sections limits
 .section .rodata.sections, "a", %progbits
-	@ App section limits
 	.word _estack
 	.word _sidata
 	.word _sdata

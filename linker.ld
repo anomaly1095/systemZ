@@ -61,6 +61,7 @@ SECTIONS
   {
     ALIGN(4);
     *(.rodata.k_sections)
+    *(.rodata.k_registers.*)
     ALIGN(4);
   } > K_FLASH
 
