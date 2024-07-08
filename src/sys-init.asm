@@ -1,4 +1,29 @@
 
+@ # SystemZ Kernel <PRODUCTION BRANCH>
+
+@ Copyright (C) 2024 Connexion Nord, Inc. or its affiliates. All Rights Reserved.
+
+@ SPDX-License-Identifier: MIT
+
+@ Permission is hereby granted, free of charge, to any person obtaining a copy of
+@ this software and associated documentation files (the "Software"), to deal in
+@ the Software without restriction, including without limitation the rights to
+@ use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+@ the Software, and to permit persons to whom the Software is furnished to do so,
+@ subject to the following conditions:
+
+@ The above copyright notice and this permission notice shall be included in all
+@ copies or substantial portions of the Software.
+
+@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+@ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@ <https://github.com/anomaly1095/systemZ>
+
 .syntax unified
 .cpu cortex-m4
 .fpu fpv4-sp-d16
@@ -89,31 +114,31 @@ _sysinit:
 	PUSH    {lr}              @ Preserve the link register
   
   @ CLOCK configuration
-	BL      RCC_config
+	BL      _RCC_config
   CBNZ    r0, _default_handler
   
   @ POWER configuration
-	BL      PWR_config
+	BL      _PWR_config
   CBNZ    r0, _default_handler  @ Branch to default handler on error
 
 	@ MPU configuration
-	BL      MPU_config
+	BL      _MPU_config
   CBNZ    r0, _default_handler
 
 	@ FLASH configuration
-	BL      FLASH_config
+	BL      _FLASH_config
   CBNZ    r0, _default_handler
 
 	@ NVIC configuration
-  BL      NVIC_config
+  BL      _NVIC_config
   CBNZ    r0, _default_handler
 
   @ SYSTICK configuration
-  BL      SYSTICK_config
+  BL      _SYSTICK_config
   CBNZ    r0, _default_handler
 
   @ Peripherals configuration 
-  BL      PERIPH_config
+  BL      _PERIPH_config
   CBNZ    r0, _default_handler
 
   POP     {lr}               @ Restore the link register
