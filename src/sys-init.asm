@@ -50,6 +50,10 @@ _default_handler:
 	.extern _start
 
 _reset_handler:
+  @ disable interrupts with configurable priority levels
+  MOV     r0, #1
+  MSR     PRIMASK, r0
+
   LDR     sp, _ekstack       @ Load kernel stack pointer
 
   @ Copy .kdata section from FLASH to SRAM
@@ -93,6 +97,10 @@ __bss_zero:
   CMP     r0, r1
   STRNE   r2, [r0], #4
 
+  @ enable interrupts with configurable priority levels
+  MOV     r0, #0
+  MSR     PRIMASK, r0
+
   @ Configure CONTROL register and switch to unprivileged thread mode
   MOV     r1, #0b011
   MRS     r0, CONTROL
@@ -132,7 +140,7 @@ _sysinit:
 	@ NVIC configuration
   BL      _NVIC_config
   CBNZ    r0, _default_handler
-
+  
   @ SYSTICK configuration
   BL      _SYSTICK_config
   CBNZ    r0, _default_handler

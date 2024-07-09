@@ -1,4 +1,4 @@
-
+      
 @ # SystemZ Kernel <PRODUCTION BRANCH>
 
 @ Copyright (C) 2024 Connexion Nord, Inc. or its affiliates. All Rights Reserved.
@@ -23,3 +23,27 @@
 @ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @ <https://github.com/anomaly1095/systemZ>
+
+.syntax unified
+.cpu cortex-m4
+.fpu fpv4-sp-d16
+.thumb
+  #include "../../common/define.asm"
+  #include "../../common/macros.asm"
+
+@ MPU register details provided in stm32-cortex-M4 page 246 
+
+.section .text.drivers.SYSTICK, "ax", %progbits
+
+@-----------------------------------
+@ main function called by system initialization to configure the SYSTICK
+@-----------------------------------
+  .global _SYSTICK_config
+  .type _SYSTICK_config, %function
+_SYSTICK_config:
+  PUSH    {lr}
+  @ enable RCC / FLASH / FPU?
+
+  POP     {lr}
+  BX      lr
+  .size _SYSTICK_config, .-_SYSTICK_config

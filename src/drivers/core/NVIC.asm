@@ -1,4 +1,4 @@
-
+      
 @ # SystemZ Kernel <PRODUCTION BRANCH>
 
 @ Copyright (C) 2024 Connexion Nord, Inc. or its affiliates. All Rights Reserved.
@@ -24,3 +24,26 @@
 
 @ <https://github.com/anomaly1095/systemZ>
 
+.syntax unified
+.cpu cortex-m4
+.fpu fpv4-sp-d16
+.thumb
+  #include "../../common/define.asm"
+  #include "../../common/macros.asm"
+
+@ NVIC register details provided in stm32-cortex-M4 Referance Manual page 208
+
+.section .text.drivers.NVIC, "ax", %progbits
+
+@-----------------------------------
+@ main function called by system initialization to configure the NVIC
+@-----------------------------------
+  .global _NVIC_config
+  .type _NVIC_config, %function
+_NVIC_config:
+  PUSH    {lr}
+  @ enable RCC / FLASH / FPU?
+
+  POP     {lr}
+  BX      lr
+  .size _NVIC_config, .-_NVIC_config

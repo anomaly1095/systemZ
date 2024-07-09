@@ -29,7 +29,7 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/registers.asm"
+  #include "../../common/define.asm"
   #include "../../common/macros.asm"
 
 @ PWR register details provided in STM32F401's ref manual page 87

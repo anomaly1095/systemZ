@@ -29,7 +29,7 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/registers.asm"
+  #include "../../common/define.asm"
   #include "../../common/macros.asm"
 
 @ RCC register details provided in STM32F401's ref manual page 103
@@ -185,7 +185,7 @@ _AHB1_enable_periph_clks:
 _APB1_enable_periph_clks:
   LDR     r1, [r0, #0x40]   @ RCC_APB1ENR
   MOVW    r2, #0b1001       @ enable TIM2 TIM5
-  MOVT    r2, #0x1002       @ enable USART2 and PWR interface
+  MOVT    r2, #0x1000       @ enable PWR interface
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x40]   @ RCC_APB1ENR
   BX      lr
