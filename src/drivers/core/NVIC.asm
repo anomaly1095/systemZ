@@ -42,8 +42,103 @@
   .type _NVIC_config, %function
 _NVIC_config:
   PUSH    {lr}
-  @ enable RCC / FLASH / FPU?
-
+  @ enable RCC / FLASH / FPU
+  LDR     r0, =NVIC_ISER0
+  LDR     r1, [r0]              @ NVIC_ISER0
+  MOV     r2, #(0b11 << 4)      @ set FLASH and RCC bits
+  ORR     r1, r1, r2
+  STR     r1, [r0]              @ NVIC_ISER0
+  LDR     r1, [r0, #0x08]       @ NVIC_ISER2
+  MOV     r2, #(0b1 << 4)       @ set FPU bit
+  ORR     r1, r1, r2
+  STR     r1, [r0, #0x08]       @ NVIC_ISER2
   POP     {lr}
+  MOV     r0, #0
   BX      lr
+  .align 4
   .size _NVIC_config, .-_NVIC_config
+
+
+@-----------------------------------
+@ syscall used by apps (called by SVC)
+@ called by software to enable an interrupt
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+  .type _NVIC_enable_irq, %function
+_NVIC_enable_irq:
+
+  .align 4
+  .size _NVIC_enable_irq, .-_NVIC_enable_irq
+
+@-----------------------------------
+@ syscall used by apps (called by SVC)
+@ called by software to disable an interrupt
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+  .type _NVIC_disable_irq, %function
+_NVIC_disable_irq:
+
+  .align 4
+  .size _NVIC_disable_irq, .-_NVIC_disable_irq
+
+@-----------------------------------
+@ syscall used by apps (called by SVC)
+@ called by software to set an interrupt as pending
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+  .type _NVIC_set_pend_irq, %function
+_NVIC_set_pend_irq:
+
+  .align 4
+  .size _NVIC_set_pend_irq, .-_NVIC_set_pend_irq
+
+@-----------------------------------
+@ syscall used by apps (called by SVC)
+@ called by software to remove an interrupt from pending list
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+  .type _NVIC_clear_pend_irq, %function
+_NVIC_clear_pend_irq:
+
+
+  .align 4
+  .size _NVIC_clear_pend_irq, .-_NVIC_clear_pend_irq
+
+@-----------------------------------
+@ syscall used by apps (called by SVC)
+@ called by software to check interrupt if the interrupt is active
+@ arg0: number of the IRQ (0..239)
+@ return: 1 if active / 0 if idle
+@-----------------------------------
+  .type _NVIC_check_active_irq, %function
+_NVIC_check_active_irq:
+
+
+  .align 4
+  .size _NVIC_check_active_irq, .-_NVIC_check_active_irq
+  
+@-----------------------------------
+@ syscall used by apps (called by SVC)
+@ called by software to set the priority of the interrupt
+@ arg0: number of the IRQ (0..239)
+@ arg1: priority number
+@-----------------------------------
+  .type _NVIC_set_pri_irq, %function
+_NVIC_set_pri_irq:
+
+
+  .align 4
+  .size _NVIC_set_pri_irq, .-_NVIC_set_pri_irq
+  
+@-----------------------------------
+@ syscall used by apps
+@ access to this register can be thru unpriviledged thread mode
+@ check SCR reg in page 230 of the stm32-cortex-M4 Referance Manual
+@ called by software to trigger an interrupt on the mask specified in arg0
+@-----------------------------------
+  .type _NVIC_soft_trigger_irq, %function
+_NVIC_soft_trigger_irq:
+
+
+  .align 4
+  .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq

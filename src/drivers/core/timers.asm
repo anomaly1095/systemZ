@@ -31,7 +31,7 @@
   #include "../../common/define.asm"
   #include "../../common/macros.asm"
 
-@ MPU register details provided in stm32-cortex-M4 page 246 
+@ SYSTICK register details provided in stm32-cortex-M4 page 246 
 
 .section .text.drivers.SYSTICK, "ax", %progbits
 
@@ -41,9 +41,47 @@
   .global _SYSTICK_config
   .type _SYSTICK_config, %function
 _SYSTICK_config:
+  @ save link register 
   PUSH    {lr}
-  @ enable RCC / FLASH / FPU?
+  LDR     r0, =SYSTICK_BASE
+  
+  @ load the systick counter value (10499) in ST_LOAD to prooduce a tick each 1ms  
+  MOVW    r1, =SYSTICK_COUNTER
+  STR     r1, [r0, #0x04]           @ STK_LOAD
+  MOVW    r1, #0
+  STR     r1, [r0, #0x08]           @ STK_VAL
+  @ CLKSOURCE = AHB/8, enable SYSTICK interrupt, enable SYSTICK
+  MOVW    r1, #0b011
+  STR     r1, [r0, #0x08]           @ STK_VAL
 
+  @ recover link register and return 0
   POP     {lr}
+  MOV     r0, #0
   BX      lr
+  .align 4
   .size _SYSTICK_config, .-_SYSTICK_config
+
+
+@-----------------------------------
+@ High speed Advanced control timer situated in the APB2
+@-----------------------------------
+.section .text.drivers.TIM1, "ax", %progbits
+
+@ make functions callable by apps and kernel
+
+
+@-----------------------------------
+@ Lower speed General purpose Timers situated in the APB1
+@-----------------------------------
+.section .text.drivers.TIM2_5, "ax", %progbits
+
+@ make functions callable by apps and kernel
+
+
+@-----------------------------------
+@ Higher speed General purpose Timers situated in the APB2
+@-----------------------------------
+.section .text.drivers.TIM9_11, "ax", %progbits
+
+@ make functions callable by apps and kernel
+

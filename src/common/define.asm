@@ -3,12 +3,16 @@
 .fpu fpv4-sp-d16
 .thumb
 
+
 .section .rodata.k_registers.RCC, "a", %progbits
-  .equ RCC_BASE, 0x40023800
-  .equ RCC_BASE_BB, 0x42470000
+  .equ RCC_BASE, 0x40023800       @ RCC bit-band base address
+  .equ RCC_BASE_BB, 0x42470000    @ RCC base address
 
   
 .section .rodata.k_registers.PWR, "a", %progbits
+  .equ PWR_BASE, 0x40007000
+  .equ PWR_CR_MASK, 0x8EFD
+  
 
 .section .rodata.k_registers.MPU, "a", %progbits
   .equ MPU_BASE, 0xE000ED90
@@ -63,12 +67,23 @@
 
 
 .section .rodata.k_registers.FLASH, "a", %progbits
-  .equ FLASH_BASE, 0x40023C00
+  .equ FLASH_BASE, 0x40023C00       @ FLASH base address
   .equ FLASH_KEY1, 0x45670123
   .equ FLASH_KEY2, 0xCDEF89AB
   .equ FLASH_OPTKEY1, 0x08192A3B
   .equ FLASH_OPTKEY2, 0x4C5D6E7F
 
 .section .rodata.k_registers.NVIC, "a", %progbits
-  
+  .equ NVIC_ISER0, 0xE000E100     @ 7 register
+  .equ NVIC_ICER0, 0xE000E180     @ 7 register
+  .equ NVIC_ISPR0, 0xE000E200     @ 7 register
+  .equ NVIC_ICPR0, 0xE000E280     @ 7 register
+  .equ NVIC_IABR0, 0xE000E300     @ 7 register
+  .equ NVIC_IPR0, 0xE000E400      @ 59 register
+  .equ STIR, 0xE000EF00           @ 1 register
+
+
+
 .section .rodata.k_registers.SYSTICK, "a", %progbits
+  .equ SYSTCK_BASE, 0xE000E010
+  .equ SYSTICK_COUNTER, 10499   @ value to be laded in STK_LOAD

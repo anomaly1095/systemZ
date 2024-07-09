@@ -45,10 +45,12 @@ _FLASH_config:
   PUSH    {lr}
   LDR     r0, =FLASH_BASE
   BL      _FLASH_access_control
-  BL      _FLASH_unlock_regs
+  BL      _FLASH_cr_optcr_config
   POP     {lr}
+  MOV     r0, #0      @ RETURN 0
   BX      lr
-
+  .align 4
+  .size _FLASH_config, .-_FLASH_config
 
 @-----------------------------------
 @ reset & enable caches, enablke frefetch
@@ -65,30 +67,15 @@ _FLASH_access_control:
   ORR     r1, r1, r1
   STR     r1, [r0]        @ save changes
   BX      lr
+  .align 4
   .size _FLASH_access_control, .-_FLASH_access_control
-
-@-----------------------------------
-@ Unlock access to FLASH_CR & FLASH_OPTCR
-@-----------------------------------
-  .type _FLASH_access_control, %function
-_FLASH_unlock_regs:
-  LDR     r1, =FLASH_KEY1
-  STR     r1, [r0, #0x04]     @ store key 1
-  LDR     r1, =FLASH_KEY2
-  STR     r1, [r0, #0x04]     @ store key 2
-  LDR     r1, =FLASH_OPTKEY1
-  STR     r1, [r0, #0x08]     @ store opt-key 1
-  LDR     r1, =FLASH_OPTKEY2
-  STR     r1, [r0, #0x08]     @ store opt-key 2
-  BX      lr
-  .size _FLASH_unlock_regs, .-_FLASH_unlock_regs
 
 
 @-----------------------------------
 @ set flash options
 @-----------------------------------
-  .type _FLASH_access_control, %function
-_FLASH_unlock_regs:
+  .type _FLASH_cr_optcr_config, %function
+_FLASH_cr_optcr_config:
   @ Unlock the FLASH_CR
   LDR     r1, =FLASH_KEY1
   STR     r1, [r0, #0x04]     @ store key 1
@@ -108,6 +95,7 @@ _FLASH_unlock_regs:
   ORR     r1, r1, r2
   STR     r1, [r0, #0x10]     @ load contents of FLASH_CR
   
+  @ decide whether we branch in based off the kernel's mode (PROD or DEV)
   .ifdef PRODUCTION_MODE
     PUSH     {lr}
     BL       __FLASH_opt_config      @ configure FLASH option bytes
@@ -116,7 +104,8 @@ _FLASH_unlock_regs:
 
   BX      lr                      @ Return 
 
-  .size _FLASH_unlock_regs, .-_FLASH_unlock_regs
+  .align 4
+  .size _FLASH_cr_optcr_config, .-_FLASH_cr_optcr_config
 
 @-----------------------------------
 @ write flash options
@@ -163,6 +152,8 @@ __FLASH_opt_config:
   ORR     r1, r1, #0b1            @ Set OPTLOCK bit
   STR     r1, [r0, #0x14]         @ FLASH_OPTCR
   BX      lr
+  .align 4
   .size __FLASH_opt_config, .-__FLASH_opt_config
+
 
 @ other functions will serve as syscalls (erase / program) for FLASH

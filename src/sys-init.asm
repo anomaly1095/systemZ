@@ -123,11 +123,11 @@ _sysinit:
   
   @ CLOCK configuration
 	BL      _RCC_config
-  CBNZ    r0, _default_handler
+  CBNZ    r0, _default_handler  @ Branch to default handler on error
   
   @ POWER configuration
 	BL      _PWR_config
-  CBNZ    r0, _default_handler  @ Branch to default handler on error
+  CBNZ    r0, _default_handler
 
 	@ MPU configuration
 	BL      _MPU_config

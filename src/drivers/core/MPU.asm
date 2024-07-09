@@ -47,7 +47,9 @@ _MPU_config:
   BL      _MPU_sections_config
   BL      _MPU_enable
   POP     {lr}
+  MOV     r0, #0
   BX      lr
+  .align 4
   .size _MPU_config, .-_MPU_config
 
   
@@ -63,6 +65,7 @@ _MPU_type:
   POP     {lr}          @ if not MPU or no separate sections possibility 
   BXEQ    lr            @ we return to system init
   BX      lr
+  .align 4
   .size _MPU_type, .-_MPU_type
 
 
@@ -97,6 +100,7 @@ _MPU_sections_config:
   MPU_CONFIG_REGION SECTION7_BASE, 7, SECTION7_MASK
   @ return
   BX      lr
+  .align 4
   .size _MPU_sections_config, .-_MPU_sections_config
   
 
@@ -112,4 +116,5 @@ _MPU_enable:
   ORR     r1, r2                @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
   BX      lr
+  .align 4
   .size _MPU_enable, .-_MPU_enable

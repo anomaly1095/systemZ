@@ -206,3 +206,4 @@ _APB2_enable_periph_clks:
   .align  4
   .size _APB2_enable_periph_clks, .-_APB2_enable_periph_clks
 
+@ these
