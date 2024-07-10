@@ -28,12 +28,13 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/define.asm"
-  #include "../../common/macros.asm"
+  #include "../../../include/define.asm"
+
 
 @ SYSTICK register details provided in stm32-cortex-M4 page 246 
-
-.section .text.drivers.SYSTICK, "ax", %progbits
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- startup section
+.section .text.sysinit, "ax", %progbits
 
 @-----------------------------------
 @ main function called by system initialization to configure the SYSTICK
@@ -62,26 +63,8 @@ _SYSTICK_config:
   .size _SYSTICK_config, .-_SYSTICK_config
 
 
-@-----------------------------------
-@ High speed Advanced control timer situated in the APB2
-@-----------------------------------
-.section .text.drivers.TIM1, "ax", %progbits
+.section .rodata.registers.SYSTICK, "a", %progbits
+  .equ SYSTCK_BASE, 0xE000E010
+  .equ SYSTICK_COUNTER, 10499   @ value to be laded in STK_LOAD
 
-@ make functions callable by apps and kernel
-
-
-@-----------------------------------
-@ Lower speed General purpose Timers situated in the APB1
-@-----------------------------------
-.section .text.drivers.TIM2_5, "ax", %progbits
-
-@ make functions callable by apps and kernel
-
-
-@-----------------------------------
-@ Higher speed General purpose Timers situated in the APB2
-@-----------------------------------
-.section .text.drivers.TIM9_11, "ax", %progbits
-
-@ make functions callable by apps and kernel
 

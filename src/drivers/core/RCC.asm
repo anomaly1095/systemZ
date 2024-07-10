@@ -29,12 +29,14 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/define.asm"
-  #include "../../common/macros.asm"
+  #include "../../../include/define.asm"
+
 
 @ RCC register details provided in STM32F401's ref manual page 103
 
-.section .text.drivers.RCC, "ax", %progbits
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- startup section
+.section .text.sysinit, "ax", %progbits
 
 @-----------------------------------
 @ main function called by system initialization to take care of clocks
@@ -206,4 +208,19 @@ _APB2_enable_periph_clks:
   .align  4
   .size _APB2_enable_periph_clks, .-_APB2_enable_periph_clks
 
-@ these
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- application accessible functions
+
+.section .text.drivers.RCC, "ax", %progbits
+
+
+
+
+
+
+
+
+.section .rodata.registers.RCC, "a", %progbits
+  .equ RCC_BASE, 0x40023800       @ RCC bit-band base address
+  .equ RCC_BASE_BB, 0x42470000    @ RCC base address
+

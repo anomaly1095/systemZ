@@ -29,12 +29,15 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/define.asm"
-  #include "../../common/macros.asm"
+  #include "../../../include/define.asm"
+
 
 @ PWR register details provided in STM32F401's ref manual page 87
+@----------------------------------------------------------------------
+@----------------------------------------------------------------------
 
-.section .text.drivers.PWR, "ax", %progbits
+.section .text.sysinit, "ax", %progbits
+
 
 @-----------------------------------
 @ main function called by system initialization to take care of power moes an config
@@ -60,3 +63,16 @@ _PWR_config:
   BX      lr
   .align 4
   .size _PWR_config, .-_PWR_config
+
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- application accessible functions
+
+.section .text.drivers.PWR, "ax", %progbits
+
+
+
+
+.section .rodata.registers.PWR, "a", %progbits
+  .equ PWR_BASE, 0x40007000
+  .equ PWR_CR_MASK, 0x8EFD
+  

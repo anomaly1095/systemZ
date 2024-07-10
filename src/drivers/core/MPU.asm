@@ -28,12 +28,23 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/define.asm"
-  #include "../../common/macros.asm"
+
+  #include "../../../include/define.asm"
 
 @ MPU register details provided in ARM cortex-M7 Referance Manual page 200
+.section .text.sysinit, "ax", %progbits
 
-.section .text.drivers.RCC, "ax", %progbits
+@ Macro used for configuring the various regions used by the system
+.macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
+	LDR     r1, =\region_base
+	MOVW    r2, #(0b10000 | \region_number) @ Region number, VALID bit
+	ORR     r1, r1, r2
+	STR     r1, [r0, #0x0C]                 @ MPU_RBAR reg
+
+	LDR     r2, =\region_mask
+	STR     r2, [r0, #0x10]                 @ MPU_RASR reg
+.endm
+
 
 @-----------------------------------
 @ main function called by system initialization to configure the MPU
@@ -118,3 +129,61 @@ _MPU_enable:
   BX      lr
   .align 4
   .size _MPU_enable, .-_MPU_enable
+
+
+
+
+
+
+
+.section .rodata.registers.MPU, "a", %progbits
+  .equ MPU_BASE, 0xE000ED90
+
+  @----------------------------- System Peripheral Space
+  .equ SECTION7_SIZE, 0x00100000    @ 1MB
+  .equ SECTION7_BASE, 0xE0000000
+  @                     XN = 1    |   AP =  001   |  TEX =  000   |   S =  1    |   C = 0     |   B = 0     |SRD=00000000| SIZE = 19 | ENABLE 
+  .equ SECTION7_MASK, (0b1 << 28) | (0b001 << 24) | (0b000 << 19) | (0b1 << 18) | (0b0 << 17) | (0b0 << 16) | (0x0 << 8) | (19 << 1) | 0b1
+  
+  @----------------------------- Bit-Band Area of DMA Controller
+  .equ SECTION6_SIZE, 0x00020000    @ 128KB
+  .equ SECTION6_BASE, 0x424C0000
+  @                     XN = 1    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 0     |   B = 1     |SRD=00000000| SIZE = 16 | ENABLE 
+  .equ SECTION6_MASK, (0b1 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b0 << 17) | (0b1 << 16) | (0x0 << 8) | (16 << 1) | 0b1
+  
+  @----------------------------- DMA Controller
+  .equ SECTION5_SIZE, 0x00001000    @ 4KB
+  .equ SECTION5_BASE, 0x40026000
+  @                     XN = 1    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 0     |   B = 1     |SRD=00000000| SIZE = 11 | ENABLE 
+  .equ SECTION5_MASK, (0b1 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b0 << 17) | (0b1 << 16) | (0x0 << 8) | (11 << 1) | 0b1
+
+  @----------------------------- Peripheral Registers
+  .equ SECTION4_SIZE, 0x20000000    @ 512MB
+  .equ SECTION4_BASE, 0x40000000
+  @                     XN = 1    |   AP =  011   |  TEX =  000   |   S =  1    |   C = 0     |   B = 1     |SRD=00000000| SIZE = 28 | ENABLE 
+  .equ SECTION4_MASK, (0b1 << 28) | (0b011 << 24) | (0b000 << 19) | (0b1 << 18) | (0b0 << 17) | (0b1 << 16) | (0x0 << 8) | (28 << 1) | 0b1
+
+  @----------------------------- Bit-Band Area of KERNEL SRAM
+  .equ SECTION3_SIZE, 0x00100000    @ 1MB
+  .equ SECTION3_BASE, 0x22200000
+  @                     XN = 1    |   AP =  001   |  TEX =  001   |   S =  0    |   C = 0     |   B = 0     |SRD=00000000| SIZE = 19 | ENABLE 
+  .equ SECTION3_MASK, (0b1 << 28) | (0b001 << 24) | (0b001 << 19) | (0b0 << 18) | (0b0 << 17) | (0b0 << 16) | (0x0 << 8) | (19 << 1) | 0b1
+
+  @----------------------------- KERNEL SRAM
+  .equ SECTION2_SIZE, 0x00008000    @ 32KB
+  .equ SECTION2_BASE, 0x20010000
+  @                     XN = 0    |   AP =  001   |  TEX =  001   |   S =  0    |   C = 1     |   B = 1     |SRD=00000000| SIZE = 14 | ENABLE 
+  .equ SECTION2_MASK, (0b0 << 28) | (0b001 << 24) | (0b001 << 19) | (0b0 << 18) | (0b1 << 17) | (0b1 << 16) | (0x0 << 8) | (14 << 1) | 0b1
+
+  @----------------------------- SRAM
+  .equ SECTION1_SIZE, 0x20000000    @ 512MB
+  .equ SECTION1_BASE, 0x20000000
+  @                     XN = 1    |   AP =  011   |  TEX =  000   |   S =  1    |   C = 1     |   B = 0     |SRD=00000000| SIZE = 28 | ENABLE 
+  .equ SECTION1_MASK, (0b1 << 28) | (0b011 << 24) | (0b000 << 19) | (0b1 << 18) | (0b1 << 17) | (0b0 << 16) | (0x0 << 8) | (28 << 1) | 0b1
+
+  @----------------------------- FLASH for kernel and apps
+  .equ SECTION0_SIZE, 0x20000000    @ 512MB
+  .equ SECTION0_BASE, 0x00000000
+  @                     XN = 0    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 1     |   B = 0     |SRD=00000000| SIZE = 28 | ENABLE 
+  .equ SECTION0_MASK, (0b0 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b1 << 17) | (0b0 << 16) | (0x0 << 8) | (28 << 1) | 0b1
+

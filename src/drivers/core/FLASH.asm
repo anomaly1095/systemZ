@@ -29,12 +29,15 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../common/define.asm"
-  #include "../../common/macros.asm"
-
+  #include "../../../include/define.asm"
+  
 @ MPU register details provided in STM32F401RE Referance Manual page 60
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- SYSTEM INIT section
+.section .text.sysinit, "ax", %progbits
 
-.section .text.drivers.FLASH, "ax", %progbits
+  .define DEVELOPMENT_MODE
+  @ .define PRODUCTION_MODE
 
 @-----------------------------------
 @ main function called by system initialization to configure the FLASH
@@ -155,5 +158,19 @@ __FLASH_opt_config:
   .align 4
   .size __FLASH_opt_config, .-__FLASH_opt_config
 
+@----------------------------------------------------------------------
+@----------------------------------------------------------------------
+@ syscalls thru SVC
+.section .text.drivers.FLASH, "ax", %progbits
 
-@ other functions will serve as syscalls (erase / program) for FLASH
+
+
+
+
+.section .rodata.registers.FLASH, "a", %progbits
+  .equ FLASH_BASE, 0x40023C00       @ FLASH base address
+  .equ FLASH_KEY1, 0x45670123
+  .equ FLASH_KEY2, 0xCDEF89AB
+  .equ FLASH_OPTKEY1, 0x08192A3B
+  .equ FLASH_OPTKEY2, 0x4C5D6E7F
+
