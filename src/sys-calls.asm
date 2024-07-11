@@ -1,4 +1,4 @@
-      
+
 @ # SystemZ Kernel <PRODUCTION BRANCH>
 
 @ Copyright (C) 2024 Connexion Nord, Inc. or its affiliates. All Rights Reserved.
@@ -23,75 +23,13 @@
 @ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @ <https://github.com/anomaly1095/systemZ>
+@ Author: Youssef Azaiez
 
 .syntax unified
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-
-@ NVIC register details provided in stm32-cortex-M4 Referance Manual page 208
-
-.section .text.sysinit, "ax", %progbits
-
-@-----------------------------------
-@ Macro used to select which register to select in the NVIC (0..7)
-@ Applies on NVIC_ISER, NVIC_ICER, NVIC_ISPR, NVIC_ICPR, NVIC_IABR
-@ arg0: interrupt position (irq_num)
-@ arg1: address of register 0 (NVIC0_addr)
-@ return: sets address of register to work on in r2 and normalizes irq_num in r0
-@ example: NVIC_REG_SELECT0_7 5, 0xE000E100 
-@-----------------------------------
-.macro NVIC_REG_SELECT0_7 irq_num:req, NVIC0_addr:req
-  LDR     r2, =\NVIC0_addr         @ Load the base address into r2
-
-  CMP     \irq_num, #31            @ Compare irq_num with 31
-  IT      GT                       @ If irq_num > 31, then...
-  ADDGT   r2, r2, #0x04            @ Adjust address if irq_num > 31
-
-  CMP     \irq_num, #63            @ Compare irq_num with 63
-  ITTE    GT                       @ If irq_num > 63, then...
-  ADDGT   r2, r2, #0x04            @ Adjust address if irq_num > 63
-  SUBGT   \irq_num, \irq_num, #64  @ Normalize the bit offset in irq_num to start at 0 if irq_num > 63
-  SUBLE   \irq_num, \irq_num, #32  @ Normalize the bit offset in irq_num to start at 0 if irq_num <= 63
-.endm
-
-
-@-----------------------------------
-@ Macro used to select which register to select in the NVIC (0..59)
-@ Applies on NVIC_IPR
-@ arg0: interrupt position (irq_num)
-@ arg1: base address of NVIC_IPR registers (NVIC0_IPR_addr)
-@ return: sets the address of the register to work on in r2 and normalizes irq_num in \irq_num
-@-----------------------------------
-.macro NVIC_REG_SELECT0_59 irq_num:req, NVIC0_IPR_addr:req
-  LDR     r2, =\NVIC0_IPR_addr     @ Load the base address into r2
-  LSR     \irq_num, \irq_num, #2   @ Divide irq_num by 4 to get the byte offset
-  ADD     r2, r2, \irq_num         @ Add the offset to the base address
-.endm
-
-
-@-----------------------------------
-@ main function called by system initialization to configure the NVIC
-@-----------------------------------
-  .global _NVIC_config
-  .type _NVIC_config, %function
-_NVIC_config:
-  PUSH    {lr}
-  @ enable RCC / FLASH / FPU
-  LDR     r0, =NVIC_ISER0
-  LDR     r1, [r0]              @ NVIC_ISER0
-  MOV     r2, #(0b11 << 4)      @ set FLASH and RCC bits
-  ORR     r1, r1, r2
-  STR     r1, [r0]              @ NVIC_ISER0
-  LDR     r1, [r0, #0x08]       @ NVIC_ISER2
-  MOV     r2, #(0b1 << 4)       @ set FPU bit
-  ORR     r1, r1, r2
-  STR     r1, [r0, #0x08]       @ NVIC_ISER2
-  POP     {lr}
-  MOV     r0, #0
-  BX      lr
-  .align  4
-  .size _NVIC_config, .-_NVIC_config
+.include "include.asm"
 
 @----------------------------------------------------------------------
 @----------------------------------------------------------------------
@@ -258,17 +196,3 @@ _NVIC_soft_trigger_irq:
   BX      lr
   .align  4
   .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
-
-
-
-
-
-
-.section .rodata.registers.NVIC, "a", %progbits
-  .equ NVIC_ISER0, 0xE000E100     @ 7 register
-  .equ NVIC_ICER0, 0xE000E180     @ 7 register
-  .equ NVIC_ISPR0, 0xE000E200     @ 7 register
-  .equ NVIC_ICPR0, 0xE000E280     @ 7 register
-  .equ NVIC_IABR0, 0xE000E300     @ 7 register
-  .equ NVIC_IPR0, 0xE000E400      @ 59 register
-  .equ STIR, 0xE000EF00           @ 1 register

@@ -33,27 +33,10 @@ ROOT/
     ├── IRQ.asm
     ├── isr-vectors.asm
     ├── sys-init.asm
+    ├── include.asm
     ├── app/
     │   └── main.asm
-    └── drivers/
-        ├── core/
-        │   ├── FLASH.asm
-        │   ├── FPU.asm
-        │   ├── MPU.asm
-        │   ├── NVIC.asm
-        │   ├── PWR.asm
-        │   └── RCC.asm
-        └── extern/
-            ├── GPIO.asm
-            ├── USART.asm
-            ├── SPI.asm
-            ├── I2C.asm
-            ├── ADC.asm
-            ├── DMA.asm
-            ├── EXTI.asm
-            ├── RTC.asm
-            ├── timers.asm
-            └── USB.asm
+    └── sys-calls.asm
 
 ## Getting Started
 

@@ -1,4 +1,4 @@
-      
+
 @ # SystemZ Kernel <PRODUCTION BRANCH>
 
 @ Copyright (C) 2024 Connexion Nord, Inc. or its affiliates. All Rights Reserved.
@@ -23,14 +23,13 @@
 @ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 @ <https://github.com/anomaly1095/systemZ>
+@ Author: Youssef Azaiez
 
 .syntax unified
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
 
-@ MPU register details provided in ARM cortex-M7 Referance Manual page 200
-.section .text.sysinit, "ax", %progbits
 
 @ Macro used for configuring the various regions used by the system
 .macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
@@ -43,96 +42,71 @@
 	STR     r2, [r0, #0x10]                 @ MPU_RASR reg
 .endm
 
+@-----------------------------------
+@ Macro used to select which register to select in the NVIC (0..7)
+@ Applies on NVIC_ISER, NVIC_ICER, NVIC_ISPR, NVIC_ICPR, NVIC_IABR
+@ arg0: interrupt position (irq_num)
+@ arg1: address of register 0 (NVIC0_addr)
+@ return: sets address of register to work on in r2 and normalizes irq_num in r0
+@ example: NVIC_REG_SELECT0_7 5, 0xE000E100 
+@-----------------------------------
+.macro NVIC_REG_SELECT0_7 irq_num:req, NVIC0_addr:req
+  LDR     r2, =\NVIC0_addr         @ Load the base address into r2
 
-@-----------------------------------
-@ main function called by system initialization to configure the MPU
-@-----------------------------------
-  .global _MPU_config
-  .type _MPU_config, %function
-_MPU_config:
-  PUSH    {lr}
-  LDR     r0, =MPU_BASE
-  BL      _MPU_type  
-  BL      _MPU_sections_config
-  BL      _MPU_enable
-  POP     {lr}
-  MOV     r0, #0
-  BX      lr
-  .align 4
-  .size _MPU_config, .-_MPU_config
+  CMP     \irq_num, #31            @ Compare irq_num with 31
+  IT      GT                       @ If irq_num > 31, then...
+  ADDGT   r2, r2, #0x04            @ Adjust address if irq_num > 31
 
-  
-@-----------------------------------
-@ Check for system's support for MPU
-@ Check support for separate or unified sections
-@-----------------------------------
-  .type _MPU_type, %function
-_MPU_type:
-  LDR     r1, [r0]
-  CMP     r2, #0
-  ITTE    EQ
-  POP     {lr}          @ if not MPU or no separate sections possibility 
-  BXEQ    lr            @ we return to system init
-  BX      lr
-  .align 4
-  .size _MPU_type, .-_MPU_type
+  CMP     \irq_num, #63            @ Compare irq_num with 63
+  ITTE    GT                       @ If irq_num > 63, then...
+  ADDGT   r2, r2, #0x04            @ Adjust address if irq_num > 63
+  SUBGT   \irq_num, \irq_num, #64  @ Normalize the bit offset in irq_num to start at 0 if irq_num > 63
+  SUBLE   \irq_num, \irq_num, #32  @ Normalize the bit offset in irq_num to start at 0 if irq_num <= 63
+.endm
 
 
 @-----------------------------------
-@ Configure the 8 sections for the system
-@ (macro used is defined in src/common/macros.asm)
+@ Macro used to select which register to select in the NVIC (0..59)
+@ Applies on NVIC_IPR
+@ arg0: interrupt position (irq_num)
+@ arg1: base address of NVIC_IPR registers (NVIC0_IPR_addr)
+@ return: sets the address of the register to work on in r2 and normalizes irq_num in \irq_num
 @-----------------------------------
-  .type _MPU_sections_config, %function
-_MPU_sections_config:
-  @ Configure REGION0: 0x00000000 to 0x1FFFFFFF (FLASH for kernel and apps)
-  MPU_CONFIG_REGION SECTION0_BASE, 0, SECTION0_MASK
-
-  @ Configure REGION1: 0x20000000 to 0x3FFFFFFF (SRAM)
-  MPU_CONFIG_REGION SECTION1_BASE, 1, SECTION1_MASK
-  
-  @ Configure REGION2: 0x20010000 to 0x20017FFF (Kernel SRAM)
-  MPU_CONFIG_REGION SECTION2_BASE, 2, SECTION2_MASK
-
-  @ Configure REGION3: 0x22200000 to 0x222FFFFF (Bit-Band Area of Kernel SRAM)
-  MPU_CONFIG_REGION SECTION3_BASE, 3, SECTION3_MASK
-  
-  @ Configure REGION4: 0x40000000 to 0x5FFFFFFF (Peripheral Registers)
-  MPU_CONFIG_REGION SECTION4_BASE, 4, SECTION4_MASK
-  
-  @ Configure REGION5: 0x40026000 to 0x40026FFF (DMA Controller)
-  MPU_CONFIG_REGION SECTION5_BASE, 5, SECTION5_MASK
-
-  @ Configure REGION6: 0x424C0000 to 0x424DFFFF (Bit-Band Area of DMA Controller)
-  MPU_CONFIG_REGION SECTION6_BASE, 6, SECTION6_MASK
-
-  @ Configure REGION7: 0xE0000000 to 0xE00FFFFF (System Peripheral Space)
-  MPU_CONFIG_REGION SECTION7_BASE, 7, SECTION7_MASK
-  @ return
-  BX      lr
-  .align 4
-  .size _MPU_sections_config, .-_MPU_sections_config
-  
-
-@-----------------------------------
-@ Check for system's support for MPU
-@ Check support for separate or unified sections
-@-----------------------------------
-_MPU_enable:
-  .type _MPU_enable, %function
-  @  Enable background map, enable mpu during NMI AND FAULTS, enable MPU
-  LDR     r1, [r0, #0x04]       @ MPU_CTRL reg
-  MOV     r2, #0b111
-  ORR     r1, r2                @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
-  STR     r1, [r0, #0x04]       @ MPU_CTRL reg
-  BX      lr
-  .align 4
-  .size _MPU_enable, .-_MPU_enable
+.macro NVIC_REG_SELECT0_59 irq_num:req, NVIC0_IPR_addr:req
+  LDR     r2, =\NVIC0_IPR_addr     @ Load the base address into r2
+  LSR     \irq_num, \irq_num, #2   @ Divide irq_num by 4 to get the byte offset
+  ADD     r2, r2, \irq_num         @ Add the offset to the base address
+.endm
 
 
+.section .rodata.registers.FLASH, "a", %progbits
+  .equ FLASH_BASE, 0x40023C00       @ FLASH base address
+  .equ FLASH_KEY1, 0x45670123
+  .equ FLASH_KEY2, 0xCDEF89AB
+  .equ FLASH_OPTKEY1, 0x08192A3B
+  .equ FLASH_OPTKEY2, 0x4C5D6E7F
 
+.section .rodata.registers.NVIC, "a", %progbits
+  .equ NVIC_ISER0, 0xE000E100     @ 7 register
+  .equ NVIC_ICER0, 0xE000E180     @ 7 register
+  .equ NVIC_ISPR0, 0xE000E200     @ 7 register
+  .equ NVIC_ICPR0, 0xE000E280     @ 7 register
+  .equ NVIC_IABR0, 0xE000E300     @ 7 register
+  .equ NVIC_IPR0, 0xE000E400      @ 59 register
+  .equ STIR, 0xE000EF00           @ 1 register
 
+.section .rodata.registers.PWR, "a", %progbits
+  .equ PWR_BASE, 0x40007000
+  .equ PWR_CR_MASK, 0x8EFD
+@-----------------------------------------------
+.section .rodata.registers.RCC, "a", %progbits
+  .equ RCC_BASE, 0x40023800       @ RCC bit-band base address
+  .equ RCC_BASE_BB, 0x42470000    @ RCC base address
+  .equ RCC_PLLCFGR_MASK, 0xF437FFF
 
-
+.section .rodata.registers.SYSTICK, "a", %progbits
+  .equ SYSTCK_BASE, 0xE000E010
+  .equ SYSTICK_COUNTER, 10499   @ value to be laded in STK_LOAD
 
 .section .rodata.registers.MPU, "a", %progbits
   .equ MPU_BASE, 0xE000ED90
@@ -185,3 +159,20 @@ _MPU_enable:
   @                     XN = 0    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 1     |   B = 0     |SRD=00000000| SIZE = 28 | ENABLE 
   .equ SECTION0_MASK, (0b0 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b1 << 17) | (0b0 << 16) | (0x0 << 8) | (28 << 1) | 0b1
 
+@----------------------------------------------
+@ kernel sections limits
+.section .rodata.k_sections, "a", %progbits
+	.word _sikdata
+	.word _skdata
+	.word _ekdata
+	.word _skbss
+	.word _ekbss
+
+@ application sections limits
+.section .rodata.sections, "a", %progbits
+	.word _estack
+	.word _sidata
+	.word _sdata
+	.word _edata
+	.word _sbss
+	.word _ebss
