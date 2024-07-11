@@ -40,12 +40,12 @@ ROOT/
 
 ## Getting Started
 
-[Include instructions on how to get started with the project, such as installation steps, prerequisites, and how to compile/build/run the operating system.]
+[Project is still in developement phase no build is available.]
 
 ## Contributing
 
-[Guidelines for contributing to the project if applicable.]
+[All help and participations or advice are welcome.]
 
 ## License
 
-[Include information about the project's license. The license file is available in the /LICENSE directory.]
+[The license file is available in the /LICENSE directory.]
