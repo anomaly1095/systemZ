@@ -138,6 +138,272 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 #endif // !NVIC_H
 
 /*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+
+#ifndef FLASH_HELPERS 1
+#define FLASH_BASE               (0x40023C00U)
+#define FLASH_ACR_OFFSET         (0x00U)
+#define FLASH_KEYR_OFFSET        (0x04U)
+#define FLASH_OPTKEYR_OFFSET     (0x08U)
+#define FLASH_SR_OFFSET          (0x0CU)
+#define FLASH_CR_OFFSET          (0x10U)
+#define FLASH_OPTCR_OFFSET       (0x14U)
+
+#define FLASH_KEY1               (0x45670123U)
+#define FLASH_KEY2               (0xCDEF89ABU)
+#define FLASH_OPTKEY1            (0x08192A3BU)
+#define FLASH_OPTKEY2            (0x4C5D6E7FU)
+
+/*FLASH interface registers*/
+/*
+Each memory mapped regitser pointed to is dereferenced to avoid dereferencing in each op
+*/
+#define FLASH_ACR         (*(volatile uint32_t *)(FLASH_BASE + FLASH_ACR_OFFSET))
+#define FLASH_KEYR        (*(volatile uint32_t *)(FLASH_BASE + FLASH_KEYR_OFFSET))
+#define FLASH_OPTKEYR     (*(volatile uint32_t *)(FLASH_BASE + FLASH_OPTKEYR_OFFSET))
+#define FLASH_SR          (*(volatile uint32_t *)(FLASH_BASE + FLASH_SR_OFFSET))
+#define FLASH_CR          (*(volatile uint32_t *)(FLASH_BASE + FLASH_CR_OFFSET))
+#define FLASH_OPTCR       (*(volatile uint32_t *)(FLASH_BASE + FLASH_OPTCR_OFFSET))
+
+
+/*--------FLASH_ACR---------*/
+/*--------FLASH_ACR---------*/
+
+/* Enable the data cache */
+#define FLASH_EN_DCACHE()       SET_BIT(FLASH_ACR, 10U)
+/* Disable the data cache */
+#define FLASH_DIS_DCACHE()      CLEAR_BIT(FLASH_ACR, 10U)
+/* Reset the data cache */
+#define FLASH_RES_DCACHE()      SET_BIT(FLASH_ACR, 12U)
+/* Enable the instruction cache */
+#define FLASH_EN_ICACHE()       SET_BIT(FLASH_ACR, 9U)
+/* Disable the instruction cache */
+#define FLASH_DIS_ICACHE()      CLEAR_BIT(FLASH_ACR, 9U)
+/* Reset the instruction cache */
+#define FLASH_RES_ICACHE()      SET_BIT(FLASH_ACR, 11U)
+/* Enable the prefetch buffer */
+#define FLASH_EN_PREFETCH()     SET_BIT(FLASH_ACR, 8U)
+/* Disable the prefetch buffer */
+#define FLASH_DIS_PREFETCH()    CLEAR_BIT(FLASH_ACR, 8U)
+
+/// @param MASK:
+// 0000: Zero wait state
+// 0001: One wait state
+// 0010: Two wait states
+// ....
+// ....
+// 1110: Fourteen wait states
+// 1111: Fifteen wait states
+#define FLASH_SET_LATENCY(MASK) \
+  CLEAR_BITS(FLASH_ACR, 0b1111U) \
+  SET_BITS(FLASH_ACR, MASK)
+
+/*--------FLASH_KEYR---------*/
+/*--------FLASH_KEYR---------*/
+
+
+/*Unlock write access to the FLASH_CR register*/
+#define FLASH_UNLOCK_CR() \
+  SET_BITS(FLASH_KEYR, FLASH_KEY1) \
+  SET_BITS(FLASH_KEYR, FLASH_KEY2)
+
+/*--------FLASH_OPTKEYR---------*/
+/*--------FLASH_OPTKEYR---------*/
+
+/*Unlock write access to the FLASH_OPTCR register to alter OPTION BYTES*/
+#define FLASH_UNLOCK_OPTCR() \
+  SET_BITS(FLASH_OPTKEYR, FLASH_OPTKEY1) \
+  SET_BITS(FLASH_OPTKEYR, FLASH_OPTKEY2)
+
+/*--------FLASH_SR---------*/
+/*--------FLASH_SR---------*/
+
+/* Check if the FLASH is busy */
+#define FLASH_CHECK_BUSY()            READ_BIT(FLASH_SR, 31U)
+/* Check for a protection error */
+#define FLASH_CHECK_PROTERROR()       READ_BIT(FLASH_SR, 8U)
+/* Check for a programming sequence error */
+#define FLASH_CHECK_PROG_SEQERR()     READ_BIT(FLASH_SR, 7U)
+/* Check for a programming parallelism error */
+#define FLASH_CHECK_PROG_PARALLERR()  READ_BIT(FLASH_SR, 6U)
+/* Check for a programming alignment error */
+#define FLASH_CHECK_PROG_ALIGNERR()   READ_BIT(FLASH_SR, 5U)
+/* Check for a write protection error */
+#define FLASH_CHECK_WRITE_PROTERR()   READ_BIT(FLASH_SR, 4U)
+/* Check for an operation error */
+#define FLASH_CHECK_OPERR()           READ_BIT(FLASH_SR, 1U)
+/* Check if the end of operation flag is set */
+#define FLASH_CHECK_END_OP()          READ_BIT(FLASH_SR, 0U)
+/* Clear the protection error flag */
+#define FLASH_CLEAR_PROTERROR()       SET_BIT(FLASH_SR, 8U)
+/* Clear the programming sequence error flag */
+#define FLASH_CLEAR_PROG_SEQERR()     SET_BIT(FLASH_SR, 7U)
+/* Clear the programming parallelism error flag */
+#define FLASH_CLEAR_PROG_PARALLERR()  SET_BIT(FLASH_SR, 6U)
+/* Clear the programming alignment error flag */
+#define FLASH_CLEAR_PROG_ALIGNERR()   SET_BIT(FLASH_SR, 5U)
+/* Clear the write protection error flag */
+#define FLASH_CLEAR_WRITE_PROTERR()   SET_BIT(FLASH_SR, 4U)
+/* Clear the operation error flag */
+#define FLASH_CLEAR_OPERR()           SET_BIT(FLASH_SR, 1U)
+/* Clear the end of operation flag */
+#define FLASH_CLEAR_END_OP()          SET_BIT(FLASH_SR, 0U)
+
+
+/*--------FLASH_CR---------*/
+/*--------FLASH_CR---------*/
+#define FLASH_LOCK_CR()       SET_BIT(FLASH_CR, 31U)
+/*FLASH error interrupt enable*/
+#define FLASH_ERR_IE()        SET_BIT(FLASH_CR, 25U)
+/*FLASH error interrupt disable*/
+#define FLASH_ERR_ID()        CLEAR_BIT(FLASH_CR, 25U)
+/*FLASH end of operation interrupt enable*/
+#define FLASH_EOP_IE()        SET_BIT(FLASH_CR, 24U)
+/*FLASH end of operation interrupt disable*/
+#define FLASH_EOP_ID()        CLEAR_BIT(FLASH_CR, 24U)
+#define FLASH_START_OP()      SET_BIT(FLASH_CR, 16U)
+/// @param SIZE: These bits select the program parallelism.
+// 00 program x8
+// 01 program x16
+// 10 program x32
+// 11 program x64
+#define FLASH_SET_PROG_SIZE(SIZE) \
+  CLEAR_BITS(FLASH_CR, 0b11U << 8U) \
+  SET_BITS(FLASH_CR, SIZE << 8U)
+
+/// @param NUM: These bits select the sector to erase.
+// 0000 sector 0
+// 0001 sector 1
+// ...
+// 0101 sector 5
+// 0110 sector 6 (STM32F401xD/E devices only)
+// 0111 sector 7 (STM32F401xE devices only)
+#define FLASH_SEL_SECTOR_NUM(NUM) \
+  CLEAR_BITS(FLASH_CR, 0b1111U << 3) \
+  SET_BITS(FLASH_CR, NUM << 3)
+#define FLASH_MASS_ERASE()  SET_BIT(FLASH_CR, 2U)
+#define FLASH_SECTOR_ERASE()  SET_BIT(FLASH_CR, 1U)
+#define FLASH_PROGRAMMING() SET_BIT(FLASH_CR, 0U)
+
+/*--------FLASH_OPTCR---------*/
+/*--------FLASH_OPTCR---------*/
+
+/* Reset SPRMOD bit */
+#define FLASH_WPRMODE_RESET()     CLEAR_BIT(FLASH_OPTCR, 31U)
+/* SPRMOD: Selection of protection mode of WPR bits. */
+#define FLASH_WPRMODE_SELECT()    SET_BIT(FLASH_OPTCR, 31U)
+/* nWRP sector 7 */
+#define FLASH_WRP_SECTOR_7()      SET_BIT(FLASH_OPTCR, 23U)
+/* nWRP sector 6 */
+#define FLASH_WRP_SECTOR_6()      SET_BIT(FLASH_OPTCR, 22U)
+/* nWRP sector 5 */
+#define FLASH_WRP_SECTOR_5()      SET_BIT(FLASH_OPTCR, 21U)
+/* nWRP sector 4 */
+#define FLASH_WRP_SECTOR_4()      SET_BIT(FLASH_OPTCR, 20U)
+/* nWRP sector 3 */
+#define FLASH_WRP_SECTOR_3()      SET_BIT(FLASH_OPTCR, 19U)
+/* nWRP sector 2 */
+#define FLASH_WRP_SECTOR_2()      SET_BIT(FLASH_OPTCR, 18U)
+/* nWRP sector 1 */
+#define FLASH_WRP_SECTOR_1()      SET_BIT(FLASH_OPTCR, 17U)
+/* nWRP sector 0 */
+#define FLASH_WRP_SECTOR_0()      SET_BIT(FLASH_OPTCR, 16U)
+/* @param SECTORS: These bits define the write protection sectors. */
+// Bit 16: nWRP[0]
+// Bit 17: nWRP[1]
+// ...
+// Bit 23: nWRP[7]
+#define FLASH_SET_WRP_SECTORS(SECTORS) \
+    CLEAR_BITS(FLASH_OPTCR, 0xFFU << 16U) \
+    SET_BITS(FLASH_OPTCR, SECTORS << 16U)
+/* @param LEVEL: These bits define the read protection level. */
+// 0xAA: Level 0
+// 0x55: Level 1
+// 0xCC: Level 2
+#define FLASH_SET_RDP_LEVEL(LEVEL) \
+    CLEAR_BITS(FLASH_OPTCR, 0xFFU << 8U) \
+    SET_BITS(FLASH_OPTCR, LEVEL << 8U)
+
+/* Read protection level 1 */
+#define FLASH_RDP_LVL1()          CLEAR_BIT(FLASH_OPTCR, 8U)
+/* Read protection level 2 */
+#define FLASH_RDP_LVL2()          SET_BIT(FLASH_OPTCR, 8U)
+/* Option lock */
+#define FLASH_LOCK_OPTCR()        SET_BIT(FLASH_OPTCR, 0U)
+
+
+#endif // !FLASH_HELPERS 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+
+#ifndef CRC_HELPERS 1
+/*The CRC calculation unit Base address*/ 
+#define CRC_BASE            (0x40023000U)
+
+#define CRC_DR_OFFSET       (0x00U)
+#define CRC_IDR_OFFSET      (0x04U)
+#define CRC_CR_OFFSET       (0x08U)
+
+/* The CRC Data register */
+#define CRC_DR        (*(volatile uint32_t *)(CRC_BASE + CRC_DR_OFFSET))
+/* The CRC Independent Data register */
+#define CRC_IDR       (*(volatile uint32_t *)(CRC_BASE + CRC_IDR_OFFSET))
+/* The CRC Control register */
+#define CRC_CR        (*(volatile uint32_t *)(CRC_BASE + CRC_CR_OFFSET))
+
+
+/*--------CRC_DR---------*/
+/*--------CRC_DR---------*/
+
+/* Read the CRC Data register */
+#define READ_CRC_DR()            (CRC_DR)
+
+/* Write to the CRC Data register */
+#define WRITE_CRC_DR(VAL)      (CRC_DR = (VAL))
+
+/*--------CRC_IDR---------*/
+/*--------CRC_IDR---------*/
+
+/* Read the CRC Independent Data register */
+#define READ_CRC_IDR()           (CRC_IDR)
+
+/* Write to the CRC Independent Data register */
+#define WRITE_CRC_IDR(VAL)     (CRC_IDR = (VAL))
+
+/*--------CRC_CR---------*/
+/*--------CRC_CR---------*/
+
+/* Reset the CRC calculation unit */
+#define CRC_RESET()              SET_BIT(CRC_CR, 0U)
+
+/* Check if CRC unit is reset */
+#define CRC_IS_RESET()           READ_BIT(CRC_CR, 0U)
+
+#endif // !CRC_HELPERS 1
+
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+
+#ifndef PWR_HELPERS 1
+
+
+
+
+#endif // !PWR_HELPERS 1
+
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
 
 /*---------------------------------------------------------------*/
 /*---------------Macros for Reset and clock control--------------*/
@@ -145,7 +411,7 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 #ifndef RCC_HELPERS             1
 
 #define RCC_BASE                (0x40023800U)
-#define RCC_CR_OFFSET           (0x0U)
+#define RCC_CR_OFFSET           (0x00U)
 #define RCC_PLLCFGR_OFFSET      (0x04U)
 #define RCC_CFGR_OFFSET         (0x08U)
 #define RCC_CIR_OFFSET          (0x0CU)
@@ -168,7 +434,10 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 #define RCC_DCKCFGR_OFFSET      (0x8CU)
 
 
-/*RCC control register*/
+/*RCC interface register*/
+/*
+Each memory mapped regitser pointed to is dereferenced to avoid dereferencing in each op
+*/
 #define RCC_CR         (*(volatile uint32_t *)(RCC_BASE + RCC_CR_OFFSET))
 #define RCC_PLLCFGR    (*(volatile uint32_t *)(RCC_BASE + RCC_PLLCFGR_OFFSET))
 #define RCC_CFGR       (*(volatile uint32_t *)(RCC_BASE + RCC_CFGR_OFFSET))
@@ -739,22 +1008,8 @@ s
 
 #endif // !RCC_HELPERS
 
-/*=============================================================================*/
-/*=============================================================================*/
-
-#ifndef FLASH_HELPERS 1
-
-
-#endif // !FLASH_HELPERS 1
 
 /*=============================================================================*/
-/*=============================================================================*/
-
-#ifndef PWR_HELPERS 1
-
-
-#endif // !PWR_HELPERS 1
-
 /*=============================================================================*/
 /*=============================================================================*/
 
@@ -763,5 +1018,6 @@ s
 
 #endif // !GPIO_HELPERS 1
 
+/*=============================================================================*/
 /*=============================================================================*/
 /*=============================================================================*/
