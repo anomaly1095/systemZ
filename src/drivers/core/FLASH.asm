@@ -29,8 +29,6 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../../include/define.asm"
-  
 @ MPU register details provided in STM32F401RE Referance Manual page 60
 @----------------------------------------------------------------------
 @---------------------------------------------------------------------- SYSTEM INIT section

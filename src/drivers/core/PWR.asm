@@ -29,8 +29,6 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../../include/define.asm"
-
 
 @ PWR register details provided in STM32F401's ref manual page 87
 @----------------------------------------------------------------------

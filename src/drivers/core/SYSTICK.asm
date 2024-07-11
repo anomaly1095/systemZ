@@ -28,8 +28,6 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../../include/define.asm"
-
 
 @ SYSTICK register details provided in stm32-cortex-M4 page 246 
 @----------------------------------------------------------------------

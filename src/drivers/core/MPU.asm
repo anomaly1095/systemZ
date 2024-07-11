@@ -29,8 +29,6 @@
 .fpu fpv4-sp-d16
 .thumb
 
-  #include "../../../include/define.asm"
-
 @ MPU register details provided in ARM cortex-M7 Referance Manual page 200
 .section .text.sysinit, "ax", %progbits
 

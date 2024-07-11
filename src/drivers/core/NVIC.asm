@@ -28,8 +28,6 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-  #include "../../../include/define.asm"
-
 
 @ NVIC register details provided in stm32-cortex-M4 Referance Manual page 208
 
