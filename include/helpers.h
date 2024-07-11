@@ -36,13 +36,13 @@
 #define MODIFY_REG(REG, MASK, VALUE) ((REG) = ((REG) & ~(MASK)) | (VALUE))
 
 /*sets the BIT_NUM bit in the register*/
-#define SET_BIT(REG, BIT_NUM)   ((REG) |= (0b1 << BIT_NUM))
+#define SET_BIT(REG, BIT_NUM)   ((REG) |= (0b1U << BIT_NUM))
 
 /*sets the bits in the register that are set in MASK*/
 #define SET_BITS(REG, MASK)   ((REG) |= (MASK))
 
 /*reads the bit from the register and return boolean value*/
-#define READ_BIT(REG, BIT_NUM)  (((REG) & (1U << (BIT_NUM))) != 0)
+#define READ_BIT(REG, BIT_NUM)  (((REG) & (1U << (BIT_NUM))) != 0U)
 
 /// @brief Reads the bits from the register and returns true if all MASK bits are set.
 #define READ_BITS(REG, MASK)  (((REG) & (MASK)) == (MASK))
@@ -240,22 +240,22 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 /* PLLSRC = HSI, PLLN = 336, PLLP = 4, PLLM = 16 */ 
 #define RCC_PLL_84MHz() \
   MODIFY_REG(RCC_PLLCFGR, \
-    0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-    (1U << 22U) | (336U << 6U) | (4U << 16U) | (16U << 0U));
+  0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
+  (1U << 22U) | (336U << 6U) | (4U << 16U) | (16U << 0U));
 
 /*Set the PLL frequency at 72Mhz*/
 /* PLLSRC = HSI, PLLN = 432, PLLP = 6, PLLM = 16 */
 #define RCC_PLL_72MHz() \
   MODIFY_REG(RCC_PLLCFGR, \
-    0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-    (1U << 22U) | (432U << 6U) | (6U << 16U) | (16U << 0U));
+  0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
+  (1U << 22U) | (432U << 6U) | (6U << 16U) | (16U << 0U));
 
 /*Set the PLL frequency at 64Mhz*/
 /* PLLSRC = HSI, PLLN = 256, PLLP = 4, PLLM = 16 */
 #define RCC_PLL_64MHz() \
   MODIFY_REG(RCC_PLLCFGR, \
-    0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-    (1U << 22U) | (256U << 6U) | (4U << 16U) | (16U << 0U));
+  0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
+  (1U << 22U) | (256U << 6U) | (4U << 16U) | (16U << 0U));
 
 /*Set the PLL frequency at 42Mhz*/
 /* PLLSRC = HSI, PLLN = 336, PLLP = 8, PLLM = 16 */
@@ -271,8 +271,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 /// @param SOURCE Is the source of output in Microcontroller clock output 2
 /// 0b00: SYSCLK / 0b01: PLLI2S / 0b10: HSE / 0b11: PLL
 #define RCC_MCO2_SRC(SOURCE) \
-  CLEAR_BITS(RCC_CFGR, 0b11 << 30) \ 
-  SET_BITS(RCC_CFGR, SOURCE << 30)
+  CLEAR_BITS(RCC_CFGR, 0b11 << 30U) \
+  SET_BITS(RCC_CFGR, SOURCE << 30U)
 
 /// @param PRE is the prescaler to apply on the signal of Microcontroller clock output 2
 /// 0xx: no division / 0b100: division by 2 / 0b101: division by 3 /
@@ -282,8 +282,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 110: division by 4
 // 111: division by 5
 #define RCC_MCO2_PRE(PRE) \
-  CLEAR_BITS(RCC_CFGR, 0b111 << 27) \ 
-  SET_BITS(RCC_CFGR, PRE << 27)
+  CLEAR_BITS(RCC_CFGR, 0b111U << 27U) \
+  SET_BITS(RCC_CFGR, PRE << 27U)
 
 /// @param SOURCE Is the source of output in Microcontroller clock output 1
 // 00: HSI clock selected
@@ -291,15 +291,15 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 10: HSE oscillator clock selected
 // 11: PLL clock selected
 #define RCC_MCO1_SRC(SOURCE) \
-  CLEAR_BITS(RCC_CFGR, 0b11 << 21) \ 
-  SET_BITS(RCC_CFGR, SOURCE << 21)
+  CLEAR_BITS(RCC_CFGR, 0b11U << 21U) \
+  SET_BITS(RCC_CFGR, SOURCE << 21U)
 
 /// @param SOURCE Is the source of inter integrated sound clock
 // 0: PLLI2S clock used as I2S clock source
 // 1: External clock mapped on the I2S_CKIN pin used as I2S clock source
 #define RCC_MCO1_SRC(SOURCE) \
-  CLEAR_BITS(RCC_CFGR, 0b1 << 23) \ 
-  SET_BITS(RCC_CFGR, SOURCE << 23)
+  CLEAR_BITS(RCC_CFGR, 0b1U << 23U) \
+  SET_BITS(RCC_CFGR, SOURCE << 23U)
 
 /// @param PRE is the prescaler to apply on the signal of Microcontroller clock output 1
 /// 0xx: no division / 0b100: division by 2 / 0b101: division by 3 /
@@ -309,8 +309,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 110: division by 4
 // 111: division by 5
 #define RCC_MCO1_PRE(PRE) \
-  CLEAR_BITS(RCC_CFGR, 0b111 << 24) \ 
-  SET_BITS(RCC_CFGR, PRE << 24)
+  CLEAR_BITS(RCC_CFGR, 0b111U << 24U) \
+  SET_BITS(RCC_CFGR, PRE << 24U)
 
 /// @param PRE is the prescaler to apply on the signal of the real time clock
 /// 00000: no clock
@@ -322,8 +322,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 /// 11110: HSE/30
 /// 11111: HSE/31
 #define RCC_RTC_PRE(PRE) \
-  CLEAR_BITS(RCC_CFGR, 0b11111 << 16) \ 
-  SET_BITS(RCC_CFGR, PRE << 16)
+  CLEAR_BITS(RCC_CFGR, 0b11111U << 16U) \
+  SET_BITS(RCC_CFGR, PRE << 16U)
 
 /// @param PRE is the prescaler to apply on the APB2 
 // 0xx: AHB clock not divided
@@ -332,8 +332,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 110: AHB clock divided by 8
 // 111: AHB clock divided by 16
 #define RCC_APB2_PRE(PRE) \
-  CLEAR_BITS(RCC_CFGR, 0b111 << 13) \ 
-  SET_BITS(RCC_CFGR, PRE << 13)
+  CLEAR_BITS(RCC_CFGR, 0b111U << 13U) \
+  SET_BITS(RCC_CFGR, PRE << 13U)
 
 /// @param PRE is the prescaler to apply on the APB1
 // 0xx: AHB clock not divided
@@ -342,8 +342,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 110: AHB clock divided by 8
 // 111: AHB clock divided by 16
 #define RCC_APB1_PRE(PRE) \
-  CLEAR_BITS(RCC_CFGR, 0b111 << 10) \ 
-  SET_BITS(RCC_CFGR, PRE << 10)
+  CLEAR_BITS(RCC_CFGR, 0b111U << 10U) \
+  SET_BITS(RCC_CFGR, PRE << 10U)
 
 /// @param PRE is the prescaler to apply on the AHB1
 // 0xxx: system clock not divided
@@ -356,8 +356,8 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 1110: system clock divided by 256
 // 1111: system clock divided by 512
 #define RCC_AHB1_PRE(PRE) \
-  CLEAR_BITS(RCC_CFGR, 0b1111 << 4) \ 
-  SET_BITS(RCC_CFGR, PRE << 4)
+  CLEAR_BITS(RCC_CFGR, 0b1111U << 4U) \
+  SET_BITS(RCC_CFGR, PRE << 4U)
 
 
 /// @param STAT Is the mask to compare SWS bits to
@@ -375,7 +375,7 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 // 10: PLL selected as system clock
 // 11: not allowed
 #define RCC_SYSCLK_SRC(SOURCE) \
-  CLEAR_BITS(RCC_CFGR, 0b11) \ 
+  CLEAR_BITS(RCC_CFGR, 0b11U) \
   SET_BITS(RCC_CFGR, SOURCE)
 
 
@@ -383,281 +383,385 @@ extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
 /*--------RCC_CIR---------*/
 
 /*Clear CSS interrupt flag*/
-#define RCC_CSS_IC() SET_BIT(RCC_CIR, 23)
+#define RCC_CSS_IC() SET_BIT(RCC_CIR, 23U)
 /*Clear PLLI2S ready interrupt flag*/
-#define RCC_PLLI2SRDY_IC() SET_BIT(RCC_CIR, 21)
+#define RCC_PLLI2SRDY_IC() SET_BIT(RCC_CIR, 21U)
 /*Clear PLL ready interrupt flag*/
-#define RCC_PLLRDY_IC() SET_BIT(RCC_CIR, 20)
+#define RCC_PLLRDY_IC() SET_BIT(RCC_CIR, 20U)
 /*Clear HSE ready interrupt flag*/
-#define RCC_HSERDY_IC() SET_BIT(RCC_CIR, 19)
+#define RCC_HSERDY_IC() SET_BIT(RCC_CIR, 19U)
 /*Clear HSI ready interrupt flag*/
-#define RCC_HSIRDY_IC() SET_BIT(RCC_CIR, 18)
+#define RCC_HSIRDY_IC() SET_BIT(RCC_CIR, 18U)
 /*Clear LSE ready interrupt flag*/
-#define RCC_LSERDY_IC() SET_BIT(RCC_CIR, 17)
+#define RCC_LSERDY_IC() SET_BIT(RCC_CIR, 17U)
 /*Clear LSI ready interrupt flag*/
-#define RCC_LSIRDY_IC() SET_BIT(RCC_CIR, 16)
+#define RCC_LSIRDY_IC() SET_BIT(RCC_CIR, 16U)
 
 /*Enable PLLI2S ready interrupt */
-#define RCC_PLLI2SRDY_IE() SET_BIT(RCC_CIR, 13)
+#define RCC_PLLI2SRDY_IE() SET_BIT(RCC_CIR, 13U)
 /*Enable PLL ready interrupt */
-#define RCC_PLLRDY_IE() SET_BIT(RCC_CIR, 12)
+#define RCC_PLLRDY_IE() SET_BIT(RCC_CIR, 12U)
 /*Enable HSE ready interrupt */
-#define RCC_HSERDY_IE() SET_BIT(RCC_CIR, 11)
+#define RCC_HSERDY_IE() SET_BIT(RCC_CIR, 11U)
 /*Enable HSI ready interrupt */
-#define RCC_HSIRDY_IE() SET_BIT(RCC_CIR, 10)
+#define RCC_HSIRDY_IE() SET_BIT(RCC_CIR, 10U)
 /*Enable LSE ready interrupt */
-#define RCC_LSERDY_IE() SET_BIT(RCC_CIR, 9)
+#define RCC_LSERDY_IE() SET_BIT(RCC_CIR, 9U)
 /*Enable LSI ready interrupt */
-#define RCC_LSIRDY_IE() SET_BIT(RCC_CIR, 8)
+#define RCC_LSIRDY_IE() SET_BIT(RCC_CIR, 8U)
 
 /*Disable PLLI2S ready interrupt */
-#define RCC_PLLI2SRDY_ID() CLEAR_BIT(RCC_CIR, 13)
+#define RCC_PLLI2SRDY_ID() CLEAR_BIT(RCC_CIR, 13U)
 /*Disable PLL ready interrupt */
-#define RCC_PLLRDY_ID() CLEAR_BIT(RCC_CIR, 12)
+#define RCC_PLLRDY_ID() CLEAR_BIT(RCC_CIR, 12U)
 /*Disable HSE ready interrupt */
-#define RCC_HSERDY_ID() CLEAR_BIT(RCC_CIR, 11)
+#define RCC_HSERDY_ID() CLEAR_BIT(RCC_CIR, 11U)
 /*Disable HSI ready interrupt */
-#define RCC_HSIRDY_ID() CLEAR_BIT(RCC_CIR, 10)
+#define RCC_HSIRDY_ID() CLEAR_BIT(RCC_CIR, 10U)
 /*Disable LSE ready interrupt */
-#define RCC_LSERDY_ID() CLEAR_BIT(RCC_CIR, 9)
+#define RCC_LSERDY_ID() CLEAR_BIT(RCC_CIR, 9U)
 /*Disable LSI ready interrupt */
-#define RCC_LSIRDY_ID() CLEAR_BIT(RCC_CIR, 8)
+#define RCC_LSIRDY_ID() CLEAR_BIT(RCC_CIR, 8U)
 
 /*Check if PLLI2S ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_PLLI2SRDY_IE() READ_BIT(RCC_CIR, 7)
+#define RCC_PLLI2SRDY_IE() READ_BIT(RCC_CIR, 7U)
 /*Check if PLLI2S ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_PLLI2SRDY_IF() READ_BIT(RCC_CIR, 5)
+#define RCC_PLLI2SRDY_IF() READ_BIT(RCC_CIR, 5U)
 /*Check if PLL ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_PLLRDY_IF() READ_BIT(RCC_CIR, 4)
+#define RCC_PLLRDY_IF() READ_BIT(RCC_CIR, 4U)
 /*Check if HSE ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_HSERDY_IF() READ_BIT(RCC_CIR, 3)
+#define RCC_HSERDY_IF() READ_BIT(RCC_CIR, 3U)
 /*Check if HSI ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_HSIRDY_IF() READ_BIT(RCC_CIR, 2)
+#define RCC_HSIRDY_IF() READ_BIT(RCC_CIR, 2U)
 /*Check if LSE ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_LSERDY_IF() READ_BIT(RCC_CIR, 1)
+#define RCC_LSERDY_IF() READ_BIT(RCC_CIR, 1U)
 /*Check if LSI ready interrupt flag is set*/
 /// @return 1 if interrupt flag is set 0 if not
-#define RCC_LSIRDY_IF() READ_BIT(RCC_CIR, 0)
+#define RCC_LSIRDY_IF() READ_BIT(RCC_CIR, 0U)
 
 
 /*--------RCC_AHB1RSTR---------*/
 /*--------RCC_AHB1RSTR---------*/
-#define RCC_RES_DMA2()  SET_BIT(RCC_AHB1RSTR, 22)
-#define RCC_RES_DMA1()  SET_BIT(RCC_AHB1RSTR, 21)
-#define RCC_RES_CRC()   SET_BIT(RCC_AHB1RSTR, 12)
-#define RCC_RES_GPIOH() SET_BIT(RCC_AHB1RSTR, 7)
-#define RCC_RES_GPIOE() SET_BIT(RCC_AHB1RSTR, 4)
-#define RCC_RES_GPIOD() SET_BIT(RCC_AHB1RSTR, 3)
-#define RCC_RES_GPIOC() SET_BIT(RCC_AHB1RSTR, 2)
-#define RCC_RES_GPIOB() SET_BIT(RCC_AHB1RSTR, 1)
-#define RCC_RES_GPIOA() SET_BIT(RCC_AHB1RSTR, 0)
+#define RCC_RES_DMA2()  SET_BIT(RCC_AHB1RSTR, 22U)
+#define RCC_RES_DMA1()  SET_BIT(RCC_AHB1RSTR, 21U)
+#define RCC_RES_CRC()   SET_BIT(RCC_AHB1RSTR, 12U)
+#define RCC_RES_GPIOH() SET_BIT(RCC_AHB1RSTR, 7U)
+#define RCC_RES_GPIOE() SET_BIT(RCC_AHB1RSTR, 4U)
+#define RCC_RES_GPIOD() SET_BIT(RCC_AHB1RSTR, 3U)
+#define RCC_RES_GPIOC() SET_BIT(RCC_AHB1RSTR, 2U)
+#define RCC_RES_GPIOB() SET_BIT(RCC_AHB1RSTR, 1U)
+#define RCC_RES_GPIOA() SET_BIT(RCC_AHB1RSTR, 0U)
 
 /*--------RCC_AHB2RSTR---------*/
 /*--------RCC_AHB2RSTR---------*/
-#define RCC_RES_USB_OTG SET_BIT(RCC_AHB2RSTR, 7)
+#define RCC_RES_USB_OTG SET_BIT(RCC_AHB2RSTR, 7U)
 
 /*--------RCC_APB1RSTR---------*/
 /*--------RCC_APB1RSTR---------*/
-#define RCC_RES_PWR()    SET_BIT(RCC_APB1RSTR, 28)
-#define RCC_RES_I2C3()   SET_BIT(RCC_APB1RSTR, 23)
-#define RCC_RES_I2C2()   SET_BIT(RCC_APB1RSTR, 22)
-#define RCC_RES_I2C1()   SET_BIT(RCC_APB1RSTR, 21)
-#define RCC_RES_USART2() SET_BIT(RCC_APB1RSTR, 17)
-#define RCC_RES_SPI3()   SET_BIT(RCC_APB1RSTR, 15)
-#define RCC_RES_SPI2()   SET_BIT(RCC_APB1RSTR, 14)
-#define RCC_RES_WWDG()   SET_BIT(RCC_APB1RSTR, 11)
-#define RCC_RES_TIM5()   SET_BIT(RCC_APB1RSTR, 3)
-#define RCC_RES_TIM4()   SET_BIT(RCC_APB1RSTR, 2)
-#define RCC_RES_TIM3()   SET_BIT(RCC_APB1RSTR, 1)
-#define RCC_RES_TIM2()   SET_BIT(RCC_APB1RSTR, 0)
+#define RCC_RES_PWR()    SET_BIT(RCC_APB1RSTR, 28U)
+#define RCC_RES_I2C3()   SET_BIT(RCC_APB1RSTR, 23U)
+#define RCC_RES_I2C2()   SET_BIT(RCC_APB1RSTR, 22U)
+#define RCC_RES_I2C1()   SET_BIT(RCC_APB1RSTR, 21U)
+#define RCC_RES_USART2() SET_BIT(RCC_APB1RSTR, 17U)
+#define RCC_RES_SPI3()   SET_BIT(RCC_APB1RSTR, 15U)
+#define RCC_RES_SPI2()   SET_BIT(RCC_APB1RSTR, 14U)
+#define RCC_RES_WWDG()   SET_BIT(RCC_APB1RSTR, 11U)
+#define RCC_RES_TIM5()   SET_BIT(RCC_APB1RSTR, 3U)
+#define RCC_RES_TIM4()   SET_BIT(RCC_APB1RSTR, 2U)
+#define RCC_RES_TIM3()   SET_BIT(RCC_APB1RSTR, 1U)
+#define RCC_RES_TIM2()   SET_BIT(RCC_APB1RSTR, 0U)
 
 /*--------RCC_APB2RSTR---------*/
 /*--------RCC_APB2RSTR---------*/
-#define RCC_RES_TIM11()  SET_BIT(RCC_APB2RSTR, 18)
-#define RCC_RES_TIM10()  SET_BIT(RCC_APB2RSTR, 17)
-#define RCC_RES_TIM9()   SET_BIT(RCC_APB2RSTR, 16)
-#define RCC_RES_SYSGFG() SET_BIT(RCC_APB2RSTR, 14)
-#define RCC_RES_SPI4()   SET_BIT(RCC_APB2RSTR, 13)
-#define RCC_RES_SPI1()   SET_BIT(RCC_APB2RSTR, 12)
-#define RCC_RES_SDIO()   SET_BIT(RCC_APB2RSTR, 11)
-#define RCC_RES_ADC1()   SET_BIT(RCC_APB2RSTR, 8)
-#define RCC_RES_USART6() SET_BIT(RCC_APB2RSTR, 5)
-#define RCC_RES_USART1() SET_BIT(RCC_APB2RSTR, 4)
-#define RCC_RES_TIM1()   SET_BIT(RCC_APB2RSTR, 0)
+#define RCC_RES_TIM11()  SET_BIT(RCC_APB2RSTR, 18U)
+#define RCC_RES_TIM10()  SET_BIT(RCC_APB2RSTR, 17U)
+#define RCC_RES_TIM9()   SET_BIT(RCC_APB2RSTR, 16U)
+#define RCC_RES_SYSGFG() SET_BIT(RCC_APB2RSTR, 14U)
+#define RCC_RES_SPI4()   SET_BIT(RCC_APB2RSTR, 13U)
+#define RCC_RES_SPI1()   SET_BIT(RCC_APB2RSTR, 12U)
+#define RCC_RES_SDIO()   SET_BIT(RCC_APB2RSTR, 11U)
+#define RCC_RES_ADC1()   SET_BIT(RCC_APB2RSTR, 8U)
+#define RCC_RES_USART6() SET_BIT(RCC_APB2RSTR, 5U)
+#define RCC_RES_USART1() SET_BIT(RCC_APB2RSTR, 4U)
+#define RCC_RES_TIM1()   SET_BIT(RCC_APB2RSTR, 0U)
 
 
 /*--------RCC_AHB1ENR---------*/
 /*--------RCC_AHB1ENR---------*/
-#define RCC_EN_DMA2()   SET_BIT(RCC_AHB1ENR, 22)
-#define RCC_EN_DMA1()   SET_BIT(RCC_AHB1ENR, 21)
-#define RCC_EN_CRC()    SET_BIT(RCC_AHB1ENR, 12)
-#define RCC_EN_GPIOH()  SET_BIT(RCC_AHB1ENR, 7)
-#define RCC_EN_GPIOE()  SET_BIT(RCC_AHB1ENR, 4)
-#define RCC_EN_GPIOD()  SET_BIT(RCC_AHB1ENR, 3)
-#define RCC_EN_GPIOC()  SET_BIT(RCC_AHB1ENR, 2)
-#define RCC_EN_GPIOB()  SET_BIT(RCC_AHB1ENR, 1)
-#define RCC_EN_GPIOA()  SET_BIT(RCC_AHB1ENR, 0)
-#define RCC_DIS_DMA2()  CLEAR_BIT(RCC_AHB1ENR, 22)
-#define RCC_DIS_DMA1()  CLEAR_BIT(RCC_AHB1ENR, 21)
-#define RCC_DIS_CRC()   CLEAR_BIT(RCC_AHB1ENR, 12)
-#define RCC_DIS_GPIOH() CLEAR_BIT(RCC_AHB1ENR, 7)
-#define RCC_DIS_GPIOE() CLEAR_BIT(RCC_AHB1ENR, 4)
-#define RCC_DIS_GPIOD() CLEAR_BIT(RCC_AHB1ENR, 3)
-#define RCC_DIS_GPIOC() CLEAR_BIT(RCC_AHB1ENR, 2)
-#define RCC_DIS_GPIOB() CLEAR_BIT(RCC_AHB1ENR, 1)
-#define RCC_DIS_GPIOA() CLEAR_BIT(RCC_AHB1ENR, 0)
+#define RCC_EN_DMA2()   SET_BIT(RCC_AHB1ENR, 22U)
+#define RCC_EN_DMA1()   SET_BIT(RCC_AHB1ENR, 21U)
+#define RCC_EN_CRC()    SET_BIT(RCC_AHB1ENR, 12U)
+#define RCC_EN_GPIOH()  SET_BIT(RCC_AHB1ENR, 7U)
+#define RCC_EN_GPIOE()  SET_BIT(RCC_AHB1ENR, 4U)
+#define RCC_EN_GPIOD()  SET_BIT(RCC_AHB1ENR, 3U)
+#define RCC_EN_GPIOC()  SET_BIT(RCC_AHB1ENR, 2U)
+#define RCC_EN_GPIOB()  SET_BIT(RCC_AHB1ENR, 1U)
+#define RCC_EN_GPIOA()  SET_BIT(RCC_AHB1ENR, 0U)
+#define RCC_DIS_DMA2()  CLEAR_BIT(RCC_AHB1ENR, 22U)
+#define RCC_DIS_DMA1()  CLEAR_BIT(RCC_AHB1ENR, 21U)
+#define RCC_DIS_CRC()   CLEAR_BIT(RCC_AHB1ENR, 12U)
+#define RCC_DIS_GPIOH() CLEAR_BIT(RCC_AHB1ENR, 7U)
+#define RCC_DIS_GPIOE() CLEAR_BIT(RCC_AHB1ENR, 4U)
+#define RCC_DIS_GPIOD() CLEAR_BIT(RCC_AHB1ENR, 3U)
+#define RCC_DIS_GPIOC() CLEAR_BIT(RCC_AHB1ENR, 2U)
+#define RCC_DIS_GPIOB() CLEAR_BIT(RCC_AHB1ENR, 1U)
+#define RCC_DIS_GPIOA() CLEAR_BIT(RCC_AHB1ENR, 0U)
 
 /*--------RCC_AHB2ENR---------*/
 /*--------RCC_AHB2ENR---------*/
-#define RCC_EN_USB_OTG SET_BIT(RCC_AHB2ENR, 7)
-#define RCC_DIS_USB_OTG CLEAR_BIT(RCC_AHB2ENR, 7)
+#define RCC_EN_USB_OTG SET_BIT(RCC_AHB2ENR, 7U)
+#define RCC_DIS_USB_OTG CLEAR_BIT(RCC_AHB2ENR, 7U)
 
 /*--------RCC_APB1ENR---------*/
 /*--------RCC_APB1ENR---------*/
-#define RCC_EN_PWR()     SET_BIT(RCC_APB1ENR, 28)
-#define RCC_EN_I2C3()    SET_BIT(RCC_APB1ENR, 23)
-#define RCC_EN_I2C2()    SET_BIT(RCC_APB1ENR, 22)
-#define RCC_EN_I2C1()    SET_BIT(RCC_APB1ENR, 21)
-#define RCC_EN_USART2()  SET_BIT(RCC_APB1ENR, 17)
-#define RCC_EN_SPI3()    SET_BIT(RCC_APB1ENR, 15)
-#define RCC_EN_SPI2()    SET_BIT(RCC_APB1ENR, 14)
-#define RCC_EN_WWDG()    SET_BIT(RCC_APB1ENR, 11)
-#define RCC_EN_TIM5()    SET_BIT(RCC_APB1ENR, 3)
-#define RCC_EN_TIM4()    SET_BIT(RCC_APB1ENR, 2)
-#define RCC_EN_TIM3()    SET_BIT(RCC_APB1ENR, 1)
-#define RCC_EN_TIM2()    SET_BIT(RCC_APB1ENR, 0)
-#define RCC_DIS_PWR()    CLEAR_BIT(RCC_APB1ENR, 28)
-#define RCC_DIS_I2C3()   CLEAR_BIT(RCC_APB1ENR, 23)
-#define RCC_DIS_I2C2()   CLEAR_BIT(RCC_APB1ENR, 22)
-#define RCC_DIS_I2C1()   CLEAR_BIT(RCC_APB1ENR, 21)
-#define RCC_DIS_USART2() CLEAR_BIT(RCC_APB1ENR, 17)
-#define RCC_DIS_SPI3()   CLEAR_BIT(RCC_APB1ENR, 15)
-#define RCC_DIS_SPI2()   CLEAR_BIT(RCC_APB1ENR, 14)
-#define RCC_DIS_WWDG()   CLEAR_BIT(RCC_APB1ENR, 11)
-#define RCC_DIS_TIM5()   CLEAR_BIT(RCC_APB1ENR, 3)
-#define RCC_DIS_TIM4()   CLEAR_BIT(RCC_APB1ENR, 2)
-#define RCC_DIS_TIM3()   CLEAR_BIT(RCC_APB1ENR, 1)
-#define RCC_DIS_TIM2()   CLEAR_BIT(RCC_APB1ENR, 0)
+#define RCC_EN_PWR()     SET_BIT(RCC_APB1ENR, 28U)
+#define RCC_EN_I2C3()    SET_BIT(RCC_APB1ENR, 23U)
+#define RCC_EN_I2C2()    SET_BIT(RCC_APB1ENR, 22U)
+#define RCC_EN_I2C1()    SET_BIT(RCC_APB1ENR, 21U)
+#define RCC_EN_USART2()  SET_BIT(RCC_APB1ENR, 17U)
+#define RCC_EN_SPI3()    SET_BIT(RCC_APB1ENR, 15U)
+#define RCC_EN_SPI2()    SET_BIT(RCC_APB1ENR, 14U)
+#define RCC_EN_WWDG()    SET_BIT(RCC_APB1ENR, 11U)
+#define RCC_EN_TIM5()    SET_BIT(RCC_APB1ENR, 3U)
+#define RCC_EN_TIM4()    SET_BIT(RCC_APB1ENR, 2U)
+#define RCC_EN_TIM3()    SET_BIT(RCC_APB1ENR, 1U)
+#define RCC_EN_TIM2()    SET_BIT(RCC_APB1ENR, 0U)
+#define RCC_DIS_PWR()    CLEAR_BIT(RCC_APB1ENR, 28U)
+#define RCC_DIS_I2C3()   CLEAR_BIT(RCC_APB1ENR, 23U)
+#define RCC_DIS_I2C2()   CLEAR_BIT(RCC_APB1ENR, 22U)
+#define RCC_DIS_I2C1()   CLEAR_BIT(RCC_APB1ENR, 21U)
+#define RCC_DIS_USART2() CLEAR_BIT(RCC_APB1ENR, 17U)
+#define RCC_DIS_SPI3()   CLEAR_BIT(RCC_APB1ENR, 15U)
+#define RCC_DIS_SPI2()   CLEAR_BIT(RCC_APB1ENR, 14U)
+#define RCC_DIS_WWDG()   CLEAR_BIT(RCC_APB1ENR, 11U)
+#define RCC_DIS_TIM5()   CLEAR_BIT(RCC_APB1ENR, 3U)
+#define RCC_DIS_TIM4()   CLEAR_BIT(RCC_APB1ENR, 2U)
+#define RCC_DIS_TIM3()   CLEAR_BIT(RCC_APB1ENR, 1U)
+#define RCC_DIS_TIM2()   CLEAR_BIT(RCC_APB1ENR, 0U)
 
 /*--------RCC_APB2ENR---------*/
 /*--------RCC_APB2ENR---------*/
-#define RCC_EN_TIM11()   SET_BIT(RCC_APB2ENR, 18)
-#define RCC_EN_TIM10()   SET_BIT(RCC_APB2ENR, 17)
-#define RCC_EN_TIM9()    SET_BIT(RCC_APB2ENR, 16)
-#define RCC_EN_SYSGFG()  SET_BIT(RCC_APB2ENR, 14)
-#define RCC_EN_SPI4()    SET_BIT(RCC_APB2ENR, 13)
-#define RCC_EN_SPI1()    SET_BIT(RCC_APB2ENR, 12)
-#define RCC_EN_SDIO()    SET_BIT(RCC_APB2ENR, 11)
-#define RCC_EN_ADC1()    SET_BIT(RCC_APB2ENR, 8)
-#define RCC_EN_USART6()  SET_BIT(RCC_APB2ENR, 5)
-#define RCC_EN_USART1()  SET_BIT(RCC_APB2ENR, 4)
-#define RCC_EN_TIM1()    SET_BIT(RCC_APB2ENR, 0)
-#define RCC_DIS_TIM11()  CLEAR_BIT(RCC_APB2ENR, 18)
-#define RCC_DIS_TIM10()  CLEAR_BIT(RCC_APB2ENR, 17)
-#define RCC_DIS_TIM9()   CLEAR_BIT(RCC_APB2ENR, 16)
-#define RCC_DIS_SYSGFG() CLEAR_BIT(RCC_APB2ENR, 14)
-#define RCC_DIS_SPI4()   CLEAR_BIT(RCC_APB2ENR, 13)
-#define RCC_DIS_SPI1()   CLEAR_BIT(RCC_APB2ENR, 12)
-#define RCC_DIS_SDIO()   CLEAR_BIT(RCC_APB2ENR, 11)
-#define RCC_DIS_ADC1()   CLEAR_BIT(RCC_APB2ENR, 8)
-#define RCC_DIS_USART6() CLEAR_BIT(RCC_APB2ENR, 5)
-#define RCC_DIS_USART1() CLEAR_BIT(RCC_APB2ENR, 4)
-#define RCC_DIS_TIM1()   CLEAR_BIT(RCC_APB2ENR, 0)
+#define RCC_EN_TIM11()   SET_BIT(RCC_APB2ENR, 18U)
+#define RCC_EN_TIM10()   SET_BIT(RCC_APB2ENR, 17U)
+#define RCC_EN_TIM9()    SET_BIT(RCC_APB2ENR, 16U)
+#define RCC_EN_SYSGFG()  SET_BIT(RCC_APB2ENR, 14U)
+#define RCC_EN_SPI4()    SET_BIT(RCC_APB2ENR, 13U)
+#define RCC_EN_SPI1()    SET_BIT(RCC_APB2ENR, 12U)
+#define RCC_EN_SDIO()    SET_BIT(RCC_APB2ENR, 11U)
+#define RCC_EN_ADC1()    SET_BIT(RCC_APB2ENR, 8U)
+#define RCC_EN_USART6()  SET_BIT(RCC_APB2ENR, 5U)
+#define RCC_EN_USART1()  SET_BIT(RCC_APB2ENR, 4U)
+#define RCC_EN_TIM1()    SET_BIT(RCC_APB2ENR, 0U)
+#define RCC_DIS_TIM11()  CLEAR_BIT(RCC_APB2ENR, 18U)
+#define RCC_DIS_TIM10()  CLEAR_BIT(RCC_APB2ENR, 17U)
+#define RCC_DIS_TIM9()   CLEAR_BIT(RCC_APB2ENR, 16U)
+#define RCC_DIS_SYSGFG() CLEAR_BIT(RCC_APB2ENR, 14U)
+#define RCC_DIS_SPI4()   CLEAR_BIT(RCC_APB2ENR, 13U)
+#define RCC_DIS_SPI1()   CLEAR_BIT(RCC_APB2ENR, 12U)
+#define RCC_DIS_SDIO()   CLEAR_BIT(RCC_APB2ENR, 11U)
+#define RCC_DIS_ADC1()   CLEAR_BIT(RCC_APB2ENR, 8U)
+#define RCC_DIS_USART6() CLEAR_BIT(RCC_APB2ENR, 5U)
+#define RCC_DIS_USART1() CLEAR_BIT(RCC_APB2ENR, 4U)
+#define RCC_DIS_TIM1()   CLEAR_BIT(RCC_APB2ENR, 0U)
 
 /*--------RCC_AHB1LPENR---------*/
 /*--------RCC_AHB1LPENR---------*/
-#define RCC_LPEN_DMA2()  SET_BIT(RCC_AHB1LPENR, 22)
-#define RCC_LPEN_DMA1()  SET_BIT(RCC_AHB1LPENR, 21)
-#define RCC_LPEN_SRAM1() SET_BIT(RCC_AHB1LPENR, 16)
-#define RCC_LPEN_FLITF() SET_BIT(RCC_AHB1LPENR, 15)
-#define RCC_LPEN_CRC()   SET_BIT(RCC_AHB1LPENR, 12)
-#define RCC_LPEN_GPIOH() SET_BIT(RCC_AHB1LPENR, 7)
-#define RCC_LPEN_GPIOE() SET_BIT(RCC_AHB1LPENR, 4)
-#define RCC_LPEN_GPIOD() SET_BIT(RCC_AHB1LPENR, 3)
-#define RCC_LPEN_GPIOC() SET_BIT(RCC_AHB1LPENR, 2)
-#define RCC_LPEN_GPIOB() SET_BIT(RCC_AHB1LPENR, 1)
-#define RCC_LPEN_GPIOA() SET_BIT(RCC_AHB1LPENR, 0)
-#define RCC_LPDIS_DMA2()  CLEAR_BIT(RCC_AHB1LPENR, 22)
-#define RCC_LPDIS_DMA1()  CLEAR_BIT(RCC_AHB1LPENR, 21)
-#define RCC_LPDIS_SRAM1() CLEAR_BIT(RCC_AHB1LPENR, 16)
-#define RCC_LPDIS_FLITF() CLEAR_BIT(RCC_AHB1LPENR, 15)
-#define RCC_LPDIS_CRC()   CLEAR_BIT(RCC_AHB1LPENR, 12)
-#define RCC_LPDIS_GPIOH() CLEAR_BIT(RCC_AHB1LPENR, 7)
-#define RCC_LPDIS_GPIOE() CLEAR_BIT(RCC_AHB1LPENR, 4)
-#define RCC_LPDIS_GPIOD() CLEAR_BIT(RCC_AHB1LPENR, 3)
-#define RCC_LPDIS_GPIOC() CLEAR_BIT(RCC_AHB1LPENR, 2)
-#define RCC_LPDIS_GPIOB() CLEAR_BIT(RCC_AHB1LPENR, 1)
-#define RCC_LPDIS_GPIOA() CLEAR_BIT(RCC_AHB1LPENR, 0)
+#define RCC_LPEN_DMA2()  SET_BIT(RCC_AHB1LPENR, 22U)
+#define RCC_LPEN_DMA1()  SET_BIT(RCC_AHB1LPENR, 21U)
+#define RCC_LPEN_SRAM1() SET_BIT(RCC_AHB1LPENR, 16U)
+#define RCC_LPEN_FLITF() SET_BIT(RCC_AHB1LPENR, 15U)
+#define RCC_LPEN_CRC()   SET_BIT(RCC_AHB1LPENR, 12U)
+#define RCC_LPEN_GPIOH() SET_BIT(RCC_AHB1LPENR, 7U)
+#define RCC_LPEN_GPIOE() SET_BIT(RCC_AHB1LPENR, 4U)
+#define RCC_LPEN_GPIOD() SET_BIT(RCC_AHB1LPENR, 3U)
+#define RCC_LPEN_GPIOC() SET_BIT(RCC_AHB1LPENR, 2U)
+#define RCC_LPEN_GPIOB() SET_BIT(RCC_AHB1LPENR, 1U)
+#define RCC_LPEN_GPIOA() SET_BIT(RCC_AHB1LPENR, 0U)
+#define RCC_LPDIS_DMA2()  CLEAR_BIT(RCC_AHB1LPENR, 22U)
+#define RCC_LPDIS_DMA1()  CLEAR_BIT(RCC_AHB1LPENR, 21U)
+#define RCC_LPDIS_SRAM1() CLEAR_BIT(RCC_AHB1LPENR, 16U)
+#define RCC_LPDIS_FLITF() CLEAR_BIT(RCC_AHB1LPENR, 15U)
+#define RCC_LPDIS_CRC()   CLEAR_BIT(RCC_AHB1LPENR, 12U)
+#define RCC_LPDIS_GPIOH() CLEAR_BIT(RCC_AHB1LPENR, 7U)
+#define RCC_LPDIS_GPIOE() CLEAR_BIT(RCC_AHB1LPENR, 4U)
+#define RCC_LPDIS_GPIOD() CLEAR_BIT(RCC_AHB1LPENR, 3U)
+#define RCC_LPDIS_GPIOC() CLEAR_BIT(RCC_AHB1LPENR, 2U)
+#define RCC_LPDIS_GPIOB() CLEAR_BIT(RCC_AHB1LPENR, 1U)
+#define RCC_LPDIS_GPIOA() CLEAR_BIT(RCC_AHB1LPENR, 0U)
 
 /*--------RCC_AHB2LPENR---------*/
 /*--------RCC_AHB2LPENR---------*/
-#define RCC_EN_USB_OTG    SET_BIT(RCC_AHB2LPENR, 7)
-#define RCC_DIS_USB_OTG   CLEAR_BIT(RCC_AHB2LPENR, 7)
+#define RCC_EN_USB_OTG    SET_BIT(RCC_AHB2LPENR, 7U)
+#define RCC_DIS_USB_OTG   CLEAR_BIT(RCC_AHB2LPENR, 7U)
 
 /*--------RCC_APB1LPENR---------*/
 /*--------RCC_APB1LPENR---------*/
-#define RCC_LPEN_PWR()    SET_BIT(RCC_APB1LPENR, 28)
-#define RCC_LPEN_I2C3()   SET_BIT(RCC_APB1LPENR, 23)
-#define RCC_LPEN_I2C2()   SET_BIT(RCC_APB1LPENR, 22)
-#define RCC_LPEN_I2C1()   SET_BIT(RCC_APB1LPENR, 21)
-#define RCC_LPEN_USART2() SET_BIT(RCC_APB1LPENR, 17)
-#define RCC_LPEN_SPI3()   SET_BIT(RCC_APB1LPENR, 15)
-#define RCC_LPEN_SPI2()   SET_BIT(RCC_APB1LPENR, 14)
-#define RCC_LPEN_WWDG()   SET_BIT(RCC_APB1LPENR, 11)
-#define RCC_LPEN_TIM5()   SET_BIT(RCC_APB1LPENR, 3)
-#define RCC_LPEN_TIM4()   SET_BIT(RCC_APB1LPENR, 2)
-#define RCC_LPEN_TIM3()   SET_BIT(RCC_APB1LPENR, 1)
-#define RCC_LPEN_TIM2()   SET_BIT(RCC_APB1LPENR, 0)
-#define RCC_LPDIS_PWR()    CLEAR_BIT(RCC_APB1LPENR, 28)
-#define RCC_LPDIS_I2C3()   CLEAR_BIT(RCC_APB1LPENR, 23)
-#define RCC_LPDIS_I2C2()   CLEAR_BIT(RCC_APB1LPENR, 22)
-#define RCC_LPDIS_I2C1()   CLEAR_BIT(RCC_APB1LPENR, 21)
-#define RCC_LPDIS_USART2() CLEAR_BIT(RCC_APB1LPENR, 17)
-#define RCC_LPDIS_SPI3()   CLEAR_BIT(RCC_APB1LPENR, 15)
-#define RCC_LPDIS_SPI2()   CLEAR_BIT(RCC_APB1LPENR, 14)
-#define RCC_LPDIS_WWDG()   CLEAR_BIT(RCC_APB1LPENR, 11)
-#define RCC_LPDIS_TIM5()   CLEAR_BIT(RCC_APB1LPENR, 3)
-#define RCC_LPDIS_TIM4()   CLEAR_BIT(RCC_APB1LPENR, 2)
-#define RCC_LPDIS_TIM3()   CLEAR_BIT(RCC_APB1LPENR, 1)
-#define RCC_LPDIS_TIM2()   CLEAR_BIT(RCC_APB1LPENR, 0)
+#define RCC_LPEN_PWR()    SET_BIT(RCC_APB1LPENR, 28U)
+#define RCC_LPEN_I2C3()   SET_BIT(RCC_APB1LPENR, 23U)
+#define RCC_LPEN_I2C2()   SET_BIT(RCC_APB1LPENR, 22U)
+#define RCC_LPEN_I2C1()   SET_BIT(RCC_APB1LPENR, 21U)
+#define RCC_LPEN_USART2() SET_BIT(RCC_APB1LPENR, 17U)
+#define RCC_LPEN_SPI3()   SET_BIT(RCC_APB1LPENR, 15U)
+#define RCC_LPEN_SPI2()   SET_BIT(RCC_APB1LPENR, 14U)
+#define RCC_LPEN_WWDG()   SET_BIT(RCC_APB1LPENR, 11U)
+#define RCC_LPEN_TIM5()   SET_BIT(RCC_APB1LPENR, 3U)
+#define RCC_LPEN_TIM4()   SET_BIT(RCC_APB1LPENR, 2U)
+#define RCC_LPEN_TIM3()   SET_BIT(RCC_APB1LPENR, 1U)
+#define RCC_LPEN_TIM2()   SET_BIT(RCC_APB1LPENR, 0U)
+#define RCC_LPDIS_PWR()    CLEAR_BIT(RCC_APB1LPENR, 28U)
+#define RCC_LPDIS_I2C3()   CLEAR_BIT(RCC_APB1LPENR, 23U)
+#define RCC_LPDIS_I2C2()   CLEAR_BIT(RCC_APB1LPENR, 22U)
+#define RCC_LPDIS_I2C1()   CLEAR_BIT(RCC_APB1LPENR, 21U)
+#define RCC_LPDIS_USART2() CLEAR_BIT(RCC_APB1LPENR, 17U)
+#define RCC_LPDIS_SPI3()   CLEAR_BIT(RCC_APB1LPENR, 15U)
+#define RCC_LPDIS_SPI2()   CLEAR_BIT(RCC_APB1LPENR, 14U)
+#define RCC_LPDIS_WWDG()   CLEAR_BIT(RCC_APB1LPENR, 11U)
+#define RCC_LPDIS_TIM5()   CLEAR_BIT(RCC_APB1LPENR, 3U)
+#define RCC_LPDIS_TIM4()   CLEAR_BIT(RCC_APB1LPENR, 2U)
+#define RCC_LPDIS_TIM3()   CLEAR_BIT(RCC_APB1LPENR, 1U)
+#define RCC_LPDIS_TIM2()   CLEAR_BIT(RCC_APB1LPENR, 0U)
 
 /*--------RCC_APB2LPENR---------*/
 /*--------RCC_APB2LPENR---------*/
-#define RCC_LPEN_TIM11()   SET_BIT(RCC_APB2LPENR, 18)
-#define RCC_LPEN_TIM10()   SET_BIT(RCC_APB2LPENR, 17)
-#define RCC_LPEN_TIM9()    SET_BIT(RCC_APB2LPENR, 16)
-#define RCC_LPEN_SYSGFG()  SET_BIT(RCC_APB2LPENR, 14)
-#define RCC_LPEN_SPI4()    SET_BIT(RCC_APB2LPENR, 13)
-#define RCC_LPEN_SPI1()    SET_BIT(RCC_APB2LPENR, 12)
-#define RCC_LPEN_SDIO()    SET_BIT(RCC_APB2LPENR, 11)
-#define RCC_LPEN_ADC1()    SET_BIT(RCC_APB2LPENR, 8)
-#define RCC_LPEN_USART6()  SET_BIT(RCC_APB2LPENR, 5)
-#define RCC_LPEN_USART1()  SET_BIT(RCC_APB2LPENR, 4)
-#define RCC_LPEN_TIM1()    SET_BIT(RCC_APB2LPENR, 0)
-#define RCC_LPDIS_TIM11()  CLEAR_BIT(RCC_APB2LPENR, 18)
-#define RCC_LPDIS_TIM10()  CLEAR_BIT(RCC_APB2LPENR, 17)
-#define RCC_LPDIS_TIM9()   CLEAR_BIT(RCC_APB2LPENR, 16)
-#define RCC_LPDIS_SYSGFG() CLEAR_BIT(RCC_APB2LPENR, 14)
-#define RCC_LPDIS_SPI4()   CLEAR_BIT(RCC_APB2LPENR, 13)
-#define RCC_LPDIS_SPI1()   CLEAR_BIT(RCC_APB2LPENR, 12)
-#define RCC_LPDIS_SDIO()   CLEAR_BIT(RCC_APB2LPENR, 11)
-#define RCC_LPDIS_ADC1()   CLEAR_BIT(RCC_APB2LPENR, 8)
-#define RCC_LPDIS_USART6() CLEAR_BIT(RCC_APB2LPENR, 5)
-#define RCC_LPDIS_USART1() CLEAR_BIT(RCC_APB2LPENR, 4)
-#define RCC_LPDIS_TIM1()   CLEAR_BIT(RCC_APB2LPENR, 0)
+#define RCC_LPEN_TIM11()   SET_BIT(RCC_APB2LPENR, 18U)
+#define RCC_LPEN_TIM10()   SET_BIT(RCC_APB2LPENR, 17U)
+#define RCC_LPEN_TIM9()    SET_BIT(RCC_APB2LPENR, 16U)
+#define RCC_LPEN_SYSGFG()  SET_BIT(RCC_APB2LPENR, 14U)
+#define RCC_LPEN_SPI4()    SET_BIT(RCC_APB2LPENR, 13U)
+#define RCC_LPEN_SPI1()    SET_BIT(RCC_APB2LPENR, 12U)
+#define RCC_LPEN_SDIO()    SET_BIT(RCC_APB2LPENR, 11U)
+#define RCC_LPEN_ADC1()    SET_BIT(RCC_APB2LPENR, 8U)
+#define RCC_LPEN_USART6()  SET_BIT(RCC_APB2LPENR, 5U)
+#define RCC_LPEN_USART1()  SET_BIT(RCC_APB2LPENR, 4U)
+#define RCC_LPEN_TIM1()    SET_BIT(RCC_APB2LPENR, 0U)
+#define RCC_LPDIS_TIM11()  CLEAR_BIT(RCC_APB2LPENR, 18U)
+#define RCC_LPDIS_TIM10()  CLEAR_BIT(RCC_APB2LPENR, 17U)
+#define RCC_LPDIS_TIM9()   CLEAR_BIT(RCC_APB2LPENR, 16U)
+#define RCC_LPDIS_SYSGFG() CLEAR_BIT(RCC_APB2LPENR, 14U)
+#define RCC_LPDIS_SPI4()   CLEAR_BIT(RCC_APB2LPENR, 13U)
+#define RCC_LPDIS_SPI1()   CLEAR_BIT(RCC_APB2LPENR, 12U)
+#define RCC_LPDIS_SDIO()   CLEAR_BIT(RCC_APB2LPENR, 11U)
+#define RCC_LPDIS_ADC1()   CLEAR_BIT(RCC_APB2LPENR, 8U)
+#define RCC_LPDIS_USART6() CLEAR_BIT(RCC_APB2LPENR, 5U)
+#define RCC_LPDIS_USART1() CLEAR_BIT(RCC_APB2LPENR, 4U)
+#define RCC_LPDIS_TIM1()   CLEAR_BIT(RCC_APB2LPENR, 0U)
 
-// write RCC_BDCR
-// write RCC_CSR
-// write RCC_SSCGR
-// write RCC_PLLI2SCFGR
-// write RCC_DCKCFGR
+/*--------RCC_BDCR---------*/
+/*--------RCC_BDCR---------*/
+#define RCC_RES_BD()      SET_BIT(RCC_BDCR, 16U)
+#define RCC_EN_RTC_CLK()  SET_BIT(RCC_BDCR, 15U)
+#define RCC_DIS_RTC_CLK() CLEAR_BIT(RCC_BDCR, 15U)
+#define RCC_SEL_RTC_SRC(SOURCE) \
+  CLEAR_BITS(RCC_BDCR, (0b11U << 8U)) \
+  SET_BITS(RCC_BDCR, (SOURCE << 8U))
+
+#define RCC_BYP_LSE()   SET_BIT(RCC_BDCR, 2U)
+#define RCC_NOBYP_LSE() CLEAR_BIT(RCC_BDCR, 2U)
+#define RCC_RDY_LSE()   READ_BIT(RCC_BDCR, 1U)
+#define RCC_EN_LSE()    SET_BIT(RCC_BDCR, 0U)
+#define RCC_DIS_LSE()   CLEAR_BIT(RCC_BDCR, 0U)
+
+/*--------RCC_CSR---------*/
+/*--------RCC_CSR---------*/
+
+/*get LOW POWER reset flag*/
+#define RCC_LPRES_FLAG()  READ_BIT(RCC_CSR, 31U)
+/*get WWDG reset flag*/
+#define RCC_WWDGRES_FLAG() READ_BIT(RCC_CSR, 30U)
+/*get IWDG reset flag*/
+#define RCC_IWDGRES_FLAG() READ_BIT(RCC_CSR, 29U)
+/*get SOFTWARE reset flag*/
+#define RCC_SFTRES_FLAG() READ_BIT(RCC_CSR, 28U)
+/*get POR/PDR reset flag*/
+#define RCC_PORRES_FLAG() READ_BIT(RCC_CSR, 27U)
+/*get PIN reset flag*/
+#define RCC_PINRES_FLAG() READ_BIT(RCC_CSR, 26U)
+/*get BOR reset flag*/
+#define RCC_BORRES_FLAG() READ_BIT(RCC_CSR, 25U)
+/*Clear all reset flags*/
+#define RCC_RMRES_FLAGS() SET_BIT(RCC_CSR, 24U)
+#define RCC_RDY_HSI()     READ_BIT(RCC_CSR, 1U)
+#define RCC_EN_HSI()      SET_BIT(RCC_CSR, 0U)
+#define RCC_DIS_HSI()     CLEAR_BIT(RCC_CSR, 0U)
+
+
+/*--------RCC_SSCGR---------*/
+/*--------RCC_SSCGR---------*/
+/*
+The spread spectrum clock generation is available only for the main PLL
+*/
+/*Spread spectrum modulation enable*/
+#define RCC_EN_SSM() SET_BIT(RCC_SSCGR, 31U)
+/*Spread spectrum modulation disable*/
+#define RCC_DIS_SSM() CLEAR_BIT(RCC_SSCGR, 31U)
+/*Select Center spread*/
+#define RCC_CENTER_SPREAD() CLEAR_BIT(RCC_SSCGR, 30U)
+/*Select Down spread*/
+#define RCC_DOWN_SPREAD() SET_BIT(RCC_SSCGR, 30U)
+
+/*Set Incrementation step, Configuration input for modulation profile amplitude.*/
+#define RCC_SET_INCSTEP(INCSTEP) \
+  CLEAR_BITS(RCC_SSCGR, 0x7FFFU << 13U) \
+  SET_BITS(RCC_SSCGR, INCSTEP << 13U)
+
+/*Modulation period, Configuration input for modulation profile period.*/
+#define RCC_SET_MODPER(MODPER) \
+  CLEAR_BITS(RCC_SSCGR, 0x1FFFU) \
+  SET_BITS(RCC_SSCGR, MODPER)
+s
+/*--------RCC_PLLI2SCFGR---------*/
+/*--------RCC_PLLI2SCFGR---------*/
+
+// f(VCO clock) = f(PLLI2S clock input) × (PLLI2SN / PLLM)
+// f(PLL I2S clock output) = f(VCO clock) / PLLI2SR
+
+// I2S clock frequency = VCO frequency / PLLR with 2 ≤ PLLR ≤ 7
+#define RCC_SET_PLLI2SR(PRE) \
+  CLEAR_BITS(RCC_PLLI2SCFGR, (7U << 28U)) \
+  SET_BITS(RCC_PLLI2SCFGR, (PRE << 28U))
+
+// VCO output frequency = VCO input frequency × PLLI2SN with 192 ≤ PLLI2SN ≤ 432
+#define RCC_SET_PLLI2SN(PRE) \
+  CLEAR_BITS(RCC_PLLI2SCFGR, (511U << 6U)) \
+  SET_BITS(RCC_PLLI2SCFGR, (PRE << 6U))
+
+
+/*--------RCC_DCKCFGR---------*/
+/*--------RCC_DCKCFGR---------*/
+#define RCC_SET_TIMERPRE()    SET_BIT(RCC_DCKCFGR, 24U) 
+#define RCC_CLEAR_TIMERPRE()  CLEAR_BIT(RCC_DCKCFGR, 24U) 
 
 #endif // !RCC_HELPERS
 
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef FLASH_HELPERS 1
+
+
+#endif // !FLASH_HELPERS 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef PWR_HELPERS 1
+
+
+#endif // !PWR_HELPERS 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef GPIO_HELPERS 1
+
+
+#endif // !GPIO_HELPERS 1
+
+/*=============================================================================*/
 /*=============================================================================*/
