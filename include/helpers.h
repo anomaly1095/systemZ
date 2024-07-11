@@ -39,19 +39,19 @@
 #define SET_BIT(REG, BIT_NUM)   ((REG) |= (0b1U << BIT_NUM))
 
 /*sets the bits in the register that are set in MASK*/
-#define SET_BITS(REG, MASK)   ((REG) |= (MASK))
+#define SET_BITS(REG, MASK)     ((REG) |= (MASK))
 
 /*reads the bit from the register and return boolean value*/
 #define READ_BIT(REG, BIT_NUM)  (((REG) & (1U << (BIT_NUM))) != 0U)
 
 /// @brief Reads the bits from the register and returns true if all MASK bits are set.
-#define READ_BITS(REG, MASK)  (((REG) & (MASK)) == (MASK))
+#define READ_BITS(REG, MASK)    (((REG) & (MASK)) == (MASK))
 
 /*clears the BIT_NUM bit in the register*/
 #define CLEAR_BIT(REG, BIT_NUM) ((REG) &= ~(1U << (BIT_NUM)))
 
 /*clears the bits in the register based off the set bits in MASK*/
-#define CLEAR_BITS(REG, MASK) ((REG) &= ~(MASK)))
+#define CLEAR_BITS(REG, MASK)   ((REG) &= ~(MASK)))
 
 /*rotates the bits in the register by N rotations*/
 #define ROTATE_RIGHT(REG, N) \
@@ -68,71 +68,69 @@
 /*---------------------------------------------------------------*/
 #ifndef NVIC_H  1
 
-typedef enum IRQ_num_t {
-  /* External Interrupts */
-  WWDG_IRQ              = 0U,
-  PVD_IRQ               = 1U,
-  TAMP_STAMP_IRQ        = 2U,
-  RTC_WKUP_IRQ          = 3U,
-  FLASH_IRQ             = 4U,
-  RCC_IRQ               = 5U,
-  EXTI0_IRQ             = 6U,
-  EXTI1_IRQ             = 7U,
-  EXTI2_IRQ             = 8U,
-  EXTI3_IRQ             = 9U,
-  EXTI4_IRQ             = 10U,
-  DMA1_Stream0_IRQ      = 11U,
-  DMA1_Stream1_IRQ      = 12U,
-  DMA1_Stream2_IRQ      = 13U,
-  DMA1_Stream3_IRQ      = 14U,
-  DMA1_Stream4_IRQ      = 15U,
-  DMA1_Stream5_IRQ      = 16U,
-  DMA1_Stream6_IRQ      = 17U,
-  ADC_IRQ               = 18U,
-  EXTI9_5_IRQ           = 23U,
-  TIM1_BRK_TIM9_IRQ     = 24U,
-  TIM1_UP_TIM10_IRQ     = 25U,
-  TIM1_TRG_COM_TIM11_IRQ= 26U,
-  TIM1_CC_IRQ           = 27U,
-  TIM2_IRQ              = 28U,
-  TIM3_IRQ              = 29U,
-  TIM4_IRQ              = 30U,
-  I2C1_EV_IRQ           = 31U,
-  I2C1_ER_IRQ           = 32U,
-  I2C2_EV_IRQ           = 33U,
-  I2C2_ER_IRQ           = 34U,
-  SPI1_IRQ              = 35U,
-  SPI2_IRQ              = 36U,
-  USART1_IRQ            = 37U,
-  USART2_IRQ            = 38U,
-  EXTI15_10_IRQ         = 40U,
-  RTC_Alarm_IRQ         = 41U,
-  OTG_FS_WKUP_IRQ       = 42U,
-  DMA1_Stream7_IRQ      = 55U,
-  SDIO_IRQ              = 56U,
-  TIM5_IRQ              = 50U,
-  SPI3_IRQ              = 51U,
-  DMA2_Stream0_IRQ      = 56U,
-  DMA2_Stream1_IRQ      = 57U,
-  DMA2_Stream2_IRQ      = 58U,
-  DMA2_Stream3_IRQ      = 59U,
-  DMA2_Stream4_IRQ      = 60U,
-  OTG_FS_IRQ            = 67U,
-  DMA2_Stream5_IRQ      = 68U,
-  DMA2_Stream6_IRQ      = 69U,
-  DMA2_Stream7_IRQ      = 70U,
-  USART6_IRQ            = 71U,
-  I2C3_EV_IRQ           = 72U,
-  I2C3_ER_IRQ           = 73U,
-  FPU_IRQ               = 81U,
-  SPI4_IRQ              = 84U
-} IRQ_num_t;
+#define WWDG_IRQ                ((uint8_t)0U)
+#define PVD_IRQ                 ((uint8_t)1U)
+#define TAMP_STAMP_IRQ          ((uint8_t)2U)
+#define RTC_WKUP_IRQ            ((uint8_t)3U)
+#define FLASH_IRQ               ((uint8_t)4U)
+#define RCC_IRQ                 ((uint8_t)5U)
+#define EXTI0_IRQ               ((uint8_t)6U)
+#define EXTI1_IRQ               ((uint8_t)7U)
+#define EXTI2_IRQ               ((uint8_t)8U)
+#define EXTI3_IRQ               ((uint8_t)9U)
+#define EXTI4_IRQ               ((uint8_t)10U)
+#define DMA1_Stream0_IRQ        ((uint8_t)11U)
+#define DMA1_Stream1_IRQ        ((uint8_t)12U)
+#define DMA1_Stream2_IRQ        ((uint8_t)13U)
+#define DMA1_Stream3_IRQ        ((uint8_t)14U)
+#define DMA1_Stream4_IRQ        ((uint8_t)15U)
+#define DMA1_Stream5_IRQ        ((uint8_t)16U)
+#define DMA1_Stream6_IRQ        ((uint8_t)17U)
+#define ADC_IRQ                 ((uint8_t)18U)
+#define EXTI9_5_IRQ             ((uint8_t)23U)
+#define TIM1_BRK_TIM9_IRQ       ((uint8_t)24U)
+#define TIM1_UP_TIM10_IRQ       ((uint8_t)25U)
+#define TIM1_TRG_COM_TIM11_IRQ  ((uint8_t)26U)
+#define TIM1_CC_IRQ             ((uint8_t)27U)
+#define TIM2_IRQ                ((uint8_t)28U)
+#define TIM3_IRQ                ((uint8_t)29U)
+#define TIM4_IRQ                ((uint8_t)30U)
+#define I2C1_EV_IRQ             ((uint8_t)31U)
+#define I2C1_ER_IRQ             ((uint8_t)32U)
+#define I2C2_EV_IRQ             ((uint8_t)33U)
+#define I2C2_ER_IRQ             ((uint8_t)34U)
+#define SPI1_IRQ                ((uint8_t)35U)
+#define SPI2_IRQ                ((uint8_t)36U)
+#define USART1_IRQ              ((uint8_t)37U)
+#define USART2_IRQ              ((uint8_t)38U)
+#define EXTI15_10_IRQ           ((uint8_t)40U)
+#define RTC_Alarm_IRQ           ((uint8_t)41U)
+#define OTG_FS_WKUP_IRQ         ((uint8_t)42U)
+#define DMA1_Stream7_IRQ        ((uint8_t)55U)
+#define SDIO_IRQ                ((uint8_t)56U)
+#define TIM5_IRQ                ((uint8_t)50U)
+#define SPI3_IRQ                ((uint8_t)51U)
+#define DMA2_Stream0_IRQ        ((uint8_t)56U)
+#define DMA2_Stream1_IRQ        ((uint8_t)57U)
+#define DMA2_Stream2_IRQ        ((uint8_t)58U)
+#define DMA2_Stream3_IRQ        ((uint8_t)59U)
+#define DMA2_Stream4_IRQ        ((uint8_t)60U)
+#define OTG_FS_IRQ              ((uint8_t)67U)
+#define DMA2_Stream5_IRQ        ((uint8_t)68U)
+#define DMA2_Stream6_IRQ        ((uint8_t)69U)
+#define DMA2_Stream7_IRQ        ((uint8_t)70U)
+#define USART6_IRQ              ((uint8_t)71U)
+#define I2C3_EV_IRQ             ((uint8_t)72U)
+#define I2C3_ER_IRQ             ((uint8_t)73U)
+#define FPU_IRQ                 ((uint8_t)81U)
+#define SPI4_IRQ                ((uint8_t)84U)
+
 
 /// @brief Used by apps to trigger an interrupt on the specified interrupt in IRQ_num
 /// @brief This function is only accessible from unprevileged apps if
 /// @brief SCR reg is set so in page 230 of the stm32-cortex-M4 Referance Manual
 /// @param IRQ_num irq number as specified in the enum
-extern void _NVIC_soft_trigger_irq(IRQ_num_t IRQ_num);
+extern void _NVIC_soft_trigger_irq(uint8_t IRQ_num);
 
 
 #endif // !NVIC_H
@@ -394,6 +392,136 @@ Each memory mapped regitser pointed to is dereferenced to avoid dereferencing in
 
 #ifndef PWR_HELPERS 1
 
+#define PWR_BASE      (0x40007000U)
+#define PWR_CR_OFFSET        (0x00U)
+#define PWR_CSR_OFFSET       (0x04U)
+
+#define PWR_CR          (*(volatile uint32_t *)(PWR_BASE + PWR_CR_OFFSET))
+#define PWR_CSR         (*(volatile uint32_t *)(PWR_BASE + PWR_CSR_OFFSET))
+
+/*--------PWR_CR---------*/
+/*--------PWR_CR---------*/
+
+// Sets Regulator voltage scaling output selection
+// 01: Scale 3 mode 
+// 10: Scale 2 mode 
+#define PWR_REGULATOR_VOS2() \
+  CLEAR_BITS(PWR_CR, 0b11U << 14U) \
+  SET_BIT(PWR_CR, 15U)
+#define PWR_REGULATOR_VOS3() \
+  CLEAR_BITS(PWR_CR, 0b11U << 14U) \
+  SET_BIT(PWR_CR, 14U)
+
+// 0: Main regulator in Voltage scale 3 when the device is in Stop mode.
+// 1: Main regulator in Low Voltage and Flash memory in Deep Sleep mode when the device is 
+// in Stop mode.
+#define PWR_MRLVDS(BITVAL) \
+  CLEAR_BIT(PWR_CR, 11U) \
+  ((PWR_CR) |= (BITVAL << 11U)) 
+
+// 0: Low-power regulator on if LPDS bit is set when the device is in Stop mode.
+// 1: Low-power regulator in Low Voltage and Flash memory in Deep Sleep mode if LPDS bit is 
+// set when device is in Stop mode.
+#define PWR_MRLVDS(BITVAL) \
+  CLEAR_BIT(PWR_CR, 10U) \
+  ((PWR_CR) |= (BITVAL << 9U)) 
+
+// 0: Flash memory not in power-down when the device is in Stop mode
+// 1: Flash memory in power-down when the device is in Stop mode
+#define PWR_FPDS(BITVAL) \
+  CLEAR_BIT(PWR_CR, 9U) \
+  ((PWR_CR) |= (BITVAL << 9U)) 
+
+#define PWR_EN_RTC_ACCESS() SET_BIT(PWR_CR, 8U)
+#define PWR_DIS_RTC_ACCESS() CLEAR_BIT(PWR_CR, 8U)
+
+
+#define PWR_PVD_LEVEL(MASK) \
+  CLEAR_BITS(PWR_CR, 0b111U << 5U) \
+  SET_BITS(PWR_CR, MASK << 5U)
+
+/*Set the Power voltage detector threshhold at 2.2V*/
+#define PWR_PVD_LEVEL2_2() PWR_PVD_LEVEL(0b000U)
+/*Set the Power voltage detector threshhold at 2.3V*/
+#define PWR_PVD_LEVEL2_3() PWR_PVD_LEVEL(0b001U)
+/*Set the Power voltage detector threshhold at 2.4V*/
+#define PWR_PVD_LEVEL2_4() PWR_PVD_LEVEL(0b010U)
+/*Set the Power voltage detector threshhold at 2.5V*/
+#define PWR_PVD_LEVEL2_5() PWR_PVD_LEVEL(0b011U)
+/*Set the Power voltage detector threshhold at 2.6V*/
+#define PWR_PVD_LEVEL2_6() PWR_PVD_LEVEL(0b100U)
+/*Set the Power voltage detector threshhold at 2.7V*/
+#define PWR_PVD_LEVEL2_7() PWR_PVD_LEVEL(0b101U)
+/*Set the Power voltage detector threshhold at 2.8V*/
+#define PWR_PVD_LEVEL2_8() PWR_PVD_LEVEL(0b110U)
+/*Set the Power voltage detector threshhold at 2.9V*/
+#define PWR_PVD_LEVEL2_9() PWR_PVD_LEVEL(0b111U)
+
+/*Enable the power voltage detector*/
+#define PWR_EN_PVD() SET_BIT(PWR_CR, 4U)
+/*Disable the power voltage detector*/
+#define PWR_DIS_PVD() CLEAR_BIT(PWR_CR, 4U)
+
+#define PWR_CLEAR_STDBY_FLAG()  SET_BIT(PWR_CR, 3U)
+#define PWR_CLEAR_WKUP_FLAG()   SET_BIT(PWR_CR, 2U)
+// 0: Enter Stop mode when the CPU enters deepsleep. 
+// The regulator status depends on the LPDS bit set by the  function.
+#define PWR_PDWN_DEEPSLEEP() CLEAR_BIT(PWR_CR, 1U)
+// 1: Enter Standby mode when the CPU enters deepsleep. 
+#define PWR_STDBY_DEEPSLEEP() SET_BIT(PWR_CR, 1U)
+// 0: Voltage regulator on during Stop mode.
+#define PWR_NO_LOWP_DEEPSLEEP() CLEAR_BIT(PWR_CR, 0U)
+// 1: Low-power Voltage regulator on during Stop mode
+#define PWR_LOWP_DEEPSLEEP() SET_BIT(PWR_CR, 0U)
+
+/*--------PWR_CSR---------*/
+/*--------PWR_CSR---------*/
+
+// Clear the Wakeup flag
+#define PWR_CLEAR_WU_FLAG() SET_BIT(PWR_CSR, 0U)
+// Clear the Standby flag
+#define PWR_CLEAR_STDBY_FLAG() SET_BIT(PWR_CSR, 1U)
+
+// Enable the wakeup pin
+#define PWR_EN_WAKEUP_PIN() SET_BIT(PWR_CSR, 8U)
+// Disable the wakeup pin
+#define PWR_DIS_WAKEUP_PIN() CLEAR_BIT(PWR_CSR, 8U)
+
+// PVD output
+#define PWR_PVD_OUTPUT() (READ_BIT(PWR_CSR, 2U))
+
+// Backup regulator ready
+#define PWR_BKP_REG_RDY() (READ_BIT(PWR_CSR, 3U))
+
+// Regulator voltage scaling output selection ready bit
+#define PWR_REGULATOR_VOS_RDY() (READ_BIT(PWR_CSR, 4U))
+
+// Check if Wakeup flag is set
+#define PWR_GET_WU_FLAG() (READ_BIT(PWR_CSR, 0U))
+// Check if Standby flag is set
+#define PWR_GET_STDBY_FLAG() (READ_BIT(PWR_CSR, 1U))
+
+// Check if regulator voltage scaling is ready
+#define PWR_GET_VOS_RDY() (READ_BIT(PWR_CSR, 4U))
+
+// Check if backup regulator is ready
+#define PWR_GET_BKP_REG_RDY() (READ_BIT(PWR_CSR, 3U))
+
+// Check if PVD output is high
+#define PWR_GET_PVD_OUTPUT() (READ_BIT(PWR_CSR, 2U))
+
+// Enable backup regulator
+#define PWR_EN_BKP_REG() SET_BIT(PWR_CSR, 9U)
+// Disable backup regulator
+#define PWR_DIS_BKP_REG() CLEAR_BIT(PWR_CSR, 9U)
+
+// Use WKUP and STDBY for flags
+#define PWR_CLEAR_WKUP_FLAG() SET_BIT(PWR_CSR, 0U)
+#define PWR_CLEAR_STDBY_FLAG() SET_BIT(PWR_CSR, 1U)
+#define PWR_GET_WKUP_FLAG() (READ_BIT(PWR_CSR, 0U))
+#define PWR_GET_STDBY_FLAG() (READ_BIT(PWR_CSR, 1U))
+
+
 
 
 
@@ -505,33 +633,24 @@ Each memory mapped regitser pointed to is dereferenced to avoid dereferencing in
 /*--------RCC_PLLCFGR---------*/
 /*--------RCC_PLLCFGR---------*/
 
-/*Set the PLL frequency at 84Mhz*/
-/* PLLSRC = HSI, PLLN = 336, PLLP = 4, PLLM = 16 */ 
-#define RCC_PLL_84MHz() \
-  MODIFY_REG(RCC_PLLCFGR, \
-  0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-  (1U << 22U) | (336U << 6U) | (4U << 16U) | (16U << 0U));
-
-/*Set the PLL frequency at 72Mhz*/
-/* PLLSRC = HSI, PLLN = 432, PLLP = 6, PLLM = 16 */
-#define RCC_PLL_72MHz() \
-  MODIFY_REG(RCC_PLLCFGR, \
-  0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-  (1U << 22U) | (432U << 6U) | (6U << 16U) | (16U << 0U));
-
-/*Set the PLL frequency at 64Mhz*/
-/* PLLSRC = HSI, PLLN = 256, PLLP = 4, PLLM = 16 */
-#define RCC_PLL_64MHz() \
-  MODIFY_REG(RCC_PLLCFGR, \
-  0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-  (1U << 22U) | (256U << 6U) | (4U << 16U) | (16U << 0U));
-
-/*Set the PLL frequency at 42Mhz*/
-/* PLLSRC = HSI, PLLN = 336, PLLP = 8, PLLM = 16 */
-#define RCC_PLL_42MHz() \
+/* Set PLL frequency with configurable parameters */
+#define RCC_PLL_CONFIG(N, P, M) \
   MODIFY_REG(RCC_PLLCFGR, \
     0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
-    (1U << 22U) | (336U << 6U) | (8U << 16U) | (16U << 0U));
+    (1U << 22U) | ((N) << 6U) | ((P) << 16U) | ((M) << 0U))
+
+/* Set the PLL frequency at 84MHz */
+#define RCC_PLL_84MHz() RCC_PLL_CONFIG(336U, 4U, 16U)
+
+/* Set the PLL frequency at 72MHz */
+#define RCC_PLL_72MHz() RCC_PLL_CONFIG(432U, 6U, 16U)
+
+/* Set the PLL frequency at 64MHz */
+#define RCC_PLL_64MHz() RCC_PLL_CONFIG(256U, 4U, 16U)
+
+/* Set the PLL frequency at 42MHz */
+#define RCC_PLL_42MHz() RCC_PLL_CONFIG(336U, 8U, 16U)
+
 
 
 /*--------RCC_CFGR---------*/
@@ -1015,8 +1134,295 @@ s
 
 #ifndef GPIO_HELPERS 1
 
+#define GPIOA_BASE        (0x40020000U)
+#define GPIOB_BASE        (0x40020400U)
+#define GPIOC_BASE        (0x40020800U)
+#define GPIOD_BASE        (0x40020C00U)
+#define GPIOE_BASE        (0x40021000U)
+#define GPIOH_BASE        (0x40021C00U)
+
+#define GPIO_MODER_OFFSET   (0x00U)
+#define GPIO_OTYPER_OFFSET  (0x04U)
+#define GPIO_OSPEEDR_OFFSET (0x08U)
+#define GPIO_PUPDR_OFFSET   (0x0CU)
+#define GPIO_IDR_OFFSET     (0x10U)
+#define GPIO_ODR_OFFSET     (0x14U)
+#define GPIO_BSRR_OFFSET    (0x18U)
+#define GPIO_LCKR_OFFSET    (0x1CU)
+#define GPIO_AFRL_OFFSET    (0x20U)
+#define GPIO_AFRH_OFFSET    (0x24U)
+
+
+/*--------GPIOx_MODER---------*/
+/*--------GPIOx_MODER---------*/
+
+#define GPIOx_SET_MODE(GPIOx_BASE, PIN_N, MODE) \
+  CLEAR_BITS(GPIOx_BASE + GPIO_MODER_OFFSET, 0b11U << (PIN_N/2U)) \
+  SET_BITS(GPIOx_BASE + GPIO_MODER_OFFSET, MODE << (PIN_N/2U))
+
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param MODE 
+// 00: Input (reset state) /
+// 01: General purpose output mode /
+// 10: Alternate function mode /
+// 11: Analog mode
+#define GPIOA_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOA_BASE, PIN_N, MODE)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param MODE 
+// 00: Input (reset state) /
+// 01: General purpose output mode /
+// 10: Alternate function mode /
+// 11: Analog mode
+#define GPIOB_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOB_BASE, PIN_N, MODE)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param MODE 
+// 00: Input (reset state) /
+// 01: General purpose output mode /
+// 10: Alternate function mode /
+// 11: Analog mode
+#define GPIOC_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOC_BASE, PIN_N, MODE)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param MODE 
+// 00: Input (reset state) /
+// 01: General purpose output mode /
+// 10: Alternate function mode /
+// 11: Analog mode
+#define GPIOD_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOD_BASE, PIN_N, MODE)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param MODE 
+// 00: Input (reset state) /
+// 01: General purpose output mode /
+// 10: Alternate function mode /
+// 11: Analog mode
+#define GPIOE_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOE_BASE, PIN_N, MODE)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param MODE 
+// 00: Input (reset state) /
+// 01: General purpose output mode /
+// 10: Alternate function mode /
+// 11: Analog mode
+#define GPIOH_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOH_BASE, PIN_N, MODE)
+
+
+/*--------GPIOx_OTYPER---------*/
+/*--------GPIOx_OTYPER---------*/
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOA_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOA_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOA_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOA_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOB_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOB_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOB_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOB_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOC_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOC_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOC_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOC_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOD_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOD_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOD_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOD_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOE_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOE_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOE_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOE_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOH_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOH_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOH_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOH_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+
+
+/*--------GPIOx_OSPEEDR---------*/
+/*--------GPIOx_OSPEEDR---------*/
+
+#define GPIOx_SET_OSPEED(GPIOx_BASE, PIN_N, OSPEED) \
+  CLEAR_BITS(GPIOx_BASE + GPIO_OSPEEDR_OFFSET, 0b11U << (PIN_N/2U)) \
+  SET_BITS(GPIOx_BASE + GPIO_OSPEEDR_OFFSET, OSPEED << (PIN_N/2U))
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param OSPEED is the signal output speed to apply to that pin: 
+// 00: Low speed /
+// 01: Medium speed /
+// 10: High speed /
+// 11: Very high speed /
+#define GPIOA_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOA_BASE, PIN_N, OSPEED)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param OSPEED is the signal output speed to apply to that pin: 
+// 00: Low speed /
+// 01: Medium speed /
+// 10: High speed /
+// 11: Very high speed /
+#define GPIOB_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOB_BASE, PIN_N, OSPEED)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param OSPEED is the signal output speed to apply to that pin: 
+// 00: Low speed /
+// 01: Medium speed /
+// 10: High speed /
+// 11: Very high speed /
+#define GPIOC_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOC_BASE, PIN_N, OSPEED)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param OSPEED is the signal output speed to apply to that pin: 
+// 00: Low speed /
+// 01: Medium speed /
+// 10: High speed /
+// 11: Very high speed /
+#define GPIOD_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOD_BASE, PIN_N, OSPEED)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param OSPEED is the signal output speed to apply to that pin: 
+// 00: Low speed /
+// 01: Medium speed /
+// 10: High speed /
+// 11: Very high speed /
+#define GPIOE_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOE_BASE, PIN_N, OSPEED)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param OSPEED is the signal output speed to apply to that pin: 
+// 00: Low speed /
+// 01: Medium speed /
+// 10: High speed /
+// 11: Very high speed /
+#define GPIOH_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOH_BASE, PIN_N, OSPEED)
+
+/*--------GPIOx_PUPDR---------*/
+/*--------GPIOx_PUPDR---------*/
+
+/// @param GPIO_BASE is the base address of the GPIO port
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param STATE Dictates the pull-up pull-down state of the pin
+// 00: No pull-up, pull-down
+// 01: Pull-up
+// 10: Pull-down
+// 11: Reserved
+#define GPIO_SET_PUPD(GPIO_BASE, PIN_N, STATE) \
+  CLEAR_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, 0b11U << ((PIN_N) * 2U)) \
+  SET_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, (STATE) << ((PIN_N) * 2U))
+
+/// Macros for GPIOA
+#define GPIOA_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOA_BASE, PIN_N, STATE)
+
+/// Macros for GPIOB
+#define GPIOB_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOB_BASE, PIN_N, STATE)
+
+/// Macros for GPIOC
+#define GPIOC_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOC_BASE, PIN_N, STATE)
+
+/// Macros for GPIOD
+#define GPIOD_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOD_BASE, PIN_N, STATE)
+
+/// Macros for GPIOE
+#define GPIOE_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOE_BASE, PIN_N, STATE)
+
+/// Macros for GPIOH
+#define GPIOH_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOH_BASE, PIN_N, STATE)
+
+
+/*--------GPIOx_IDR---------*/
+/*--------GPIOx_IDR---------*/
+
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOA_PINREAD(PIN_N) READ_BIT(GPIOA_BASE + GPIO_IDR_OFFSET, (PIN_N))
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOB_PINREAD(PIN_N) READ_BIT(GPIOB_BASE + GPIO_IDR_OFFSET, (PIN_N))
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOC_PINREAD(PIN_N) READ_BIT(GPIOC_BASE + GPIO_IDR_OFFSET, (PIN_N))
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOD_PINREAD(PIN_N) READ_BIT(GPIOD_BASE + GPIO_IDR_OFFSET, (PIN_N))
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOE_PINREAD(PIN_N) READ_BIT(GPIOE_BASE + GPIO_IDR_OFFSET, (PIN_N))
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIOH_PINREAD(PIN_N) READ_BIT(GPIOH_BASE + GPIO_IDR_OFFSET, (PIN_N))
+
+
+
+/*--------GPIOx_BSSR---------*/
+/*--------GPIOx_BSSR---------*/
+
+/// @param GPIO_BASE is the base address of the GPIO port
+/// @param PIN_N is the pin number of the port (0..15)
+#define GPIO_PIN_HIGH(GPIO_BASE, PIN_N) \
+  SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N))
+#define GPIO_PIN_LOW(GPIO_BASE, PIN_N) \
+  SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N) + 16U)
+
+/// Macros for GPIOA
+#define GPIOA_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOA_BASE, PIN_N)
+#define GPIOA_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOA_BASE, PIN_N)
+
+/// Macros for GPIOB
+#define GPIOB_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOB_BASE, PIN_N)
+#define GPIOB_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOB_BASE, PIN_N)
+
+/// Macros for GPIOC
+#define GPIOC_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOC_BASE, PIN_N)
+#define GPIOC_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOC_BASE, PIN_N)
+
+/// Macros for GPIOD
+#define GPIOD_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOD_BASE, PIN_N)
+#define GPIOD_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOD_BASE, PIN_N)
+
+/// Macros for GPIOE
+#define GPIOE_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOE_BASE, PIN_N)
+#define GPIOE_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOE_BASE, PIN_N)
+
+/// Macros for GPIOH
+#define GPIOH_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOH_BASE, PIN_N)
+#define GPIOH_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOH_BASE, PIN_N)
+
+
+
+/*--------GPIOx_AFRL/AFRH---------*/
+/*--------GPIOx_AFRL/AFRH---------*/
+
+#define GPIO_SET_AF(GPIOx_BASE, PIN_N, AF_NUM) \
+  CLEAR_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
+  0xFU << ((PIN_N - ((PIN_N) < 8U ? 0U : 8U) / 4U))) \
+  SET_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
+  AF_NUM << ((PIN_N - ((PIN_N) < 8U ? 0U : 8U) / 4U)))
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param AF_NUM is the alternate function number (0..15)
+#define GPIOA_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOA_BASE, PIN_N, AF_NUM)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param AF_NUM is the alternate function number (0..15)
+#define GPIOB_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOB_BASE, PIN_N, AF_NUM)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param AF_NUM is the alternate function number (0..15)
+#define GPIOC_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOC_BASE, PIN_N, AF_NUM)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param AF_NUM is the alternate function number (0..15)
+#define GPIOD_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOD_BASE, PIN_N, AF_NUM)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param AF_NUM is the alternate function number (0..15)
+#define GPIOE_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOE_BASE, PIN_N, AF_NUM)
+
+/// @param PIN_N is the pin number of the port (0..15)
+/// @param AF_NUM is the alternate function number (0..15)
+#define GPIOH_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOH_BASE, PIN_N, AF_NUM)
+
 
 #endif // !GPIO_HELPERS 1
+
+
 
 /*=============================================================================*/
 /*=============================================================================*/
