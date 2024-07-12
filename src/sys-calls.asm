@@ -33,9 +33,10 @@
 
 @----------------------------------------------------------------------
 @----------------------------------------------------------------------
+@----------------------------------------------------------------------
 @ syscalls thru SVC
 
-.section .text.drivers.NVIC, "ax", %progbits
+.section .text.syscalls, "ax", %progbits
 
 @-----------------------------------
 @ syscall used by apps (called by SVC)
@@ -95,7 +96,7 @@ _NVIC_set_pend_irq:
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  POP     {r1-r3}
+  POP     {r0-r3}
   BX      lr
   .align  4
   .size _NVIC_set_pend_irq, .-_NVIC_set_pend_irq
@@ -196,3 +197,7 @@ _NVIC_soft_trigger_irq:
   BX      lr
   .align  4
   .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
+
+@----------------------------------------------------------------------
+@----------------------------------------------------------------------
+@----------------------------------------------------------------------

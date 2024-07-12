@@ -26,19 +26,19 @@
   * Author: Youssef Azaiez
 */
 
-/*      |----------- |*/
-/* 32Kb |kernel SRAM |*/
-/*      |----------- |*/
-/* 64kB |  App SRAM  |*/
-/*      |----------- |*/
-/*      |            |*/
-/* 256Kb| App flash  |*/
-/*      |            |*/
-/*      |----------- |*/
-/*      |            |*/
-/* 256Kb|kernel flash|*/
-/*      |            |*/
-/*      |----------- |*/
+              /*      |----------- |*/
+              /* 32Kb |kernel SRAM |*/
+              /*      |----------- |*/
+              /* 64kB |  App SRAM  |*/
+              /*      |----------- |*/
+              /*      |            |*/
+              /* 256Kb| App flash  |*/
+              /*      |            |*/
+              /*      |----------- |*/
+              /*      |            |*/
+              /* 256Kb|kernel flash|*/
+              /*      |            |*/
+              /*      |----------- |*/
 MEMORY
 {
   /* 512KB of FLASH memory */
@@ -80,7 +80,7 @@ SECTIONS
     ALIGN(4);
     *(.text.reset_handler)
     *(.text.sysinit)
-    *(text.k_driver*)
+    *(.text.syscalls)
     ALIGN(4);
   } > K_FLASH
 

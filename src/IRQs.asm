@@ -24,3 +24,14 @@
 
 @ <https://github.com/anomaly1095/systemZ>
 @ Author: Youssef Azaiez
+
+.syntax unified
+.cpu cortex-m4
+.fpu fpv4-sp-d16
+.thumb
+.include "include.asm"
+
+@----------------------------------------------------------------------
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- Interrupt Request handlers for exception handling
+  .section .text.IRQs, "ax", %progbits
