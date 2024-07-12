@@ -79,22 +79,51 @@
 .endm
 
 
-.section .rodata.registers.FLASH, "a", %progbits
-  .equ FLASH_BASE, 0x40023C00       @ FLASH base address
-  .equ FLASH_KEY1, 0x45670123
-  .equ FLASH_KEY2, 0xCDEF89AB
-  .equ FLASH_OPTKEY1, 0x08192A3B
-  .equ FLASH_OPTKEY2, 0x4C5D6E7F
 
+
+.section .rodata.registers.SCB, "a", %progbits
+@      Name   Address           Type    Req privilege Reset val
+ .equ  ACTLR,  0xE000E008        @ RW    Privileged    0x00000000
+ .equ  CPUID,  0xE000ED00        @ RO    Privileged    0x410FC241
+ .equ  ICSR,   0xE000ED04        @ RW    Privileged    0x00000000
+ .equ  VTOR,   0xE000ED08        @ RW    Privileged    0x00000000
+ .equ  AIRCR,  0xE000ED0C        @ RW    Privileged    0xFA050000
+ .equ  SCR,    0xE000ED10        @ RW    Privileged    0x00000000
+ .equ  CCR,    0xE000ED14        @ RW    Privileged    0x00000200
+ .equ  SHPR1,  0xE000ED18        @ RW    Privileged    0x00000000
+ .equ  SHPR2,  0xE000ED1C        @ RW    Privileged    0x00000000
+ .equ  SHPR3,  0xE000ED20        @ RW    Privileged    0x00000000
+ .equ  SHCSR,  0xE000ED24        @ RW    Privileged    0x00000000
+ .equ  CFSR,   0xE000ED28        @ RW    Privileged    0x00000000
+ .equ  MMSR,   0xE000ED28        @ RW    Privileged    0x00
+ .equ  BFSR,   0xE000ED29        @ RW    Privileged    0x00
+ .equ  UFSR,   0xE000ED2A        @ RW    Privileged    0x0000
+ .equ  HFSR,   0xE000ED2C        @ RW    Privileged    0x00000000
+ .equ  MMAR,   0xE000ED34        @ RW    Privileged    Unknown
+ .equ  BFAR,   0xE000ED38        @ RW    Privileged    Unknown
+ .equ  AFSR,   0xE000ED3C        @ RW    Privileged    0x00000000
+
+@-----------------------------------------------
 .section .rodata.registers.NVIC, "a", %progbits
   .equ NVIC_ISER0, 0xE000E100     @ 7 register
   .equ NVIC_ICER0, 0xE000E180     @ 7 register
   .equ NVIC_ISPR0, 0xE000E200     @ 7 register
   .equ NVIC_ICPR0, 0xE000E280     @ 7 register
   .equ NVIC_IABR0, 0xE000E300     @ 7 register
-  .equ NVIC_IPR0, 0xE000E400      @ 59 register
-  .equ STIR, 0xE000EF00           @ 1 register
-
+  .equ NVIC_IPR0,  0xE000E400     @ 59 register
+  .equ NVIC_STIR,  0xE000EF00     @ 1 register
+@-----------------------------------------------
+.section .rodata.registers.SYSTICK, "a", %progbits
+  .equ SYSTCK_BASE, 0xE000E010
+  .equ SYSTICK_COUNTER, 10499   @ value to be laded in STK_LOAD
+@-----------------------------------------------
+  .section .rodata.registers.FLASH, "a", %progbits
+  .equ FLASH_BASE, 0x40023C00      @ FLASH base address
+  .equ FLASH_KEY1, 0x45670123
+  .equ FLASH_KEY2, 0xCDEF89AB
+  .equ FLASH_OPTKEY1, 0x08192A3B
+  .equ FLASH_OPTKEY2, 0x4C5D6E7F
+@------------------------------------------------
 .section .rodata.registers.PWR, "a", %progbits
   .equ PWR_BASE, 0x40007000
   .equ PWR_CR_MASK, 0x8EFD
@@ -103,11 +132,7 @@
   .equ RCC_BASE, 0x40023800       @ RCC bit-band base address
   .equ RCC_BASE_BB, 0x42470000    @ RCC base address
   .equ RCC_PLLCFGR_MASK, 0xF437FFF
-
-.section .rodata.registers.SYSTICK, "a", %progbits
-  .equ SYSTCK_BASE, 0xE000E010
-  .equ SYSTICK_COUNTER, 10499   @ value to be laded in STK_LOAD
-
+@-----------------------------------------------
 .section .rodata.registers.MPU, "a", %progbits
   .equ MPU_BASE, 0xE000ED90
 

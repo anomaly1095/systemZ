@@ -31,12 +31,13 @@
 .thumb
 .include "include.asm"
 
-@----------------------------------------------------------------------
-@----------------------------------------------------------------------
-@----------------------------------------------------------------------
-@ syscalls thru SVC
 
 .section .text.syscalls, "ax", %progbits
+@ syscalls thru SVC
+
+@----------------------------------------------------------------------
+@----------------------------------------------------------------------
+@---------------------------------------------------------------------- NVIC syscalls
 
 @-----------------------------------
 @ syscall used by apps (called by SVC)
@@ -47,18 +48,18 @@
 _NVIC_enable_irq:
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  PUSH    {r0-r3}
   NVIC_REG_SELECT0_7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  POP     {r0-r3}
+  MOV     r0, #0
   BX      lr
   .align  4
   .size _NVIC_enable_irq, .-_NVIC_enable_irq
 
+  
 @-----------------------------------
 @ syscall used by apps (called by SVC)
 @ called by software to disable an interrupt
@@ -68,17 +69,17 @@ _NVIC_enable_irq:
 _NVIC_disable_irq:
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  PUSH    {r0-r3}
   NVIC_REG_SELECT0_7  r0, NVIC_ICER0   @ Select the appropriate NVIC_ICER register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  POP     {r0-r3}
+  MOV     r0, #0
   BX      lr
   .align  4
   .size _NVIC_disable_irq, .-_NVIC_disable_irq
+
 
 @-----------------------------------
 @ syscall used by apps (called by SVC)
@@ -89,14 +90,13 @@ _NVIC_disable_irq:
 _NVIC_set_pend_irq:
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  PUSH    {r0-r3}
   NVIC_REG_SELECT0_7  r0, NVIC_ISPR0   @ Select the appropriate NVIC_ISPR register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  POP     {r0-r3}
+  MOV     r0, #0
   BX      lr
   .align  4
   .size _NVIC_set_pend_irq, .-_NVIC_set_pend_irq
@@ -111,17 +111,17 @@ _NVIC_set_pend_irq:
 _NVIC_clear_pend_irq:
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  PUSH    {r0-r3}
   NVIC_REG_SELECT0_7  r0, NVIC_ICPR0   @ Select the appropriate NVIC_ICPR register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  POP     {r0-r3}
+  MOV     r0, #0
   BX      lr
   .align  4
   .size _NVIC_clear_pend_irq, .-_NVIC_clear_pend_irq
+
 
 @-----------------------------------
 @ syscall used by apps (called by SVC)
@@ -133,7 +133,6 @@ _NVIC_clear_pend_irq:
 _NVIC_check_active_irq:
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  PUSH    {r1-r3}
   NVIC_REG_SELECT0_7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
@@ -142,11 +141,11 @@ _NVIC_check_active_irq:
   ITE     NE
   MOVNE   r0, #1                @ bit is set (IRQ active)
   MOVEQ   r0, #0                @ bit is not set (IRQ idle)
-  POP     {r1-r3}
   BX      lr
   .align  4
   .size _NVIC_check_active_irq, .-_NVIC_check_active_irq
   
+
 @-----------------------------------
 @ syscall used by apps (called by SVC)
 @ called by software to set the priority of the interrupt
@@ -155,10 +154,9 @@ _NVIC_check_active_irq:
 @-----------------------------------
 .type _NVIC_set_pri_irq, %function
 _NVIC_set_pri_irq:
-  PUSH    {r0-r2}                 @ Preserve registers r0-r2
   NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   STRB    r1, [r2]                @ Store the priority number in the selected register byte
-  POP     {r0-r2}                 @ Restore registers r0-r2
+  MOV     r0, #0
   BX      lr                      @ Return from the function
   .align  4
   .size _NVIC_set_pri_irq, .-_NVIC_set_pri_irq
@@ -172,10 +170,8 @@ _NVIC_set_pri_irq:
 @-----------------------------------
 .type _NVIC_get_pri_irq, %function
 _NVIC_get_pri_irq:
-  PUSH    {r1-r2}                 @ Preserve registers r1-r2
   NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   LDRB    r0, [r2]                @ Load the priority number from the selected register byte
-  POP     {r1-r2}                 @ Restore registers r1-r2
   BX      lr                      @ Return from the function
   .align  4
   .size _NVIC_get_pri_irq, .-_NVIC_get_pri_irq
@@ -190,14 +186,29 @@ _NVIC_get_pri_irq:
 @-----------------------------------
   .type _NVIC_soft_trigger_irq, %function
 _NVIC_soft_trigger_irq:
-  PUSH    {r1}
   LDR     r1, =NVIC_STIR
   STR     r0, [r1]
-  POP     {r1}
+  MOV     r0, #0
   BX      lr
   .align  4
   .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
 
 @----------------------------------------------------------------------
 @----------------------------------------------------------------------
-@----------------------------------------------------------------------
+@---------------------------------------------------------------------- SCB syscalls
+
+@-----------------------------------
+@ function used directly by apps (requires a wrapper)
+@ access to this register can be thru unpriviledged thread mode
+@ check SCR reg in page 230 of the stm32-cortex-M4 Referance Manual
+@ called by software to trigger an interrupt on the mask specified in arg0
+@ arg0: IRQ number (0..239)
+@-----------------------------------
+  .type _NVIC_soft_trigger_irq, %function
+_NVIC_soft_trigger_irq:
+  LDR     r1, =NVIC_STIR
+  STR     r0, [r1]
+  MOV     r0, #0
+  BX      lr
+  .align  4
+  .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
