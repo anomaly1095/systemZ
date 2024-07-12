@@ -29,10 +29,8 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-.include "rodata.asm"
+.include "include.s"
 
-.define DEVELOPMENT_MODE
-@ .define PRODUCTION_MODE
 
 @----------------------------------------------
 @ Default Handler Section

@@ -31,6 +31,9 @@
 .thumb
 
 
+.define DEVELOPMENT_MODE 
+@ .define PRODUCTION_MODE
+
 @ Macro used for configuring the various regions used by the system
 .macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
 	LDR     r1, =\region_base

@@ -29,15 +29,15 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-.include "include.asm"
+.include "include.s"
 
 
 .section .text.syscalls, "ax", %progbits
 @ syscalls thru SVC
 
-@----------------------------------------------------------------------
-@----------------------------------------------------------------------
-@---------------------------------------------------------------------- NVIC syscalls
+@-----------------------------------------------------
+@-----------------------------------------------------NVIC syscalls
+@----------------------------------------------------- 
 
 @-----------------------------------
 @ syscall used by apps (called by SVC)
@@ -193,22 +193,7 @@ _NVIC_soft_trigger_irq:
   .align  4
   .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
 
-@----------------------------------------------------------------------
-@----------------------------------------------------------------------
-@---------------------------------------------------------------------- SCB syscalls
+@-----------------------------------------------------
+@----------------------------------------------------- system control syscalls
+@----------------------------------------------------- 
 
-@-----------------------------------
-@ function used directly by apps (requires a wrapper)
-@ access to this register can be thru unpriviledged thread mode
-@ check SCR reg in page 230 of the stm32-cortex-M4 Referance Manual
-@ called by software to trigger an interrupt on the mask specified in arg0
-@ arg0: IRQ number (0..239)
-@-----------------------------------
-  .type _NVIC_soft_trigger_irq, %function
-_NVIC_soft_trigger_irq:
-  LDR     r1, =NVIC_STIR
-  STR     r0, [r1]
-  MOV     r0, #0
-  BX      lr
-  .align  4
-  .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
