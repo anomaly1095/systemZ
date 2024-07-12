@@ -53,7 +53,7 @@
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_enable_irq(uint8_t IRQ_NUM);
+extern uint8_t NVIC_enable_irq(uint8_t IRQ_NUM);
 
 
 #endif // !SYSCALL_WRAPPERS_H 1
