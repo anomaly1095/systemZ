@@ -31,7 +31,9 @@
 .thumb
 .include "include.s"
 
-
+@ Some of thses functions will be called by the APP thru SVC
+@ Others will be called directly by the kernel code
+@ Others are available for both
 .section .text.syscalls, "ax", %progbits
 
 @-----------------------------------------------------
@@ -45,6 +47,8 @@
 @-----------------------------------
   .type _NVIC_enable_irq, %function
 _NVIC_enable_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
   NVIC_REG_SELECT0_7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
@@ -54,6 +58,8 @@ _NVIC_enable_irq:
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
   MOV     r0, #0
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
   .align  4
   .size _NVIC_enable_irq, .-_NVIC_enable_irq
@@ -66,6 +72,8 @@ _NVIC_enable_irq:
 @-----------------------------------
   .type _NVIC_disable_irq, %function
 _NVIC_disable_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
   NVIC_REG_SELECT0_7  r0, NVIC_ICER0   @ Select the appropriate NVIC_ICER register
@@ -75,6 +83,8 @@ _NVIC_disable_irq:
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
   MOV     r0, #0
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
   .align  4
   .size _NVIC_disable_irq, .-_NVIC_disable_irq
@@ -87,6 +97,8 @@ _NVIC_disable_irq:
 @-----------------------------------
   .type _NVIC_set_pend_irq, %function
 _NVIC_set_pend_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
   NVIC_REG_SELECT0_7  r0, NVIC_ISPR0   @ Select the appropriate NVIC_ISPR register
@@ -96,6 +108,8 @@ _NVIC_set_pend_irq:
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
   MOV     r0, #0
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
   .align  4
   .size _NVIC_set_pend_irq, .-_NVIC_set_pend_irq
@@ -108,6 +122,8 @@ _NVIC_set_pend_irq:
 @-----------------------------------
   .type _NVIC_clear_pend_irq, %function
 _NVIC_clear_pend_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
   NVIC_REG_SELECT0_7  r0, NVIC_ICPR0   @ Select the appropriate NVIC_ICPR register
@@ -117,6 +133,8 @@ _NVIC_clear_pend_irq:
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
   MOV     r0, #0
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
   .align  4
   .size _NVIC_clear_pend_irq, .-_NVIC_clear_pend_irq
@@ -130,6 +148,8 @@ _NVIC_clear_pend_irq:
 @-----------------------------------
   .type _NVIC_check_active_irq, %function
 _NVIC_check_active_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
   NVIC_REG_SELECT0_7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
@@ -140,6 +160,8 @@ _NVIC_check_active_irq:
   ITE     NE
   MOVNE   r0, #1                @ bit is set (IRQ active)
   MOVEQ   r0, #0                @ bit is not set (IRQ idle)
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
   .align  4
   .size _NVIC_check_active_irq, .-_NVIC_check_active_irq
@@ -153,9 +175,13 @@ _NVIC_check_active_irq:
 @-----------------------------------
 .type _NVIC_set_pri_irq, %function
 _NVIC_set_pri_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   STRB    r1, [r2]                @ Store the priority number in the selected register byte
   MOV     r0, #0
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr                      @ Return from the function
   .align  4
   .size _NVIC_set_pri_irq, .-_NVIC_set_pri_irq
@@ -169,8 +195,12 @@ _NVIC_set_pri_irq:
 @-----------------------------------
 .type _NVIC_get_pri_irq, %function
 _NVIC_get_pri_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   LDRB    r0, [r2]                    @ Load the priority number from the selected register byte
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr                          @ Return from the function
   .align  4
   .size _NVIC_get_pri_irq, .-_NVIC_get_pri_irq
@@ -185,9 +215,13 @@ _NVIC_get_pri_irq:
 @-----------------------------------
   .type _NVIC_soft_trigger_irq, %function
 _NVIC_soft_trigger_irq:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
   LDR     r1, =NVIC_STIR
   STR     r0, [r1]
   MOV     r0, #0
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
   .align  4
   .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
@@ -220,10 +254,10 @@ _sbrk:
   CMP     r0, r1             @ Compare new system break to PSP address
   ITT     GE                 @ If BRK >= PSP
   MOVGE   r0, #0             @ Return 0 if failed to allocate
-  BXGE    __sbrk_exit
+  BXGE    .exit
   LDR     r2, =p_brk
   STR     r0, [r2]           @ Store the value of the process's new system break 
-__sbrk_exit:
+.exit:
   MOV     r1, #0
   MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
@@ -250,16 +284,16 @@ _sbrk_free:
   SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
   ITT     LE
   MOVLE   r0, #0
-  BLE     __sbrk_free_exit   @ Return 0 on error
+  BLE     .exit   @ Return 0 on error
 
   CMP     r0, r1             @ Compare new system break to end of .data
   ITT     LT                 @ If BRK <= _edata
   MOVLT   r0, #0
-  BXLT    __sbrk_free_exit   @ Return 0 on error
+  BXLT    .exit   @ Return 0 on error
 
   LDR     r2, =p_brk
   STR     r0, [r2]           @ Store the value of the process's new system break 
-__sbrk_free_exit:
+.exit:
   MOV     r1, #0
   MSR     PRIMASK, r1        @ Enable interrupts
   BX      lr
@@ -285,10 +319,10 @@ _ksbrk:
   CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
   ITT     GE                 @ If BRK >= MSP
   MOVGE   r0, #0             @ Return 0 if failed to allocate
-  BXGE    __ksbrk_exit
+  BXGE    .exit
   LDR     r2, =k_brk
   STR     r0, [r2]           @ Store the value of the process's new system break 
-__ksbrk_exit:
+.exit:
   MOV     r1, #0
   MSR     PRIMASK, r1        @ Enable interrupts
   POP     {r0-r2}
@@ -315,16 +349,16 @@ _ksbrk_free:
   SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
   ITT     LE
   MOVLE   r0, #0
-  BLE     __ksbrk_free_exit  @ Return 0 on error
+  BLE     .exit  @ Return 0 on error
 
   CMP     r0, r1             @ Compare new system break to end of .kdata
   ITT     LT                 @ If BRK <= _ekdata
   MOVLT   r0, #0
-  BXLT    __ksbrk_free_exit  @ Return 0 on error
+  BXLT    .exit  @ Return 0 on error
   
   LDR     r2, =k_brk
   STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
-__ksbrk_free_exit:
+.exit:
   MOV     r1, #0
   MSR     PRIMASK, r1        @ Enable interrupts
   POP     {r0-r2}
@@ -333,9 +367,54 @@ __ksbrk_free_exit:
   .size _ksbrk_free, .-_ksbrk_free
 
 
+  .type _memcpy, %function
 _memcpy:
+  PUSH    {r4, lr}         @ Save r4 and lr (link register) on the stack
+  MOV     r2, r2, LSR #2   @ Divide length by 4 for word accesses (assuming length is multiple of 4)
+  BEQ     .exit             @ If length is zero, return early
+
+.loop:
+  LDMIA   r0!, {r3-r6}     @ Load 4 words from buff into r3, r4, r5, r6 and increment buff
+  STMIA   r1!, {r3-r6}     @ Store 4 words from r3, r4, r5, r6 into dest and increment dest
+  SUBS    r2, r2, #1       @ Decrement length counter
+  BNE     .loop            @ Loop if length counter is not zero
+
+.exit:
+  POP     {r4, pc}         @ Restore r4 and return
+  .size _memcpy, .-_memcpy
 
 
+  .type _memset, %function
 _memset:
+  PUSH    {r4, lr}         @ Save r4 and lr (link register) on the stack
+  MOV     r2, r2, LSR #2   @ Divide length by 4 for word accesses (assuming length is multiple of 4)
+  BEQ     .exit             @ If length is zero, return early
+
+.loop:
+  MOV     r3, r1           @ Load byte value into r3 (assuming it's in r1)
+  STMIA   r0!, {r3-r6}     @ Store 4 words of r3 (byte value) into dest and increment dest
+  SUBS    r2, r2, #1       @ Decrement length counter
+  BNE     .loop            @ Loop if length counter is not zero
+
+.exit:
+  POP     {r4, pc}         @ Restore r4 and return
+
+.size _memset, .-_memset
+
+  .type _memzero, %function
 _memzero:
+  PUSH    {r4, lr}         @ Save r4 and lr (link register) on the stack
+  MOV     r2, r2, LSR #2   @ Divide length by 4 for word accesses (assuming length is multiple of 4)
+  BEQ     .exit            @ If length is zero, return early
+
+.loop:
+  MOV     r3, #0           @ Load zero into r3 (byte value 0)
+  STMIA   r0!, {r3-r6}     @ Store 4 words of r3 (zero) into dest and increment dest
+  SUBS    r2, r2, #1       @ Decrement length counter
+  BNE     .loop            @ Loop if length counter is not zero
+
+.exit:
+  POP     {r4, pc}         @ Restore r4 and return
+  .size _memzero, .-_memzero
+
 _memmove:

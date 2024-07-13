@@ -63,20 +63,22 @@ _reset_handler:
   LDR     r0, =_sikdata
   LDR     r1, =_skdata
   LDR     r2, =_ekdata
-__kdata_copy:
+.kdata_copy:
   LDR     r3, [r0], #4        @ Load word from .kdata Flash section
   CMP     r1, r2
   IT      NE
   STRNE   r3, [r1], #4        @ Store word in .kdata SRAM section
-  BNE     _kdata_copy
+  BNE     .kdata_copy
 
   @ Zero out .kbss section in SRAM
   LDR     r0, =_skbss
   LDR     r1, =_ekbss
   MOV     r2, #0
-__kbss_zero:
+.kbss_zero:
   CMP     r0, r1
+  ITT     NE
   STRNE   r2, [r0], #4
+  BNE     .kbss_zero
 
   @ System initialization
   BL      _sysinit
@@ -85,20 +87,22 @@ __kbss_zero:
   LDR     r0, =_sidata
   LDR     r1, =_sdata
   LDR     r2, =_edata
-__data_copy:
+.data_copy:
   LDR     r3, [r0], #4        @ Load word from .data Flash section
   CMP     r1, r2
   IT      NE
   STRNE   r3, [r1], #4        @ Store word in .data SRAM section
-  BNE     _data_copy
+  BNE     .data_copy
   
 	@ Zero out .bss section in SRAM
   LDR     r0, =_sbss
   LDR     r1, =_ebss
   MOV     r2, #0
-__bss_zero:
+.bss_zero:
   CMP     r0, r1
+  ITT     NE
   STRNE   r2, [r0], #4
+  BNE     .bss_zero
 
   @ enable interrupts with configurable priority levels
   MOV     r0, #0
@@ -187,50 +191,22 @@ _SYSTICK_config:
 @-----------------------------------
   .type _RCC_config, %function
 _RCC_config:
-  PUSH    {lr}
   LDR     r0, =RCC_BASE
-  BL      _HSI_enable
-  BL      _PLL_enable
-  BL      _SYSCLK_config
-  BL      _BUS_prescaler_config
-  BL      _RCC_interrupt_config
-  @ consult these 3 functions
-  @ & configure the masks to suit the needs of the system
-  BL      _AHB1_enable_periph_clks
-  BL      _APB1_enable_periph_clks
-  BL      _APB2_enable_periph_clks
-  POP     {lr}
-  MOV     r0, #0          @ return 0
-  BX      lr
-  .align  4
-  .size _RCC_config, .-_RCC_config
-
-
-@-----------------------------------
 @ Enable the high speed internal osciallator
-@-----------------------------------
-  .type _HSI_enable, %function
-_HSI_enable:
+.HSI_enable:
   LDR     r1, [r0]        @ RCC_CR
   MOV     r2, #0b1
   ORR     r1, r1, r2
   STR     r1, [r0]        @ RCC_CR
   LSL     r2, r2, #1      @ make the mask ready for next op
   @ Wait for the high speed internal oscillator to be anabled
-__HSI_wait:
+.HSI_wait:
   LDR     r1, [r0]        @ RCC_CR
   TST     r1, r2          @ use previously shifted mask to check if HSIRDY
-  BEQ     __HSI_wait
-  BX      lr
-  .align  4
-  .size _HSI_enable, .-_HSI_enable
+  BEQ     .HSI_wait
 
-
-@-----------------------------------
 @ Configure then enable the Phase locked loop
-@-----------------------------------
-  .type _PLL_enable, %function
-_PLL_enable:
+.PLL_enable:
   @ Configure PLL
   LDR     r1, [r0, #0x04] @ RCC_PLLCFGR
   MOVW    r2, #16         @ PLLM prescaler = 16
@@ -249,20 +225,13 @@ _PLL_enable:
   ORR     r1, r1, r2
   STR     r1, [r0]        @ RCC_CR
   LSL     r2, r2, #1      @ make the mask ready for the next op
-__PLL_wait:
+.PLL_wait:
   LDR     r1, [r0]        @ RCC_CR
   TST     r1, r2          @ use previously shifted mask to check if PLLRDY
-  BEQ     __PLL_wait
-  BX      lr
-  .align  4
-  .size _PLL_enable, .-_PLL_enable
+  BEQ     .PLL_wait
 
-
-@-----------------------------------
 @ Set PLL as sysclk input thru the provided multiplexer
-@-----------------------------------
-  .type _SYSCLK_config, %function
-_SYSCLK_config:
+.SYSCLK_config:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   MOVW    r2, #0b11
   BIC     r1, r1, r2      @ clear the bits
@@ -271,19 +240,13 @@ _SYSCLK_config:
   STR     r1, [r0, #0x08] @ PLL_CFGR
   LSL     r2, r2, #1      @ shift the bits to allign sith SWS bits
   @ Wait for the multiplexer to select the PLL as SYSCLK input source
-__SYSCLK_wait:
+.SYSCLK_wait:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   TST     r1, r2
-  BEQ     __SYSCLK_wait
-  BX      lr
-  .align  4
-  .size _SYSCLK_config, .-_SYSCLK_config
+  BEQ     .SYSCLK_wait
 
-@-----------------------------------
 @ Set AHB APB1 APB2 prescalers
-@-----------------------------------
-  .type _BUS_prescaler_config, %function
-_BUS_prescaler_config:
+.BUS_prescaler_config:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   MOVW    r2, #0b1111     
   MOVW    r2, #0xE0F0     @ clear HPRE and PPRE2 bits (AHB & APB2 prescaler bits)
@@ -291,67 +254,38 @@ _BUS_prescaler_config:
   MOVW    r2, #(0b100 << 10)@ set PPRE2 = /2 (APB1 prescaler)
   ORR     r1, r1, r2
   STR     r1, [r0, #0x08] @ PLL_CFGR
-  BX      lr
-  .align  4
-  .size _BUS_prescaler_config, .-_BUS_prescaler_config
 
-@-----------------------------------
 @ enable rcc interrupts
-@-----------------------------------
-  .type _RCC_interrupt_config, %function
-_RCC_interrupt_config:
+.RCC_interrupt_config:
   LDR     r1, [r0, #0x0C] @ RCC_CIR
   MOVW    r2, #(0b111111 << 8)  @ enable all RCC interrupts
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x0C] @ RCC_CIR
-  BX      lr
-  .align  4
-  .size _RCC_interrupt_config, .-_RCC_interrupt_config
 
-@-----------------------------------
 @ Enable AHB1 essencial peripherals clocks
-@-----------------------------------
-  .type _AHB1_enable_periph_clks, %function
-_AHB1_enable_periph_clks:
+.AHB1_enable_periph_clks:
   LDR     r1, [r0, #0x30]   @ RCC_AHB1ENR
   MOVW    r2, #0b11         @ enable GPIOA GPIOB 
   MOVT    r2, #(0b11 << 5)  @ enable DMA1 DMA2
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x30]   @ RCC_AHB1ENR
-  BX      lr
-  .align  4
-  .size _AHB1_enable_periph_clks, .-_AHB1_enable_periph_clks
-
-
-@-----------------------------------
 @ Enable APB1 essencial peripheral clocks
-@-----------------------------------
-  .type _APB1_enable_periph_clks, %function
-_APB1_enable_periph_clks:
+.APB1_enable_periph_clks:
   LDR     r1, [r0, #0x40]   @ RCC_APB1ENR
   MOVW    r2, #0b1001       @ enable TIM2 TIM5
   MOVT    r2, #0x1000       @ enable PWR interface
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x40]   @ RCC_APB1ENR
-  BX      lr
-  .align  4
-  .size _APB1_enable_periph_clks, .-_APB1_enable_periph_clks
 
-
-@-----------------------------------
 @ Enable APB2 essential peripheral clocks
-@-----------------------------------
-  .type _APB2_enable_periph_clks, %function
-_APB2_enable_periph_clks:
   LDR     r1, [r0, #0x44]   @ RCC_AHB1ENR
   MOVW    r2, #0x4001       @ enable SYSCFG aand TIM1
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x44]   @ RCC_AHB1ENR
+  MOV     r0, #0          @ return 0
   BX      lr
   .align  4
-  .size _APB2_enable_periph_clks, .-_APB2_enable_periph_clks
-
-
+  .size _RCC_config, .-_RCC_config
 
 
 @ PWR register details provided in STM32F401's ref manual page 87
@@ -412,22 +346,10 @@ _NVIC_config:
 @-----------------------------------
   .type _FLASH_config, %function
 _FLASH_config:
-  PUSH    {lr}
   LDR     r0, =FLASH_BASE
-  BL      _FLASH_access_control
-  BL      _FLASH_cr_optcr_config
-  POP     {lr}
-  MOV     r0, #0      @ RETURN 0
-  BX      lr
-  .align 4
-  .size _FLASH_config, .-_FLASH_config
-
-@-----------------------------------
-@ reset & enable caches, enablke frefetch
+@ reset & enable caches, enable frefetch
 @ Set latency at 2ws for 84mhz AHB clock
-@-----------------------------------
-  .type _FLASH_access_control, %function
-_FLASH_access_control:
+.FLASH_access_control:
   LDR     r1, [r0]
   MOVW    r2, #0b11       @ reset both instruction and data caches
   ORR     r1, r1, r1
@@ -436,16 +358,8 @@ _FLASH_access_control:
   MOVW    r2, #0x0702     @ enable caches, prefetch and set latency = 2Ws
   ORR     r1, r1, r1
   STR     r1, [r0]        @ save changes
-  BX      lr
-  .align 4
-  .size _FLASH_access_control, .-_FLASH_access_control
 
-
-@-----------------------------------
-@ set flash options
-@-----------------------------------
-  .type _FLASH_cr_optcr_config, %function
-_FLASH_cr_optcr_config:
+.FLASH_cr_optcr_config:
   @ Unlock the FLASH_CR
   LDR     r1, =FLASH_KEY1
   STR     r1, [r0, #0x04]     @ store key 1
@@ -472,10 +386,10 @@ _FLASH_cr_optcr_config:
     POP      {lr}
   .endif
 
-  BX      lr                      @ Return 
-
+  MOV     r0, #0      @ RETURN 0
+  BX      lr
   .align 4
-  .size _FLASH_cr_optcr_config, .-_FLASH_cr_optcr_config
+  .size _FLASH_config, .-_FLASH_config
 
 @-----------------------------------
 @ write flash options
@@ -533,40 +447,17 @@ __FLASH_opt_config:
 @-----------------------------------
   .type _MPU_config, %function
 _MPU_config:
-  PUSH    {lr}
   LDR     r0, =MPU_BASE
-  BL      _MPU_type  
-  BL      _MPU_sections_config
-  BL      _MPU_enable
-  POP     {lr}
-  MOV     r0, #0
-  BX      lr
-  .align 4
-  .size _MPU_config, .-_MPU_config
-
-  
-@-----------------------------------
 @ Check for system's support for MPU
 @ Check support for separate or unified sections
-@-----------------------------------
-  .type _MPU_type, %function
-_MPU_type:
+.MPU_type:
   LDR     r1, [r0]
   CMP     r2, #0
-  ITTE    EQ
-  POP     {lr}          @ if not MPU or no separate sections possibility 
+  IT      EQ
   BXEQ    lr            @ we return to system init
-  BX      lr
-  .align 4
-  .size _MPU_type, .-_MPU_type
-
-
-@-----------------------------------
 @ Configure the 8 sections for the system
 @ (macro used is defined in src/common/macros.asm)
-@-----------------------------------
-  .type _MPU_sections_config, %function
-_MPU_sections_config:
+.MPU_sections_config:
   @ Configure REGION0: 0x00000000 to 0x1FFFFFFF (FLASH for kernel and apps)
   MPU_CONFIG_REGION SECTION0_BASE, 0, SECTION0_MASK
 
@@ -590,23 +481,14 @@ _MPU_sections_config:
 
   @ Configure REGION7: 0xE0000000 to 0xE00FFFFF (System Peripheral Space)
   MPU_CONFIG_REGION SECTION7_BASE, 7, SECTION7_MASK
-  @ return
-  BX      lr
-  .align 4
-  .size _MPU_sections_config, .-_MPU_sections_config
-  
-
-@-----------------------------------
-@ Check for system's support for MPU
-@ Check support for separate or unified sections
-@-----------------------------------
-_MPU_enable:
-  .type _MPU_enable, %function
-  @  Enable background map, enable mpu during NMI AND FAULTS, enable MPU
+@  Enable background map, enable mpu during NMI AND FAULTS, enable MPU
+.MPU_enable:
   LDR     r1, [r0, #0x04]       @ MPU_CTRL reg
   MOV     r2, #0b111
   ORR     r1, r2                @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
+
+  MOV     r0, #0
   BX      lr
   .align 4
-  .size _MPU_enable, .-_MPU_enable
+  .size _MPU_config, .-_MPU_config

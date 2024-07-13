@@ -103,8 +103,7 @@ SVC_Handler:
 
   MRS     r4, PSP           @ Get the address of the process stack pointer
   STR     r0, [r4]          @ Store the return value of the syscalls in the process stack
-  POP     {r4-r5, lr}       @ Restore r4, r5, and lr from the kernel stack
-  BX      lr                @ Return from the exception handler
+  POP     {r4-r5, pc}       @ Restore r4, r5, and set pc = lr
   .align  4
   .size SVC_Handler, .-SVC_Handler
 
