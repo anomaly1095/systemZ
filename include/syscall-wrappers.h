@@ -55,5 +55,54 @@
  */
 extern uint8_t NVIC_enable_irq(uint8_t IRQ_NUM);
 
+/**
+ * @brief Disable an interrupt in NVIC using SVC syscall.
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @return Returns 0 upon successful execution of the syscall.
+ */
+extern uint8_t NVIC_disable_irq(uint8_t IRQ_NUM);
+
+/**
+ * @brief Set an interrupt as pending in NVIC using SVC syscall.
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @return Returns 0 upon successful execution of the syscall.
+ */
+extern uint8_t NVIC_set_pend_irq(uint8_t IRQ_NUM);
+
+/**
+ * @brief Clears an interrupt from pending list in NVIC using SVC syscall.
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @return Returns 0 upon successful execution of the syscall.
+ */
+extern uint8_t NVIC_clear_pend_irq(uint8_t IRQ_NUM);
+
+/**
+ * @brief Check if an interrupt is active in NVIC using SVC syscall.
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @return Returns 1 if active, 0 if idle
+ */
+extern uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM);
+
+/**
+ * @brief Set the priority of an interrupt in NVIC using SVC syscall.
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @param PRIO The priority to assign to the interrupt.
+ * @return Returns 0 upon successful execution of the syscall.
+ */
+extern uint8_t NVIC_set_pri_irq(uint8_t IRQ_NUM, uint8_t PRIO);
+
+/**
+ * @brief Get the priority of an interrupt NVIC using SVC syscall.
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @return Returns the priority of the interrupt
+ */
+extern uint8_t NVIC_get_pri_irq(uint8_t IRQ_NUM);
+
+/**
+ * @brief Triggers an interrupt of the IRQ specified in IRQ_NUM thru software
+ * @param IRQ_NUM The number of the IRQ (0..239) to enable.
+ * @return Returns the priority of the interrupt
+ */   
+extern uint8_t NVIC_soft_trigger_irq(uint8_t IRQ_NUM);
 
 #endif // !SYSCALL_WRAPPERS_H 1

@@ -37,7 +37,6 @@
 @ Interrupt Request handlers for exception handling are 
 @ all executed in privileged handler mode
 
-
   .section .text.IRQs, "ax", %progbits
   .global NMI_Handler
   .type NMI_Handler, %function
@@ -77,35 +76,36 @@ SVC_Handler:
   @ All function wrappers should expect an uint32_t return value
   @ r0, r1, r2, r3, r12, LR, PC, xPSR will all be saved automatically during context switch
   
-  PUSH      {r4-r5, lr}       @ Save r4, r5, and lr to the kernel stack
-  MRS       r4, PSP           @ Get the address of the process stack pointer
-  LDR       r4, [r4, #0x18]   @ Get the value of the PC saved on the process stack
-  LDRB      r4, [r4, #-2]     @ Load the byte of the SVC instruction
-  LDR       r5, =SVC_MASK 
-  BIC       r4, r4, r5        @ Extract the immediate value from the SVC instruction
+  PUSH    {r4-r5, lr}       @ Save r4, r5, and lr to the kernel stack
+  MRS     r4, PSP           @ Get the address of the process stack pointer
+  LDR     r4, [r4, #0x18]   @ Get the value of the PC saved on the process stack
+  LDRB    r4, [r4, #-2]     @ Load the byte of the SVC instruction
+  LDR     r5, =SVC_MASK 
+  BIC     r4, r4, r5        @ Extract the immediate value from the SVC instruction
 
-  CMP       r4, #0
-  BEQ       _NVIC_enable_irq
-  CMP       r4, #1
-  BEQ       _NVIC_disable_irq
-  CMP       r4, #2
-  BEQ       _NVIC_set_pend_irq
-  CMP       r4, #3
-  BEQ       _NVIC_clear_pend_irq
-  CMP       r4, #4
-  BEQ       _NVIC_check_active_irq
-  CMP       r4, #5
-  BEQ       _NVIC_set_pri_irq
-  CMP       r4, #6
-  BEQ       _NVIC_get_pri_irq
-  CMP       r4, #7
-  BEQ       _NVIC_soft_trigger_irq
+  CMP     r4, #0
+  BEQ     _NVIC_enable_irq
+  CMP     r4, #1
+  BEQ     _NVIC_disable_irq
+  CMP     r4, #2
+  BEQ     _NVIC_set_pend_irq
+  CMP     r4, #3
+  BEQ     _NVIC_clear_pend_irq
+  CMP     r4, #4
+  BEQ     _NVIC_check_active_irq
+  CMP     r4, #5
+  BEQ     _NVIC_set_pri_irq
+  CMP     r4, #6
+  BEQ     _NVIC_get_pri_irq
+  CMP     r4, #7
+  BEQ     _NVIC_soft_trigger_irq
 
 
-  MRS       r4, PSP           @ Get the address of the process stack pointer
-  STR       r0, [r4]          @ Store the return value of the syscalls in the process stack
-  POP       {r4-r5, lr}       @ Restore r4, r5, and lr from the kernel stack
-  BX        lr                @ Return from the exception handler
+  MRS     r4, PSP           @ Get the address of the process stack pointer
+  STR     r0, [r4]          @ Store the return value of the syscalls in the process stack
+  POP     {r4-r5, lr}       @ Restore r4, r5, and lr from the kernel stack
+  BX      lr                @ Return from the exception handler
+  .align  4
   .size SVC_Handler, .-SVC_Handler
 
 

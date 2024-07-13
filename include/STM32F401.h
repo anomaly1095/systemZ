@@ -26,7 +26,8 @@
   * Author: Youssef Azaiez
 */
 
-#ifndef TYPES_H 1
+#ifndef TYPES_H
+  #define TYPES_H     1
 
   typedef signed char int8_t;
   typedef signed short int int16_t;
@@ -43,7 +44,8 @@
 #endif // !TYPES_H  1
 
 
-#ifndef BIT_MANIP 1
+#ifndef BIT_MANIP
+#define BIT_MANIP     1
 /*---------------------------------------------------------------*/
 /*-------------------Macros to manipulate bits-------------------*/
 /*---------------------------------------------------------------*/
@@ -81,7 +83,8 @@
 
 
 
-#ifndef NVIC_H  1
+#ifndef NVIC_H 
+#define NVIC_H      1
 /*---------------------------------------------------------------*/
 /*---IRQ numbers as provided by the STM32F401 reference manual---*/
 /*---------------------------------------------------------------*/
@@ -152,8 +155,8 @@
 /*=============================================================================*/
 
 
-#ifndef FLASH_HELPERS 1
-
+#ifndef FLASH_HELPERS
+  #define FLASH_HELPERS   1
   #define FLASH_BASE               (0x40023C00U)
   #define FLASH_ACR_OFFSET         (0x00U)
   #define FLASH_KEYR_OFFSET        (0x04U)
@@ -208,12 +211,13 @@
   // 1110: Fourteen wait states
   // 1111: Fifteen wait states
   #define FLASH_SET_LATENCY(MASK) \
-    CLEAR_BITS(FLASH_ACR, 0b1111U) \
-    SET_BITS(FLASH_ACR, MASK)
+    do { \
+    CLEAR_BITS(FLASH_ACR, 0b1111U); \
+    SET_BITS(FLASH_ACR, MASK); \
+    } while (0)
 
   /*--------FLASH_KEYR---------*/
   /*--------FLASH_KEYR---------*/
-
 
   /*Unlock write access to the FLASH_CR register*/
   #define FLASH_UNLOCK_CR() \
@@ -281,8 +285,10 @@
   // 10 program x32
   // 11 program x64
   #define FLASH_SET_PROG_SIZE(SIZE) \
-    CLEAR_BITS(FLASH_CR, 0b11U << 8U) \
-    SET_BITS(FLASH_CR, SIZE << 8U)
+    do { \
+      CLEAR_BITS(FLASH_CR, 0b11U << 8U); \
+      SET_BITS(FLASH_CR, SIZE << 8U); \
+    } while (0)
 
   /// @param NUM: These bits select the sector to erase.
   // 0000 sector 0
@@ -292,8 +298,11 @@
   // 0110 sector 6 (STM32F401xD/E devices only)
   // 0111 sector 7 (STM32F401xE devices only)
   #define FLASH_SEL_SECTOR_NUM(NUM) \
-    CLEAR_BITS(FLASH_CR, 0b1111U << 3) \
-    SET_BITS(FLASH_CR, NUM << 3)
+    do { \
+      CLEAR_BITS(FLASH_CR, 0b1111U << 3); \
+      SET_BITS(FLASH_CR, NUM << 3); \
+    } while (0)
+  
   #define FLASH_MASS_ERASE()  SET_BIT(FLASH_CR, 2U)
   #define FLASH_SECTOR_ERASE()  SET_BIT(FLASH_CR, 1U)
   #define FLASH_PROGRAMMING() SET_BIT(FLASH_CR, 0U)
@@ -327,15 +336,19 @@
   // ...
   // Bit 23: nWRP[7]
   #define FLASH_SET_WRP_SECTORS(SECTORS) \
-      CLEAR_BITS(FLASH_OPTCR, 0xFFU << 16U) \
-      SET_BITS(FLASH_OPTCR, SECTORS << 16U)
+    do { \
+      CLEAR_BITS(FLASH_OPTCR, 0xFFU << 16U); \
+      SET_BITS(FLASH_OPTCR, SECTORS << 16U); \
+    } while (0)
   /* @param LEVEL: These bits define the read protection level. */
   // 0xAA: Level 0
   // 0x55: Level 1
   // 0xCC: Level 2
   #define FLASH_SET_RDP_LEVEL(LEVEL) \
-      CLEAR_BITS(FLASH_OPTCR, 0xFFU << 8U) \
-      SET_BITS(FLASH_OPTCR, LEVEL << 8U)
+    do { \
+      CLEAR_BITS(FLASH_OPTCR, 0xFFU << 8U); \
+      SET_BITS(FLASH_OPTCR, LEVEL << 8U); \
+    } while (0)
 
   /* Read protection level 1 */
   #define FLASH_RDP_LVL1()          CLEAR_BIT(FLASH_OPTCR, 8U)
@@ -352,7 +365,8 @@
 /*=============================================================================*/
 
 
-#ifndef CRC_HELPERS 1
+#ifndef CRC_HELPERS
+#define CRC_HELPERS   1
 
   /*The CRC calculation unit Base address*/ 
   #define CRC_BASE            (0x40023000U)
@@ -404,14 +418,15 @@
 /*=============================================================================*/
 
 
-#ifndef PWR_HELPERS 1
+#ifndef PWR_HELPERS
+  #define PWR_HELPERS   1
 
-  #define PWR_BASE      (0x40007000U)
-  #define PWR_CR_OFFSET        (0x00U)
-  #define PWR_CSR_OFFSET       (0x04U)
+  #define PWR_BASE          (0x40007000U)
+  #define PWR_CR_OFFSET     (0x00U)
+  #define PWR_CSR_OFFSET    (0x04U)
 
-  #define PWR_CR          (*(volatile uint32_t *)(PWR_BASE + PWR_CR_OFFSET))
-  #define PWR_CSR         (*(volatile uint32_t *)(PWR_BASE + PWR_CSR_OFFSET))
+  #define PWR_CR            (*(volatile uint32_t *)(PWR_BASE + PWR_CR_OFFSET))
+  #define PWR_CSR           (*(volatile uint32_t *)(PWR_BASE + PWR_CSR_OFFSET))
 
   /*--------PWR_CR---------*/
   /*--------PWR_CR---------*/
@@ -420,39 +435,49 @@
   // 01: Scale 3 mode 
   // 10: Scale 2 mode 
   #define PWR_REGULATOR_VOS2() \
-    CLEAR_BITS(PWR_CR, 0b11U << 14U) \
-    SET_BIT(PWR_CR, 15U)
+    do { \
+      CLEAR_BITS(PWR_CR, 0b11U << 14U); \
+      SET_BIT(PWR_CR, 15U); \
+    } while (0)
   #define PWR_REGULATOR_VOS3() \
-    CLEAR_BITS(PWR_CR, 0b11U << 14U) \
-    SET_BIT(PWR_CR, 14U)
+    do { \
+      CLEAR_BITS(PWR_CR, 0b11U << 14U); \
+      SET_BIT(PWR_CR, 14U); \
+    } while (0)
 
   // 0: Main regulator in Voltage scale 3 when the device is in Stop mode.
   // 1: Main regulator in Low Voltage and Flash memory in Deep Sleep mode when the device is 
   // in Stop mode.
   #define PWR_MRLVDS(BITVAL) \
-    CLEAR_BIT(PWR_CR, 11U) \
-    ((PWR_CR) |= (BITVAL << 11U)) 
-
+    do { \
+      CLEAR_BIT(PWR_CR, 11U); \
+      ((PWR_CR) |= (BITVAL << 11U)); \ 
+    } while (0)
   // 0: Low-power regulator on if LPDS bit is set when the device is in Stop mode.
   // 1: Low-power regulator in Low Voltage and Flash memory in Deep Sleep mode if LPDS bit is 
   // set when device is in Stop mode.
   #define PWR_MRLVDS(BITVAL) \
-    CLEAR_BIT(PWR_CR, 10U) \
-    ((PWR_CR) |= (BITVAL << 9U)) 
-
+    do { \
+      CLEAR_BIT(PWR_CR, 10U); \
+      ((PWR_CR) |= (BITVAL << 9U)); \
+    } while (0)
   // 0: Flash memory not in power-down when the device is in Stop mode
   // 1: Flash memory in power-down when the device is in Stop mode
   #define PWR_FPDS(BITVAL) \
-    CLEAR_BIT(PWR_CR, 9U) \
-    ((PWR_CR) |= (BITVAL << 9U)) 
+    do { \
+      CLEAR_BIT(PWR_CR, 9U); \
+      ((PWR_CR) |= (BITVAL << 9U)); \
+    } while (0)
 
   #define PWR_EN_RTC_ACCESS() SET_BIT(PWR_CR, 8U)
   #define PWR_DIS_RTC_ACCESS() CLEAR_BIT(PWR_CR, 8U)
 
 
   #define PWR_PVD_LEVEL(MASK) \
-    CLEAR_BITS(PWR_CR, 0b111U << 5U) \
-    SET_BITS(PWR_CR, MASK << 5U)
+    do { \
+      CLEAR_BITS(PWR_CR, 0b111U << 5U); \
+      SET_BITS(PWR_CR, MASK << 5U); \
+    } while (0)
 
   /*Set the Power voltage detector threshhold at 2.2V*/
   #define PWR_PVD_LEVEL2_2() PWR_PVD_LEVEL(0b000U)
@@ -541,12 +566,11 @@
 /*=============================================================================*/
 /*=============================================================================*/
 /*=============================================================================*/
-
-
 /*---------------------------------------------------------------*/
 /*---------------Macros for Reset and clock control--------------*/
 /*---------------------------------------------------------------*/
-#ifndef RCC_HELPERS             1
+#ifndef RCC_HELPERS
+  #define RCC_HELPERS     1
 
   #define RCC_BASE                (0x40023800U)
   #define RCC_CR_OFFSET           (0x00U)
@@ -645,8 +669,7 @@
 
   /* Set PLL frequency with configurable parameters */
   #define RCC_PLL_CONFIG(N, P, M) \
-    MODIFY_REG(RCC_PLLCFGR, \
-      0x1FFCFFFFU,    /* Reset PLLN and PLLP bits */ \
+    MODIFY_REG(RCC_PLLCFGR, 0x1FFCFFFFU, \
       (1U << 22U) | ((N) << 6U) | ((P) << 16U) | ((M) << 0U))
 
   /* Set the PLL frequency at 84MHz */
@@ -669,8 +692,10 @@
   /// @param SOURCE Is the source of output in Microcontroller clock output 2
   /// 0b00: SYSCLK / 0b01: PLLI2S / 0b10: HSE / 0b11: PLL
   #define RCC_MCO2_SRC(SOURCE) \
-    CLEAR_BITS(RCC_CFGR, 0b11 << 30U) \
-    SET_BITS(RCC_CFGR, SOURCE << 30U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b11 << 30U); \
+      SET_BITS(RCC_CFGR, SOURCE << 30U); \
+    } while (0)
 
   /// @param PRE is the prescaler to apply on the signal of Microcontroller clock output 2
   /// 0xx: no division / 0b100: division by 2 / 0b101: division by 3 /
@@ -680,8 +705,10 @@
   // 110: division by 4
   // 111: division by 5
   #define RCC_MCO2_PRE(PRE) \
-    CLEAR_BITS(RCC_CFGR, 0b111U << 27U) \
-    SET_BITS(RCC_CFGR, PRE << 27U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b111U << 27U); \
+      SET_BITS(RCC_CFGR, PRE << 27U); \
+    } while (0)
 
   /// @param SOURCE Is the source of output in Microcontroller clock output 1
   // 00: HSI clock selected
@@ -689,15 +716,20 @@
   // 10: HSE oscillator clock selected
   // 11: PLL clock selected
   #define RCC_MCO1_SRC(SOURCE) \
-    CLEAR_BITS(RCC_CFGR, 0b11U << 21U) \
-    SET_BITS(RCC_CFGR, SOURCE << 21U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b11U << 21U); \
+      SET_BITS(RCC_CFGR, SOURCE << 21U); \
+    } while (0)
 
   /// @param SOURCE Is the source of inter integrated sound clock
   // 0: PLLI2S clock used as I2S clock source
   // 1: External clock mapped on the I2S_CKIN pin used as I2S clock source
   #define RCC_MCO1_SRC(SOURCE) \
-    CLEAR_BITS(RCC_CFGR, 0b1U << 23U) \
-    SET_BITS(RCC_CFGR, SOURCE << 23U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b1U << 23U); \
+      SET_BITS(RCC_CFGR, SOURCE << 23U); \
+    } while (0)
+
 
   /// @param PRE is the prescaler to apply on the signal of Microcontroller clock output 1
   /// 0xx: no division / 0b100: division by 2 / 0b101: division by 3 /
@@ -707,8 +739,10 @@
   // 110: division by 4
   // 111: division by 5
   #define RCC_MCO1_PRE(PRE) \
-    CLEAR_BITS(RCC_CFGR, 0b111U << 24U) \
-    SET_BITS(RCC_CFGR, PRE << 24U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b111U << 24U); \
+      SET_BITS(RCC_CFGR, PRE << 24U); \
+    } while (0)
 
   /// @param PRE is the prescaler to apply on the signal of the real time clock
   /// 00000: no clock
@@ -720,8 +754,10 @@
   /// 11110: HSE/30
   /// 11111: HSE/31
   #define RCC_RTC_PRE(PRE) \
-    CLEAR_BITS(RCC_CFGR, 0b11111U << 16U) \
-    SET_BITS(RCC_CFGR, PRE << 16U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b11111U << 16U); \
+      SET_BITS(RCC_CFGR, PRE << 16U); \
+    } while (0)
 
   /// @param PRE is the prescaler to apply on the APB2 
   // 0xx: AHB clock not divided
@@ -730,8 +766,10 @@
   // 110: AHB clock divided by 8
   // 111: AHB clock divided by 16
   #define RCC_APB2_PRE(PRE) \
-    CLEAR_BITS(RCC_CFGR, 0b111U << 13U) \
-    SET_BITS(RCC_CFGR, PRE << 13U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b111U << 13U); \
+      SET_BITS(RCC_CFGR, PRE << 13U); \
+    } while (0)
 
   /// @param PRE is the prescaler to apply on the APB1
   // 0xx: AHB clock not divided
@@ -740,8 +778,10 @@
   // 110: AHB clock divided by 8
   // 111: AHB clock divided by 16
   #define RCC_APB1_PRE(PRE) \
-    CLEAR_BITS(RCC_CFGR, 0b111U << 10U) \
-    SET_BITS(RCC_CFGR, PRE << 10U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b111U << 10U); \
+      SET_BITS(RCC_CFGR, PRE << 10U); \
+    } while (0)
 
   /// @param PRE is the prescaler to apply on the AHB1
   // 0xxx: system clock not divided
@@ -754,8 +794,10 @@
   // 1110: system clock divided by 256
   // 1111: system clock divided by 512
   #define RCC_AHB1_PRE(PRE) \
-    CLEAR_BITS(RCC_CFGR, 0b1111U << 4U) \
-    SET_BITS(RCC_CFGR, PRE << 4U)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b1111U << 4U); \
+      SET_BITS(RCC_CFGR, PRE << 4U); \
+    } while (0)
 
 
   /// @param STAT Is the mask to compare SWS bits to
@@ -763,8 +805,7 @@
   // 01: HSE oscillator selected as system clock
   // 10: PLL selected as system clock
   // 11: not allowed
-  #define RCC_SYSCLK_STAT(STAT) \
-    READ_BITS(RCC_CFGR, STAT)
+  #define RCC_SYSCLK_STAT(STAT) READ_BITS(RCC_CFGR, STAT)
 
 
   /// @param SOURCE Is the source of the SYSCLK
@@ -773,8 +814,10 @@
   // 10: PLL selected as system clock
   // 11: not allowed
   #define RCC_SYSCLK_SRC(SOURCE) \
-    CLEAR_BITS(RCC_CFGR, 0b11U) \
-    SET_BITS(RCC_CFGR, SOURCE)
+    do { \
+      CLEAR_BITS(RCC_CFGR, 0b11U); \
+      SET_BITS(RCC_CFGR, SOURCE); \
+    } while (0)
 
 
   /*--------RCC_CIR---------*/
@@ -1056,8 +1099,10 @@
   #define RCC_EN_RTC_CLK()  SET_BIT(RCC_BDCR, 15U)
   #define RCC_DIS_RTC_CLK() CLEAR_BIT(RCC_BDCR, 15U)
   #define RCC_SEL_RTC_SRC(SOURCE) \
-    CLEAR_BITS(RCC_BDCR, (0b11U << 8U)) \
-    SET_BITS(RCC_BDCR, (SOURCE << 8U))
+    do { \
+      CLEAR_BITS(RCC_BDCR, (0b11U << 8U)); \
+      SET_BITS(RCC_BDCR, (SOURCE << 8U)); \
+    } while (0)
 
   #define RCC_BYP_LSE()   SET_BIT(RCC_BDCR, 2U)
   #define RCC_NOBYP_LSE() CLEAR_BIT(RCC_BDCR, 2U)
@@ -1105,14 +1150,16 @@
 
   /*Set Incrementation step, Configuration input for modulation profile amplitude.*/
   #define RCC_SET_INCSTEP(INCSTEP) \
-    CLEAR_BITS(RCC_SSCGR, 0x7FFFU << 13U) \
-    SET_BITS(RCC_SSCGR, INCSTEP << 13U)
-
+    do { \
+      CLEAR_BITS(RCC_SSCGR, 0x7FFFU << 13U); \
+      SET_BITS(RCC_SSCGR, INCSTEP << 13U); \
+    } while (0)
   /*Modulation period, Configuration input for modulation profile period.*/
   #define RCC_SET_MODPER(MODPER) \
-    CLEAR_BITS(RCC_SSCGR, 0x1FFFU) \
-    SET_BITS(RCC_SSCGR, MODPER)
-  s
+    do { \
+      CLEAR_BITS(RCC_SSCGR, 0x1FFFU); \
+      SET_BITS(RCC_SSCGR, MODPER); \
+    } while (0)
   /*--------RCC_PLLI2SCFGR---------*/
   /*--------RCC_PLLI2SCFGR---------*/
 
@@ -1121,13 +1168,19 @@
 
   // I2S clock frequency = VCO frequency / PLLR with 2 ≤ PLLR ≤ 7
   #define RCC_SET_PLLI2SR(PRE) \
-    CLEAR_BITS(RCC_PLLI2SCFGR, (7U << 28U)) \
-    SET_BITS(RCC_PLLI2SCFGR, (PRE << 28U))
+    do { \
+      CLEAR_BITS(RCC_PLLI2SCFGR, (7U << 28U)); \
+      SET_BITS(RCC_PLLI2SCFGR, (PRE << 28U)); \
+    } while (0)
+
 
   // VCO output frequency = VCO input frequency × PLLI2SN with 192 ≤ PLLI2SN ≤ 432
   #define RCC_SET_PLLI2SN(PRE) \
-    CLEAR_BITS(RCC_PLLI2SCFGR, (511U << 6U)) \
-    SET_BITS(RCC_PLLI2SCFGR, (PRE << 6U))
+    do { \
+      CLEAR_BITS(RCC_PLLI2SCFGR, (511U << 6U)); \
+      SET_BITS(RCC_PLLI2SCFGR, (PRE << 6U)); \
+    } while (0)
+
 
 
   /*--------RCC_DCKCFGR---------*/
@@ -1142,7 +1195,8 @@
 /*=============================================================================*/
 /*=============================================================================*/
 
-#ifndef GPIO_HELPERS 1
+#ifndef GPIO_HELPERS
+  #define GPIO_HELPERS  1
 
   #define GPIOA_BASE        (0x40020000U)
   #define GPIOB_BASE        (0x40020400U)
@@ -1167,8 +1221,10 @@
   /*--------GPIOx_MODER---------*/
 
   #define GPIOx_SET_MODE(GPIOx_BASE, PIN_N, MODE) \
-    CLEAR_BITS(GPIOx_BASE + GPIO_MODER_OFFSET, 0b11U << (PIN_N/2U)) \
-    SET_BITS(GPIOx_BASE + GPIO_MODER_OFFSET, MODE << (PIN_N/2U))
+    do { \
+      CLEAR_BITS((GPIOx_BASE) + GPIO_MODER_OFFSET, 0b11U << ((PIN_N) / 2U)); \
+      SET_BITS((GPIOx_BASE) + GPIO_MODER_OFFSET, (MODE) << ((PIN_N) / 2U)); \
+    } while (0)
 
 
   /// @param PIN_N is the pin number of the port (0..15)
@@ -1258,8 +1314,11 @@
   /*--------GPIOx_OSPEEDR---------*/
 
   #define GPIOx_SET_OSPEED(GPIOx_BASE, PIN_N, OSPEED) \
-    CLEAR_BITS(GPIOx_BASE + GPIO_OSPEEDR_OFFSET, 0b11U << (PIN_N/2U)) \
-    SET_BITS(GPIOx_BASE + GPIO_OSPEEDR_OFFSET, OSPEED << (PIN_N/2U))
+    do { \
+      CLEAR_BITS((GPIOx_BASE) + GPIO_OSPEEDR_OFFSET, 0b11U << ((PIN_N) / 2U)); \
+      SET_BITS((GPIOx_BASE) + GPIO_OSPEEDR_OFFSET, (OSPEED) << ((PIN_N) / 2U)); \
+    } while (0)
+
 
   /// @param PIN_N is the pin number of the port (0..15)
   /// @param OSPEED is the signal output speed to apply to that pin: 
@@ -1320,8 +1379,10 @@
   // 10: Pull-down
   // 11: Reserved
   #define GPIO_SET_PUPD(GPIO_BASE, PIN_N, STATE) \
-    CLEAR_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, 0b11U << ((PIN_N) * 2U)) \
-    SET_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, (STATE) << ((PIN_N) * 2U))
+    do { \
+      CLEAR_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, 0b11U << ((PIN_N) * 2U)); \
+      SET_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, (STATE) << ((PIN_N) * 2U)); \
+    } while (0)
 
   /// Macros for GPIOA
   #define GPIOA_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOA_BASE, PIN_N, STATE)
@@ -1364,10 +1425,8 @@
 
   /// @param GPIO_BASE is the base address of the GPIO port
   /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIO_PIN_HIGH(GPIO_BASE, PIN_N) \
-    SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N))
-  #define GPIO_PIN_LOW(GPIO_BASE, PIN_N) \
-    SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N) + 16U)
+  #define GPIO_PIN_HIGH(GPIO_BASE, PIN_N) SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N))
+  #define GPIO_PIN_LOW(GPIO_BASE, PIN_N) SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N) + 16U)
 
   /// Macros for GPIOA
   #define GPIOA_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOA_BASE, PIN_N)
@@ -1398,10 +1457,13 @@
   /*--------GPIOx_AFRL/AFRH---------*/
 
   #define GPIO_SET_AF(GPIOx_BASE, PIN_N, AF_NUM) \
-    CLEAR_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
-    0xFU << ((PIN_N - ((PIN_N) < 8U ? 0U : 8U) / 4U))) \
-    SET_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
-    AF_NUM << ((PIN_N - ((PIN_N) < 8U ? 0U : 8U) / 4U)))
+    do { \
+      CLEAR_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
+        0xFU << (((PIN_N) - ((PIN_N) < 8U ? 0U : 8U)) / 4U)); \
+      SET_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
+        (AF_NUM) << (((PIN_N) - ((PIN_N) < 8U ? 0U : 8U)) / 4U)); \
+    } while (0)
+
 
   /// @param PIN_N is the pin number of the port (0..15)
   /// @param AF_NUM is the alternate function number (0..15)
@@ -1433,3 +1495,101 @@
 /*=============================================================================*/
 /*=============================================================================*/
 /*=============================================================================*/
+
+
+#ifndef SYSCFG_HELPERS
+  #define SYSCFG_HELPERS  1
+
+  #define SYSCFG_BASE             (0x4001800U)
+  #define SYSCFG_MEMRMP_OFFSET    (0x00U)
+  #define SYSCFG_PMC_OFFSET       (0x04U)
+  #define SYSCFG_EXTICR1_OFFSET   (0x08U)
+  #define SYSCFG_EXTICR2_OFFSET   (0x0CU)
+  #define SYSCFG_EXTICR3_OFFSET   (0x10U)
+  #define SYSCFG_EXTICR4_OFFSET   (0x14U)
+  #define SYSCFG_CMPCR_OFFSET     (0x20U)
+
+  #define SYSCFG_MEMRMP           (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_MEMRMP_OFFSET))
+  #define SYSCFG_PMC              (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_PMC_OFFSET))
+  #define SYSCFG_EXTICR1          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR1_OFFSET))
+  #define SYSCFG_EXTICR2          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR2_OFFSET))
+  #define SYSCFG_EXTICR3          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR3_OFFSET))
+  #define SYSCFG_EXTICR4          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR4_OFFSET))
+  #define SYSCFG_CMPCR            (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_CMPCR_OFFSET))
+
+  /*--------SYSCFG_MEMRMP---------*/
+  /*--------SYSCFG_MEMRMP---------*/
+
+  /// @param NEW_MAP
+  // 00: Main Flash memory mapped at 0x0000 0000
+  // 01: System Flash memory mapped at 0x0000 0000
+  // 11: Embedded SRAM mapped at 0x0000 0000
+  #define SYSCFG_MEM_REMAP(NEW_MAP) \
+      do { \
+          CLEAR_BITS(SYSCFG_MEMRMP, 0b11U); \
+          SET_BITS(SYSCFG_MEMRMP, (NEW_MAP)); \
+      } while (0)
+
+  /*--------SYSCFG_EXTICR---------*/
+  /*--------SYSCFG_EXTICR---------*/
+
+  /// @param PORT 
+  // 0000: PA[x] pin
+  // 0001: PB[x] pin
+  // 0010: PC[x] pin
+  // 0011: PD[x] pin
+  // 0100: PE[x] pin
+  // 0101: Reserved
+  // 0110: Reserved
+  // 0111: PH[x] pin
+  #define EXTI_SEL_PORT(REG, PORT, BITS_OFFSET) \
+    do { \
+      CLEAR_BITS(REG, 0b1111U << BITS_OFFSET); \
+      SET_BITS(REG, (PORT) << BITS_OFFSET); \
+    } while (0)
+
+  /// @brief Select the port on which EXTI0 should listen
+  #define EXTI0_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 0U)
+  /// @brief Select the port on which EXTI1 should listen
+  #define EXTI1_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 4U)
+  /// @brief Select the port on which EXTI2 should listen
+  #define EXTI2_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 8U)
+  /// @brief Select the port on which EXTI3 should listen
+  #define EXTI3_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 12U)
+  /// @brief Select the port on which EXTI4 should listen
+  #define EXTI4_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 0U)
+  /// @brief Select the port on which EXTI5 should listen
+  #define EXTI5_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 4U)
+  /// @brief Select the port on which EXTI6 should listen
+  #define EXTI6_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 8U)
+  /// @brief Select the port on which EXTI7 should listen
+  #define EXTI7_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 12U)
+  /// @brief Select the port on which EXTI8 should listen
+  #define EXTI8_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 0U)
+  /// @brief Select the port on which EXTI9 should listen
+  #define EXTI9_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 4U)
+  /// @brief Select the port on which EXTI10 should listen
+  #define EXTI10_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 8U)
+  /// @brief Select the port on which EXTI11 should listen
+  #define EXTI11_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 12U)
+  /// @brief Select the port on which EXTI12 should listen
+  #define EXTI12_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 0U)
+  /// @brief Select the port on which EXTI13 should listen
+  #define EXTI13_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 4U)
+  /// @brief Select the port on which EXTI14 should listen
+  #define EXTI14_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 8U)
+  /// @brief Select the port on which EXTI15 should listen
+  #define EXTI15_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 12U)
+
+  /*--------SYSCFG_CMPCR---------*/
+  /*--------SYSCFG_CMPCR---------*/
+
+  /// @brief Enable the compensation cell
+  #define SYSCFG_COMP_CELL_EN() SET_BIT(SYSCFG_CMPCR, 0U)
+  /// @brief Disable the compensation cell
+  #define SYSCFG_COMP_CELL_DIS() CLEAR_BIT(SYSCFG_CMPCR, 0U)
+  /// @brief Check if compensation cell is enabled
+  #define SYSCFG_COMP_CELL_RDY() READ_BIT(SYSCFG_CMPCR, 8U)
+
+#endif /* SYSCFG_HELPERS */
+

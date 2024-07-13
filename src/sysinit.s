@@ -148,10 +148,6 @@ _sysinit:
   BL      _SYSTICK_config
   CBNZ    r0, _default_handler
 
-  @ Peripherals configuration 
-  BL      _PERIPH_config
-  CBNZ    r0, _default_handler
-
   POP     {lr}               @ Restore the link register
 	BX      lr                 @ Return from sysinit
   .align 4

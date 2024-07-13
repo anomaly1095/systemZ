@@ -178,7 +178,7 @@ _NVIC_get_pri_irq:
 
 
 @-----------------------------------
-@ function used directly by apps (requires a wrapper)
+@ function used directly by apps or thru syscall
 @ access to this register can be thru unpriviledged thread mode
 @ check SCR reg in page 230 of the stm32-cortex-M4 Referance Manual
 @ called by software to trigger an interrupt on the mask specified in arg0
