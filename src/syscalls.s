@@ -33,13 +33,12 @@
 
 
 .section .text.syscalls, "ax", %progbits
-@ syscalls thru SVC
 
 @-----------------------------------------------------
 @-----------------------------------------------------NVIC syscalls
 @----------------------------------------------------- 
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to enable an interrupt
 @ arg0: number of the IRQ (0..239)
@@ -60,7 +59,7 @@ _NVIC_enable_irq:
   .size _NVIC_enable_irq, .-_NVIC_enable_irq
 
   
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to disable an interrupt
 @ arg0: number of the IRQ (0..239)
@@ -81,7 +80,7 @@ _NVIC_disable_irq:
   .size _NVIC_disable_irq, .-_NVIC_disable_irq
 
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to set an interrupt as pending
 @ arg0: number of the IRQ (0..239)
@@ -102,7 +101,7 @@ _NVIC_set_pend_irq:
   .size _NVIC_set_pend_irq, .-_NVIC_set_pend_irq
 
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to remove an interrupt from pending list
 @ arg0: number of the IRQ (0..239)
@@ -123,7 +122,7 @@ _NVIC_clear_pend_irq:
   .size _NVIC_clear_pend_irq, .-_NVIC_clear_pend_irq
 
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to check interrupt if the interrupt is active
 @ arg0: number of the IRQ (0..239)
@@ -146,7 +145,7 @@ _NVIC_check_active_irq:
   .size _NVIC_check_active_irq, .-_NVIC_check_active_irq
   
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to set the priority of the interrupt
 @ arg0: number of the IRQ (0..239)
@@ -162,7 +161,7 @@ _NVIC_set_pri_irq:
   .size _NVIC_set_pri_irq, .-_NVIC_set_pri_irq
 
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
 @ called by software to get the priority of the interrupt
 @ arg0: number of the IRQ (0..239)
@@ -171,13 +170,13 @@ _NVIC_set_pri_irq:
 .type _NVIC_get_pri_irq, %function
 _NVIC_get_pri_irq:
   NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
-  LDRB    r0, [r2]                @ Load the priority number from the selected register byte
-  BX      lr                      @ Return from the function
+  LDRB    r0, [r2]                    @ Load the priority number from the selected register byte
+  BX      lr                          @ Return from the function
   .align  4
   .size _NVIC_get_pri_irq, .-_NVIC_get_pri_irq
 
 
-@-----------------------------------
+@-----------------------------------SYSCALL
 @ function used directly by apps or thru syscall
 @ access to this register can be thru unpriviledged thread mode
 @ check SCR reg in page 230 of the stm32-cortex-M4 Referance Manual
@@ -197,3 +196,146 @@ _NVIC_soft_trigger_irq:
 @----------------------------------------------------- system control syscalls
 @----------------------------------------------------- 
 
+
+
+@-----------------------------------------------------
+@----------------------------------------------------- Memory Management syscalls
+@-----------------------------------------------------
+
+@-----------------------------------SYSCALL
+@ Used by the app to expand the APP process heap towards the top
+@ arg0: amount of SRAM needed
+@ returns pointer (address) of start of the allocated space
+@ returns 0 ((void*)(0x0)) if failed to allocate SRAM
+@-----------------------------------
+  .type _sbrk, %function
+_sbrk:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
+  MRS     r1, PSP
+  
+  LDR     r2, =p_brk
+  LDR     r2, [r2]           @ Load the address of kernel system break
+  ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
+  CMP     r0, r1             @ Compare new system break to PSP address
+  ITT     GE                 @ If BRK >= PSP
+  MOVGE   r0, #0             @ Return 0 if failed to allocate
+  BXGE    __sbrk_exit
+  LDR     r2, =p_brk
+  STR     r0, [r2]           @ Store the value of the process's new system break 
+__sbrk_exit:
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
+  BX      lr
+  .align  4
+  .size _sbrk, .-_sbrk
+  
+
+
+@-----------------------------------SYSCALL
+@ Used by the app to collapse the APP process heap towards the bottom freeing memory
+@ arg0: amount of SRAM to free
+@ returns pointer (address) of new system break
+@ returns 0 on error
+@-----------------------------------
+  .type _sbrk_free, %function
+_sbrk_free:
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
+  LDR     r1, =_edata        @ Load the address of the end of .data in SRAM
+
+  LDR     r2, =p_brk
+  LDR     r2, [r2]           @ Load the address of app system break
+  
+  SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
+  ITT     LE
+  MOVLE   r0, #0
+  BLE     __sbrk_free_exit   @ Return 0 on error
+
+  CMP     r0, r1             @ Compare new system break to end of .data
+  ITT     LT                 @ If BRK <= _edata
+  MOVLT   r0, #0
+  BXLT    __sbrk_free_exit   @ Return 0 on error
+
+  LDR     r2, =p_brk
+  STR     r0, [r2]           @ Store the value of the process's new system break 
+__sbrk_free_exit:
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
+  BX      lr
+  .align  4
+  .size _sbrk_free, .-_sbrk_free
+
+
+@-----------------------------------
+@ Used by the kernel to expand the KERNEL heap towards the top
+@ arg0: amount of SRAM needed
+@ returns pointer (address) of start of the allocated space
+@ returns 0 ((void*)(0x0)) if failed to allocate SRAM
+@-----------------------------------
+  .type _ksbrk, %function
+_ksbrk:
+  PUSH    {r0-r2}
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
+
+  LDR     r2, =k_brk
+  LDR     r2, [r2]           @ Load the address of kernel system break
+  ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
+  CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
+  ITT     GE                 @ If BRK >= MSP
+  MOVGE   r0, #0             @ Return 0 if failed to allocate
+  BXGE    __ksbrk_exit
+  LDR     r2, =k_brk
+  STR     r0, [r2]           @ Store the value of the process's new system break 
+__ksbrk_exit:
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
+  POP     {r0-r2}
+  BX      lr
+  .align  4
+  .size _ksbrk, .-_ksbrk
+
+
+@-----------------------------------
+@ Used by the kernel to collapse the KERNEL heap towards the bottom freeing memory
+@ arg0: amount of SRAM to free
+@ returns pointer (address) of new system break
+@-----------------------------------
+  .type _ksbrk_free, %function
+_ksbrk_free:
+  PUSH    {r0-r2}
+  MOV     r1, #1
+  MSR     PRIMASK, r1        @ Disable interrupts
+  LDR     r1, =_ekdata       @ Load the address of the end of .kdata in SRAM
+
+  LDR     r2, =k_brk
+  LDR     r2, [r2]           @ Load the address of kernel system break
+  
+  SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
+  ITT     LE
+  MOVLE   r0, #0
+  BLE     __ksbrk_free_exit  @ Return 0 on error
+
+  CMP     r0, r1             @ Compare new system break to end of .kdata
+  ITT     LT                 @ If BRK <= _ekdata
+  MOVLT   r0, #0
+  BXLT    __ksbrk_free_exit  @ Return 0 on error
+  
+  LDR     r2, =k_brk
+  STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
+__ksbrk_free_exit:
+  MOV     r1, #0
+  MSR     PRIMASK, r1        @ Enable interrupts
+  POP     {r0-r2}
+  BX      lr
+  .align  4
+  .size _ksbrk_free, .-_ksbrk_free
+
+
+_memcpy:
+
+
+_memset:
+_memzero:
+_memmove:

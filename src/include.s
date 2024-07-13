@@ -190,6 +190,7 @@
 @----------------------------------------------
 @ kernel sections limits
 .section .rodata.k_sections, "a", %progbits
+
 	.word _sikdata
 	.word _skdata
 	.word _ekdata
@@ -198,9 +199,20 @@
 
 @ application sections limits
 .section .rodata.sections, "a", %progbits
-	.word _estack
+
 	.word _sidata
 	.word _sdata
 	.word _edata
 	.word _sbss
 	.word _ebss
+
+@ data section used by syscalls
+.section .data.syscalls, "aw", %progbits
+@ Application Process system break
+p_brk:
+  .word _sheap
+@ kernel system break
+k_brk:
+  .word _skheap
+
+

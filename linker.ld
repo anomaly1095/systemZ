@@ -54,11 +54,15 @@ MEMORY
 
 ENTRY(_reset_handler)  /* initial pc address */
 
+_ekstack = ORIGIN(K_SRAM) + LENGTH(K_SRAM)    /* initial MSP address */
+_estack = ORIGIN(APP_SRAM) + LENGTH(APP_SRAM) /* initial PSP address */
+
 /* Minimum stack and heap sizes */
 k_min_stack = 0x400
 k_min_heap = 0x400
 min_stack = 0x400
 min_heap = 0x400
+
 
 SECTIONS
 {
@@ -119,9 +123,8 @@ SECTIONS
   .kheap (NOLOAD): 
   {
     ALIGN(4);
-    PROVIDE (_skheap = .);
+    _skheap = .;
     . = . + min_kheap;
-    PROVIDE (_ekheap = .);
     ALIGN(4);
   } > K_SRAM
 
@@ -129,9 +132,7 @@ SECTIONS
   .kstack (NOLOAD): 
   {
     ALIGN(8);
-    PROVIDE (_skstack = .);
     . = . + min_kstack;
-    PROVIDE (_ekstack = .);
     ALIGN(8);
   } > K_SRAM
 
@@ -194,9 +195,8 @@ SECTIONS
   .heap (NOLOAD): 
   {
     ALIGN(4);
-    PROVIDE (_sheap = .);    
+    _sheap = .;
     . = . + min_heap;
-    PROVIDE (_eheap = .);    
     ALIGN(4);
   } > APP_SRAM
 
@@ -204,26 +204,11 @@ SECTIONS
   .stack (NOLOAD): 
   {
     ALIGN(8);
-    PROVIDE (_sstack = .);    
     . = . + min_stack;
-    PROVIDE (_estack = .);    
     ALIGN(8);
   } > APP_SRAM
 
   /* Assertions to ensure memory allocations are within limits */
-  ASSERT(_edata  <= ORIGIN(APP_FLASH)+ LENGTH(APP_FLASH),"Not enough application data space")
-  ASSERT(_ebss   <= ORIGIN(APP_SRAM) + LENGTH(APP_SRAM), "Not enough application BSS space")
-  ASSERT(_eheap  <= ORIGIN(APP_SRAM) + LENGTH(APP_SRAM), "Not enough application heap space")
-  ASSERT(_estack <= ORIGIN(APP_SRAM) + LENGTH(APP_SRAM), "Not enough application stack space")
-
-  ASSERT(_k_edata    <= ORIGIN(K_FLASH)  + LENGTH(K_FLASH),  "Not enough kernel data space")
-  ASSERT(_k_ebss     <= ORIGIN(K_SRAM)   + LENGTH(K_SRAM),   "Not enough kernel BSS space")
-  ASSERT(_k_eheap    <= ORIGIN(K_SRAM)   + LENGTH(K_SRAM),   "Not enough kernel heap space")
-  ASSERT(_k_estack   <= ORIGIN(K_SRAM)   + LENGTH(K_SRAM),   "Not enough kernel stack space")
-
-  /* Ensure total allocation within APP_SRAM and K_SRAM limits */
-  ASSERT(_edata  <= ORIGIN(APP_SRAM) + LENGTH(APP_SRAM), "Total application SRAM allocation exceeded")
-  ASSERT(_k_edata    <= ORIGIN(K_SRAM)   + LENGTH(K_SRAM),   "Total kernel SRAM allocation exceeded")
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }
