@@ -187,32 +187,14 @@
   @                     XN = 0    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 1     |   B = 0     |SRD=00000000| SIZE = 28 | ENABLE 
   .equ SECTION0_MASK, (0b0 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b1 << 17) | (0b0 << 16) | (0x0 << 8) | (28 << 1) | 0b1
 
-@----------------------------------------------
-@ kernel sections limits
-.section .rodata.k_sections, "a", %progbits
-
-	.word _sikdata
-	.word _skdata
-	.word _ekdata
-	.word _skbss
-	.word _ekbss
-
-@ application sections limits
-.section .rodata.sections, "a", %progbits
-
-	.word _sidata
-	.word _sdata
-	.word _edata
-	.word _sbss
-	.word _ebss
 
 @ data section used by syscalls
 .section .data.syscalls, "aw", %progbits
+  .equ SVC_MASK, 0xFFFFFF00
+
 @ Application Process system break
 p_brk:
   .word _sheap
 @ kernel system break
 k_brk:
   .word _skheap
-
-

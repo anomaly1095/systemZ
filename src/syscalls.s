@@ -236,185 +236,266 @@ _NVIC_soft_trigger_irq:
 @----------------------------------------------------- Memory Management syscalls
 @-----------------------------------------------------
 
-@-----------------------------------SYSCALL
-@ Used by the app to expand the APP process heap towards the top
-@ arg0: amount of SRAM needed
-@ returns pointer (address) of start of the allocated space
-@ returns 0 ((void*)(0x0)) if failed to allocate SRAM
 @-----------------------------------
-  .type _sbrk, %function
+@ SYSCALL: Used by the app to expand the APP process heap towards the top
+@ arg0: amount of SRAM needed
+@ returns: pointer (address) of start of the allocated space, or 0 if failed to allocate SRAM
+@-----------------------------------
+.type _sbrk, %function
 _sbrk:
-  MOV     r1, #1
-  MSR     PRIMASK, r1        @ Disable interrupts
-  MRS     r1, PSP
+  MRS     r1, PSP             @ Get PSP (Process Stack Pointer)
   
   LDR     r2, =p_brk
-  LDR     r2, [r2]           @ Load the address of kernel system break
-  ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
-  CMP     r0, r1             @ Compare new system break to PSP address
-  ITT     GE                 @ If BRK >= PSP
-  MOVGE   r0, #0             @ Return 0 if failed to allocate
-  BXGE    .exit
+  LDR     r2, [r2]            @ Load the address of app system break
+  
+  ADD     r0, r2, r0          @ Calculate new system break address
+  CMP     r0, r1              @ Compare with PSP
+  BGE     .exit                @ Return 0 if failed to allocate
+
   LDR     r2, =p_brk
-  STR     r0, [r2]           @ Store the value of the process's new system break 
-.exit:
-  MOV     r1, #0
-  MSR     PRIMASK, r1        @ Enable interrupts
-  BX      lr
+  STR     r0, [r2]            @ Store the new system break
+
+  .exit:
+    BX      lr
   .align  4
   .size _sbrk, .-_sbrk
-  
 
-
-@-----------------------------------SYSCALL
-@ Used by the app to collapse the APP process heap towards the bottom freeing memory
-@ arg0: amount of SRAM to free
-@ returns pointer (address) of new system break
-@ returns 0 on error
 @-----------------------------------
-  .type _sbrk_free, %function
+@ SYSCALL: Used by the app to collapse the APP process heap towards the bottom freeing memory
+@ arg0: amount of SRAM to free
+@ returns: pointer (address) of new system break, or 0 on error
+@-----------------------------------
+.type _sbrk_free, %function
 _sbrk_free:
-  MOV     r1, #1
-  MSR     PRIMASK, r1        @ Disable interrupts
-  LDR     r1, =_edata        @ Load the address of the end of .data in SRAM
+
+  LDR     r1, =_edata         @ Load the address of the end of .data in SRAM
 
   LDR     r2, =p_brk
-  LDR     r2, [r2]           @ Load the address of app system break
+  LDR     r2, [r2]            @ Load the address of app system break
   
-  SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
-  ITT     LE
-  MOVLE   r0, #0
-  BLE     .exit   @ Return 0 on error
+  SUBS    r0, r2, r0          @ Subtract the requested amount of memory from the system break address
+  BLE     .exit                @ Return 0 if error (requested amount exceeds current heap size)
 
-  CMP     r0, r1             @ Compare new system break to end of .data
-  ITT     LT                 @ If BRK <= _edata
-  MOVLT   r0, #0
-  BXLT    .exit   @ Return 0 on error
+  CMP     r0, r1              @ Compare new system break with end of .data
+  BLT     .exit                @ Return 0 if error (new system break is below end of .data)
 
   LDR     r2, =p_brk
-  STR     r0, [r2]           @ Store the value of the process's new system break 
-.exit:
-  MOV     r1, #0
-  MSR     PRIMASK, r1        @ Enable interrupts
-  BX      lr
+  STR     r0, [r2]            @ Store the new system break
+  .exit:
+    BX      lr
   .align  4
   .size _sbrk_free, .-_sbrk_free
 
 
+
 @-----------------------------------
-@ Used by the kernel to expand the KERNEL heap towards the top
+@ Used by the kernel to expand the KERNEL heap towards the top
 @ arg0: amount of SRAM needed
 @ returns pointer (address) of start of the allocated space
 @ returns 0 ((void*)(0x0)) if failed to allocate SRAM
 @-----------------------------------
-  .type _ksbrk, %function
+.type _ksbrk, %function
 _ksbrk:
-  PUSH    {r0-r2}
-  MOV     r1, #1
-  MSR     PRIMASK, r1        @ Disable interrupts
 
   LDR     r2, =k_brk
   LDR     r2, [r2]           @ Load the address of kernel system break
   ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
   CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
-  ITT     GE                 @ If BRK >= MSP
-  MOVGE   r0, #0             @ Return 0 if failed to allocate
-  BXGE    .exit
+  BGE     .exit               @ Return 0 if failed to allocate
+
   LDR     r2, =k_brk
   STR     r0, [r2]           @ Store the value of the process's new system break 
-.exit:
-  MOV     r1, #0
-  MSR     PRIMASK, r1        @ Enable interrupts
-  POP     {r0-r2}
-  BX      lr
+
+  .exit:
+    BX      lr
   .align  4
   .size _ksbrk, .-_ksbrk
 
 
+
 @-----------------------------------
-@ Used by the kernel to collapse the KERNEL heap towards the bottom freeing memory
+@ Used by the kernel to collapse the KERNEL heap towards the bottom freeing memory
 @ arg0: amount of SRAM to free
 @ returns pointer (address) of new system break
 @-----------------------------------
-  .type _ksbrk_free, %function
+.type _ksbrk_free, %function
 _ksbrk_free:
-  PUSH    {r0-r2}
-  MOV     r1, #1
-  MSR     PRIMASK, r1        @ Disable interrupts
   LDR     r1, =_ekdata       @ Load the address of the end of .kdata in SRAM
 
   LDR     r2, =k_brk
   LDR     r2, [r2]           @ Load the address of kernel system break
   
   SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
-  ITT     LE
-  MOVLE   r0, #0
-  BLE     .exit  @ Return 0 on error
-
   CMP     r0, r1             @ Compare new system break to end of .kdata
-  ITT     LT                 @ If BRK <= _ekdata
-  MOVLT   r0, #0
-  BXLT    .exit  @ Return 0 on error
-  
-  LDR     r2, =k_brk
+  BLS     .error             @ If new BRK <= _ekdata, return 0
+
   STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
-.exit:
-  MOV     r1, #0
-  MSR     PRIMASK, r1        @ Enable interrupts
-  POP     {r0-r2}
-  BX      lr
-  .align  4
-  .size _ksbrk_free, .-_ksbrk_free
+  CPSIE   i                  @ Enable interrupts (CPSIE i clears PRIMASK)
+  BX      lr                 @ Return with the new system break address
+
+  .error:
+    MOVS    r0, #0             @ Return 0 on error
+    BX      lr
+
+.align 4
+.size _ksbrk_free, .-_ksbrk_free
 
 
-  .type _memcpy, %function
-_memcpy:
-  PUSH    {r4, lr}         @ Save r4 and lr (link register) on the stack
-  MOV     r2, r2, LSR #2   @ Divide length by 4 for word accesses (assuming length is multiple of 4)
-  BEQ     .exit             @ If length is zero, return early
+@ This function can be used by kernel or by app and does not require SVC
+@ Function copies 1 word at a time so buffer needs to be 4 bytes aligned
+@ Arguments:
+@ r0: src (source address)
+@ r1: dest (destination address)
+@ r2: length (number of bytes to copy, assumed to be multiple of 4)
+.global memcpy_4
+.type memcpy_4, %function
+memcpy_4:
+  .loop:
+    LDR     r3, [r0], #4      @ Load word from src and increment src by 4
+    STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
+    SUBS    r2, r2, #4        @ Decrement length counter by 4
+    BNE     .loop             @ If length is not 0, continue loop
+    BX      lr                @ Return from function
+  .size memcpy_4, .-memcpy_4
 
-.loop:
-  LDMIA   r0!, {r3-r6}     @ Load 4 words from buff into r3, r4, r5, r6 and increment buff
-  STMIA   r1!, {r3-r6}     @ Store 4 words from r3, r4, r5, r6 into dest and increment dest
-  SUBS    r2, r2, #1       @ Decrement length counter
-  BNE     .loop            @ Loop if length counter is not zero
+@ This function can be used by kernel or by app and does not require SVC
+@ Function copies 1 byte at a time so no buffer alignment required
+@ Arguments:
+@ r0: src (source address)
+@ r1: dest (destination address)
+@ r2: length (number of bytes to copy)
+.global memcpy_1
+.type memcpy_1, %function
+memcpy_1:
+  .loop:
+    LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
+    STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
+    SUBS    r2, r2, #1        @ Decrement length counter by 1
+    BNE     .loop             @ If length is not 0, continue loop
+    BX      lr                @ Return from function
+  .size memcpy_1, .-memcpy_1
 
-.exit:
-  POP     {r4, pc}         @ Restore r4 and return
-  .size _memcpy, .-_memcpy
+@ This function sets memory with a 4-byte aligned value.
+@ Arguments:
+@ r0: dest (destination address)
+@ r1: value (byte value to set)
+@ r2: length (number of bytes to set, assumed to be multiple of 4)
+.global memset_4
+.type memset_4, %function
+memset_4:
+  @ Make a word ready containing 4 bytes of the required byte value
+  MOV     r3, r1              @ Move the byte value into r3
+  ORR     r3, r3, r3, LSL #8  @ Set byte 2
+  ORR     r3, r3, r3, LSL #16 @ Set byte 3 and byte 4
+  .loop:
+    STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
+    SUBS    r2, r2, #4          @ Decrement length counter by 4
+    BNE     .loop               @ If length is not 0, continue loop
 
+  .exit:
+    BX      lr                  @ Return from function
+  .size memset_4, .-memset_4
 
-  .type _memset, %function
-_memset:
-  PUSH    {r4, lr}         @ Save r4 and lr (link register) on the stack
-  MOV     r2, r2, LSR #2   @ Divide length by 4 for word accesses (assuming length is multiple of 4)
-  BEQ     .exit             @ If length is zero, return early
+@ This function can be used by kernel or by app and does not require SVC
+@ Function sets 1 byte at a time so no buffer alignment required
+@ Arguments:
+@ r0: dest (destination address)
+@ r1: value (byte value to set)
+@ r2: length (number of bytes to set)
+.global memset_1
+.type memset_1, %function
+memset_1:
+  .loop:
+    STRB    r1, [r0], #1        @ Store byte to dest and increment dest by 1
+    SUBS    r2, r2, #1          @ Decrement length counter by 1
+    BNE     .loop               @ If length is not 0, continue loop
+    BX      lr                  @ Return from function
+    .size memset_1, .-memset_1
 
-.loop:
-  MOV     r3, r1           @ Load byte value into r3 (assuming it's in r1)
-  STMIA   r0!, {r3-r6}     @ Store 4 words of r3 (byte value) into dest and increment dest
-  SUBS    r2, r2, #1       @ Decrement length counter
-  BNE     .loop            @ Loop if length counter is not zero
+@ This function can be used by kernel or by app and does not require SVC
+@ It assumes the memory size to zero out is 4 bytes aligned
+@ Arguments:
+@ r0: dest (destination address)
+@ r2: length (number of bytes to zero out, assumed to be multiple of 4)
+.global memzero_4
+.type memzero_4, %function
+memzero_4:
+  MOV     r3, #0             @ Load zero into r3
+  .loop:
+    STR     r3, [r0], #4       @ Store zero to dest and increment dest by 4
+    SUBS    r2, r2, #4         @ Decrement length counter by 4
+    BNE     .loop              @ If length is not 0, continue loop
 
-.exit:
-  POP     {r4, pc}         @ Restore r4 and return
+  .exit:
+    BX      lr                 @ Return from function
+    .size memzero_4, .-memzero_4
 
-.size _memset, .-_memset
+@ This function can be used by kernel or by app and does not require SVC
+@ Arguments:
+@ r0: dest (destination address)
+@ r2: length (number of bytes to zero out)
+.global memzero_1
+.type memzero_1, %function
+memzero_1:
+  MOV     r3, #0             @ Load zero into r3
+  .loop:
+    STRB    r3, [r0], #1       @ Store zero to dest and increment dest by 1
+    SUBS    r2, r2, #1         @ Decrement length counter by 1
+    BNE     .loop              @ If length is not 0, continue loop
 
-  .type _memzero, %function
-_memzero:
-  PUSH    {r4, lr}         @ Save r4 and lr (link register) on the stack
-  MOV     r2, r2, LSR #2   @ Divide length by 4 for word accesses (assuming length is multiple of 4)
-  BEQ     .exit            @ If length is zero, return early
+  .exit:
+    BX      lr                 @ Return from function
+    .size memzero_1, .-memzero_1
 
-.loop:
-  MOV     r3, #0           @ Load zero into r3 (byte value 0)
-  STMIA   r0!, {r3-r6}     @ Store 4 words of r3 (zero) into dest and increment dest
-  SUBS    r2, r2, #1       @ Decrement length counter
-  BNE     .loop            @ Loop if length counter is not zero
+@-----------------------------------
+@ Compares two memory blocks byte by byte.
+@ Arguments:
+@   r0: Pointer to the first memory block (src1).
+@   r1: Pointer to the second memory block (src2).
+@   r2: Number of bytes to compare.
+@ Returns:
+@   r0: 0 if the memory blocks are equal, non-zero otherwise.
+@-----------------------------------
+.global memcmp_1
+.type memcmp_1, %function
+memcmp_1:
+  .loop:
+    LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
+    LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
+    CMP     r3, r4         @ Compare bytes
+    BNE     .exit          @ Exit loop if bytes are not equal
+    SUBS    r2, r2, #1     @ Decrement length counter
+    BNE     .loop          @ Loop if length is not zero
+    MOV     r0, #0         @ If all bytes are equal, return 0
+    BX      lr
+  .exit:
+    MOV     r0, #1         @ If bytes are not equal, return non-zero
+    BX      lr
+  .size memcmp81, .-memcmp_1
 
-.exit:
-  POP     {r4, pc}         @ Restore r4 and return
-  .size _memzero, .-_memzero
-
-_memmove:
+@-----------------------------------
+@ Memory Compare (memcmp)
+@ Compares two memory blocks word by word.
+@ Arguments:
+@   r0: Pointer to the first memory block (src1).
+@   r1: Pointer to the second memory block (src2).
+@   r2: Number of bytes to compare.
+@ Returns:
+@   r0: 0 if the memory blocks are equal, non-zero otherwise.
+@-----------------------------------
+.global memcmp
+.type memcmp, %function
+memcmp:
+  .loop:
+    LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
+    LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
+    CMP     r3, r4         @ Compare words
+    BNE     .exit          @ Exit loop if words are not equal
+    SUBS    r2, r2, #4     @ Decrement length counter by 4
+    BGE     .loop          @ Loop if length is not zero or negative
+    MOV     r0, #0         @ If all words are equal, return 0
+    BX      lr             @ Return from function
+  .exit:
+    MOV     r0, #1         @ If words are not equal, return non-zero
+    BX      lr             @ Return from function
+  .size memcmp, .-memcmp

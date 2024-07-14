@@ -29,7 +29,7 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-.include "include.s"
+.include "syscalls.s"
 
 @----------------------------------------------------------------------
 @----------------------------------------------------------------------
@@ -75,14 +75,15 @@ SVC_Handler:
   @ All the Syscalls either return 0 or the expected return value
   @ All function wrappers should expect an uint32_t return value
   @ r0, r1, r2, r3, r12, LR, PC, xPSR will all be saved automatically during context switch
-  
   PUSH    {r4-r5, lr}       @ Save r4, r5, and lr to the kernel stack
+  CPSID   I                 @ disable interrupts 
   MRS     r4, PSP           @ Get the address of the process stack pointer
   LDR     r4, [r4, #0x18]   @ Get the value of the PC saved on the process stack
   LDRB    r4, [r4, #-2]     @ Load the byte of the SVC instruction
   LDR     r5, =SVC_MASK 
   BIC     r4, r4, r5        @ Extract the immediate value from the SVC instruction
 
+  @ Check which syscall to call
   CMP     r4, #0
   BEQ     _NVIC_enable_irq
   CMP     r4, #1
@@ -99,10 +100,14 @@ SVC_Handler:
   BEQ     _NVIC_get_pri_irq
   CMP     r4, #7
   BEQ     _NVIC_soft_trigger_irq
-
+  CMP     r4, #8
+  BEQ     _sbrk
+  CMP     r4, #9
+  BEQ     _sbrk_free
 
   MRS     r4, PSP           @ Get the address of the process stack pointer
   STR     r0, [r4]          @ Store the return value of the syscalls in the process stack
+  CPSIE   I                 @ enable interrupts 
   POP     {r4-r5, pc}       @ Restore r4, r5, and set pc = lr
   .align  4
   .size SVC_Handler, .-SVC_Handler
@@ -173,6 +178,3 @@ SysTick_Handler:
 @ FPU_IRQHandler
 @ SPI4_IRQHandler
 
-
-  .section .data.syscalls, "aw", %progbits
-  .equ SVC_MASK, 0xFFFFFF00

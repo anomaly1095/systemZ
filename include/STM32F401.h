@@ -83,8 +83,8 @@
 
 
 
-#ifndef NVIC_H 
-#define NVIC_H      1
+#ifndef NVIC_HAL 
+#define NVIC_HAL      1
 /*---------------------------------------------------------------*/
 /*---IRQ numbers as provided by the STM32F401 reference manual---*/
 /*---------------------------------------------------------------*/
@@ -148,15 +148,16 @@
 #define FPU_IRQ                 ((uint8_t)81U)
 #define SPI4_IRQ                ((uint8_t)84U)
 
-#endif // !NVIC_H
+#endif // !NVIC_HAL
 
 /*=============================================================================*/
 /*=============================================================================*/
 /*=============================================================================*/
 
 
-#ifndef FLASH_HELPERS
-  #define FLASH_HELPERS   1
+#ifndef FLASH_HAL
+  #define FLASH_HAL   1
+
   #define FLASH_BASE               (0x40023C00U)
   #define FLASH_ACR_OFFSET         (0x00U)
   #define FLASH_KEYR_OFFSET        (0x04U)
@@ -410,7 +411,7 @@
   /* Check if CRC unit is reset */
   #define CRC_IS_RESET()           READ_BIT(CRC_CR, 0U)
 
-#endif // !CRC_HELPERS 1
+#endif // !CRC_HAL 1
 
 
 /*=============================================================================*/
@@ -418,8 +419,8 @@
 /*=============================================================================*/
 
 
-#ifndef PWR_HELPERS
-  #define PWR_HELPERS   1
+#ifndef PWR_HAL
+  #define PWR_HAL   1
 
   #define PWR_BASE          (0x40007000U)
   #define PWR_CR_OFFSET     (0x00U)
@@ -560,7 +561,7 @@
   #define PWR_GET_WKUP_FLAG() (READ_BIT(PWR_CSR, 0U))
   #define PWR_GET_STDBY_FLAG() (READ_BIT(PWR_CSR, 1U))
 
-#endif // !PWR_HELPERS 1
+#endif // !PWR_HAL 1
 
 
 /*=============================================================================*/
@@ -569,8 +570,8 @@
 /*---------------------------------------------------------------*/
 /*---------------Macros for Reset and clock control--------------*/
 /*---------------------------------------------------------------*/
-#ifndef RCC_HELPERS
-  #define RCC_HELPERS     1
+#ifndef RCC_HAL
+  #define RCC_HAL     1
 
   #define RCC_BASE                (0x40023800U)
   #define RCC_CR_OFFSET           (0x00U)
@@ -1077,7 +1078,7 @@
   #define RCC_LPEN_SPI4()    SET_BIT(RCC_APB2LPENR, 13U)
   #define RCC_LPEN_SPI1()    SET_BIT(RCC_APB2LPENR, 12U)
   #define RCC_LPEN_SDIO()    SET_BIT(RCC_APB2LPENR, 11U)
-  #define RCC_LPEN_ADC1()    SET_BIT(RCC_APB2LPENR, 8U)
+  #define RCC_LPEN_ADC1()    SET_BIT(RCC_APB2LPENELPERSR, 8U)
   #define RCC_LPEN_USART6()  SET_BIT(RCC_APB2LPENR, 5U)
   #define RCC_LPEN_USART1()  SET_BIT(RCC_APB2LPENR, 4U)
   #define RCC_LPEN_TIM1()    SET_BIT(RCC_APB2LPENR, 0U)
@@ -1188,15 +1189,116 @@
   #define RCC_SET_TIMERPRE()    SET_BIT(RCC_DCKCFGR, 24U) 
   #define RCC_CLEAR_TIMERPRE()  CLEAR_BIT(RCC_DCKCFGR, 24U) 
 
-#endif // !RCC_HELPERS
+#endif // !RCC_HAL
 
 
 /*=============================================================================*/
 /*=============================================================================*/
 /*=============================================================================*/
 
-#ifndef GPIO_HELPERS
-  #define GPIO_HELPERS  1
+
+#ifndef SYSCFG_HAL
+  #define SYSCFG_HAL  1
+
+  #define SYSCFG_BASE             (0x4001800U)
+  #define SYSCFG_MEMRMP_OFFSET    (0x00U)
+  #define SYSCFG_PMC_OFFSET       (0x04U)
+  #define SYSCFG_EXTICR1_OFFSET   (0x08U)
+  #define SYSCFG_EXTICR2_OFFSET   (0x0CU)
+  #define SYSCFG_EXTICR3_OFFSET   (0x10U)
+  #define SYSCFG_EXTICR4_OFFSET   (0x14U)
+  #define SYSCFG_CMPCR_OFFSET     (0x20U)
+
+  #define SYSCFG_MEMRMP           (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_MEMRMP_OFFSET))
+  #define SYSCFG_PMC              (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_PMC_OFFSET))
+  #define SYSCFG_EXTICR1          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR1_OFFSET))
+  #define SYSCFG_EXTICR2          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR2_OFFSET))
+  #define SYSCFG_EXTICR3          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR3_OFFSET))
+  #define SYSCFG_EXTICR4          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR4_OFFSET))
+  #define SYSCFG_CMPCR            (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_CMPCR_OFFSET))
+
+  /*--------SYSCFG_MEMRMP---------*/
+  /*--------SYSCFG_MEMRMP---------*/
+
+  /// @param NEW_MAP
+  // 00: Main Flash memory mapped at 0x0000 0000
+  // 01: System Flash memory mapped at 0x0000 0000
+  // 11: Embedded SRAM mapped at 0x0000 0000
+  #define SYSCFG_MEM_REMAP(NEW_MAP) \
+      do { \
+          CLEAR_BITS(SYSCFG_MEMRMP, 0b11U); \
+          SET_BITS(SYSCFG_MEMRMP, (NEW_MAP)); \
+      } while (0)
+
+  /*--------SYSCFG_EXTICR---------*/
+  /*--------SYSCFG_EXTICR---------*/
+
+  /// @param PORT 
+  // 0000: PA[x] pin
+  // 0001: PB[x] pin
+  // 0010: PC[x] pin
+  // 0011: PD[x] pin
+  // 0100: PE[x] pin
+  // 0101: Reserved
+  // 0110: Reserved
+  // 0111: PH[x] pin
+  #define EXTI_SEL_PORT(REG, PORT, BITS_OFFSET) \
+    do { \
+      CLEAR_BITS(REG, 0b1111U << BITS_OFFSET); \
+      SET_BITS(REG, (PORT) << BITS_OFFSET); \
+    } while (0)
+
+  /// @brief Select the port on which EXTI0 should listen
+  #define EXTI0_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 0U)
+  /// @brief Select the port on which EXTI1 should listen
+  #define EXTI1_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 4U)
+  /// @brief Select the port on which EXTI2 should listen
+  #define EXTI2_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 8U)
+  /// @brief Select the port on which EXTI3 should listen
+  #define EXTI3_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 12U)
+  /// @brief Select the port on which EXTI4 should listen
+  #define EXTI4_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 0U)
+  /// @brief Select the port on which EXTI5 should listen
+  #define EXTI5_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 4U)
+  /// @brief Select the port on which EXTI6 should listen
+  #define EXTI6_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 8U)
+  /// @brief Select the port on which EXTI7 should listen
+  #define EXTI7_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 12U)
+  /// @brief Select the port on which EXTI8 should listen
+  #define EXTI8_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 0U)
+  /// @brief Select the port on which EXTI9 should listen
+  #define EXTI9_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 4U)
+  /// @brief Select the port on which EXTI10 should listen
+  #define EXTI10_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 8U)
+  /// @brief Select the port on which EXTI11 should listen
+  #define EXTI11_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 12U)
+  /// @brief Select the port on which EXTI12 should listen
+  #define EXTI12_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 0U)
+  /// @brief Select the port on which EXTI13 should listen
+  #define EXTI13_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 4U)
+  /// @brief Select the port on which EXTI14 should listen
+  #define EXTI14_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 8U)
+  /// @brief Select the port on which EXTI15 should listen
+  #define EXTI15_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 12U)
+
+  /*--------SYSCFG_CMPCR---------*/
+  /*--------SYSCFG_CMPCR---------*/
+
+  /// @brief Enable the compensation cell
+  #define SYSCFG_COMP_CELL_EN() SET_BIT(SYSCFG_CMPCR, 0U)
+  /// @brief Disable the compensation cell
+  #define SYSCFG_COMP_CELL_DIS() CLEAR_BIT(SYSCFG_CMPCR, 0U)
+  /// @brief Check if compensation cell is enabled
+  #define SYSCFG_COMP_CELL_RDY() READ_BIT(SYSCFG_CMPCR, 8U)
+
+#endif /* SYSCFG_HAL */
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef GPIO_HEAL
+  #define GPIO_HAL  1
 
   #define GPIOA_BASE        (0x40020000U)
   #define GPIOB_BASE        (0x40020400U)
@@ -1489,107 +1591,240 @@
   /// @param AF_NUM is the alternate function number (0..15)
   #define GPIOH_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOH_BASE, PIN_N, AF_NUM)
 
-#endif // !GPIO_HELPERS 1
-
+#endif // !GPIO_HAL 1
 
 /*=============================================================================*/
 /*=============================================================================*/
 /*=============================================================================*/
 
+#ifndef DMA_HAL
+  #define DMA_HAL 1
 
-#ifndef SYSCFG_HELPERS
-  #define SYSCFG_HELPERS  1
+#endif // !DMA_HAL 1
 
-  #define SYSCFG_BASE             (0x4001800U)
-  #define SYSCFG_MEMRMP_OFFSET    (0x00U)
-  #define SYSCFG_PMC_OFFSET       (0x04U)
-  #define SYSCFG_EXTICR1_OFFSET   (0x08U)
-  #define SYSCFG_EXTICR2_OFFSET   (0x0CU)
-  #define SYSCFG_EXTICR3_OFFSET   (0x10U)
-  #define SYSCFG_EXTICR4_OFFSET   (0x14U)
-  #define SYSCFG_CMPCR_OFFSET     (0x20U)
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
 
-  #define SYSCFG_MEMRMP           (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_MEMRMP_OFFSET))
-  #define SYSCFG_PMC              (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_PMC_OFFSET))
-  #define SYSCFG_EXTICR1          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR1_OFFSET))
-  #define SYSCFG_EXTICR2          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR2_OFFSET))
-  #define SYSCFG_EXTICR3          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR3_OFFSET))
-  #define SYSCFG_EXTICR4          (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_EXTICR4_OFFSET))
-  #define SYSCFG_CMPCR            (*(volatile uint32_t *)(SYSCFG_BASE + SYSCFG_CMPCR_OFFSET))
+#ifndef EXTI_HAL
+  #define EXTI_HAL 1
 
-  /*--------SYSCFG_MEMRMP---------*/
-  /*--------SYSCFG_MEMRMP---------*/
+  #define EXTI_BASE         (0x40013C00U)
+  #define EXTI_IMR_OFFSET   (0x00U)
+  #define EXTI_EMR_OFFSET   (0x04U)
+  #define EXTI_RSTR_OFFSET  (0x08U)
+  #define EXTI_FTSR_OFFSET  (0x0CU)
+  #define EXTI_SWIER_OFFSET (0x10U)
+  #define EXTI_PR_OFFSET    (0x14U)
 
-  /// @param NEW_MAP
-  // 00: Main Flash memory mapped at 0x0000 0000
-  // 01: System Flash memory mapped at 0x0000 0000
-  // 11: Embedded SRAM mapped at 0x0000 0000
-  #define SYSCFG_MEM_REMAP(NEW_MAP) \
-      do { \
-          CLEAR_BITS(SYSCFG_MEMRMP, 0b11U); \
-          SET_BITS(SYSCFG_MEMRMP, (NEW_MAP)); \
-      } while (0)
+  #define EXTI_IMR   (*(volatile uint32_t *)(EXTI_BASE + EXTI_IMR_OFFSET)))
+  #define EXTI_EMR   (*(volatile uint32_t *)(EXTI_BASE + EXTI_EMR_OFFSET)))
+  #define EXTI_RTSR  (*(volatile uint32_t *)(EXTI_BASE + EXTI_RSTR_OFFSET)))
+  #define EXTI_FTSR  (*(volatile uint32_t *)(EXTI_BASE + EXTI_FTSR_OFFSET)))
+  #define EXTI_SWIER (*(volatile uint32_t *)(EXTI_BASE + EXTI_SWIER_OFFSET)))
+  #define EXTI_PR    (*(volatile uint32_t *)(EXTI_BASE + EXTI_PR_OFFSET)))
 
-  /*--------SYSCFG_EXTICR---------*/
-  /*--------SYSCFG_EXTICR---------*/
+/*--------EXTI_IMR---------*/
+/*--------EXTI_IMR---------*/
 
-  /// @param PORT 
-  // 0000: PA[x] pin
-  // 0001: PB[x] pin
-  // 0010: PC[x] pin
-  // 0011: PD[x] pin
-  // 0100: PE[x] pin
-  // 0101: Reserved
-  // 0110: Reserved
-  // 0111: PH[x] pin
-  #define EXTI_SEL_PORT(REG, PORT, BITS_OFFSET) \
-    do { \
-      CLEAR_BITS(REG, 0b1111U << BITS_OFFSET); \
-      SET_BITS(REG, (PORT) << BITS_OFFSET); \
-    } while (0)
+  /** @brief Masks interrupts on the LINE
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_IMASK(LINE) CLEAR_BIT(EXTI_IMR, LINE)
 
-  /// @brief Select the port on which EXTI0 should listen
-  #define EXTI0_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 0U)
-  /// @brief Select the port on which EXTI1 should listen
-  #define EXTI1_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 4U)
-  /// @brief Select the port on which EXTI2 should listen
-  #define EXTI2_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 8U)
-  /// @brief Select the port on which EXTI3 should listen
-  #define EXTI3_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR1, PORT, 12U)
-  /// @brief Select the port on which EXTI4 should listen
-  #define EXTI4_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 0U)
-  /// @brief Select the port on which EXTI5 should listen
-  #define EXTI5_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 4U)
-  /// @brief Select the port on which EXTI6 should listen
-  #define EXTI6_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 8U)
-  /// @brief Select the port on which EXTI7 should listen
-  #define EXTI7_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR2, PORT, 12U)
-  /// @brief Select the port on which EXTI8 should listen
-  #define EXTI8_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 0U)
-  /// @brief Select the port on which EXTI9 should listen
-  #define EXTI9_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 4U)
-  /// @brief Select the port on which EXTI10 should listen
-  #define EXTI10_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 8U)
-  /// @brief Select the port on which EXTI11 should listen
-  #define EXTI11_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR3, PORT, 12U)
-  /// @brief Select the port on which EXTI12 should listen
-  #define EXTI12_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 0U)
-  /// @brief Select the port on which EXTI13 should listen
-  #define EXTI13_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 4U)
-  /// @brief Select the port on which EXTI14 should listen
-  #define EXTI14_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 8U)
-  /// @brief Select the port on which EXTI15 should listen
-  #define EXTI15_SEL_PORT(PORT) EXTI_SEL_PORT(SYSCFG_EXTICR4, PORT, 12U)
+  /** @brief Do not mask interrupts on LINE
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_INOMASK(LINE) SET_BIT(EXTI_IMR, LINE)
 
-  /*--------SYSCFG_CMPCR---------*/
-  /*--------SYSCFG_CMPCR---------*/
+/*--------EXTI_EMR---------*/
+/*--------EXTI_EMR---------*/
 
-  /// @brief Enable the compensation cell
-  #define SYSCFG_COMP_CELL_EN() SET_BIT(SYSCFG_CMPCR, 0U)
-  /// @brief Disable the compensation cell
-  #define SYSCFG_COMP_CELL_DIS() CLEAR_BIT(SYSCFG_CMPCR, 0U)
-  /// @brief Check if compensation cell is enabled
-  #define SYSCFG_COMP_CELL_RDY() READ_BIT(SYSCFG_CMPCR, 8U)
+  /** @brief Masks events on the LINE
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_EMASK(LINE) CLEAR_BIT(EXTI_EMR, LINE)
 
-#endif /* SYSCFG_HELPERS */
+  /** @brief Do not mask events on LINE
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_ENOMASK(LINE) SET_BIT(EXTI_EMR, LINE)
 
+/*--------EXTI_RTSR---------*/
+/*--------EXTI_RTSR---------*/
+
+  /** @brief Configure interrupt or event generation on rising edge on LINE input
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_EN_RISING_TRIG(LINE) SET_BIT(EXTI_RTSR, LINE)
+
+  /** @brief No interrupt or event on rising edge on LINE  
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_DIS_RISING_TRIG(LINE) CLEAR_BIT(EXTI_RTSR, LINE)
+
+/*--------EXTI_FTSR---------*/
+/*--------EXTI_FTSR---------*/
+
+  /** @brief Configure interrupt or event generation on falling edge on LINE input
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_EN_FALLING_TRIG(LINE) SET_BIT(EXTI_FTSR, LINE)
+
+  /** @brief No interrupt or event on falling edge on LINE input
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_DIS_FALLING_TRIG(LINE) CLEAR_BIT(EXTI_FTSR, LINE)
+
+/*--------EXTI_SWIER---------*/
+/*--------EXTI_SWIER---------*/
+
+  /** @brief Triggers a swi on LINE
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_SWI_TRIGGER(LINE) SET_BIT(EXTI_SWIER, LINE) 
+
+  /** @brief checks for a swi on LINE
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_SWI_CHECK(LINE) READ_BIT(EXTI_SWIER, LINE) 
+
+/*--------EXTI_PR---------*/
+/*--------EXTI_PR---------*/
+
+  /** @brief checks if LINE has an event or interrupt pending
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_CHECK_PEND(LINE) READ_BIT(EXTI_PR, LINE)
+
+  /** @brief remove pending event or interrupt on LINE  
+   *  @param LINE (0..18, 21, 22)
+   */
+  #define EXTI_CLEAR_PEND(LINE) SET_BIT(EXTI_PR, LINE)
+
+#endif // !EXTI_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef ADC_HAL
+  #define ADC_HAL 1
+
+
+
+#endif // !ADC_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef TIM1_HAL
+  #define TIM1_HAL 1
+
+
+
+#endif // !TIM1_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef TIM2_5_HAL
+  #define TIM2_5_HAL 1
+
+
+
+#endif // !TIM2_5_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef TIM9_11_HAL
+  #define TIM9_11_HAL 1
+
+
+
+#endif // !TIM9_11_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef IWDG_HAL
+  #define IWDG_HAL 1
+
+
+
+#endif // !IWDG_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef WWDG_HAL
+  #define WWDG_HAL 1
+
+
+
+#endif // !WWDG_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef RTC_HAL
+  #define RTC_HAL 1
+
+
+
+#endif // !RTC_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef I2C_HAL
+  #define I2C_HAL 1
+
+
+
+#endif // !I2C_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef USART_HAL
+  #define USART_HAL 1
+
+
+
+#endif // !USART_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef SDIO_HAL
+  #define SDIO_HAL 1
+
+
+
+#endif // !SDIO_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/
+
+#ifndef OTG_FS_HAL
+  #define OTG_FS_HAL 1
+
+
+
+#endif // !OTG_FS_HAL 1
+
+/*=============================================================================*/
+/*=============================================================================*/
+/*=============================================================================*/

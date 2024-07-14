@@ -40,7 +40,6 @@
 	.global _default_handler
 
 _default_handler:
-  PUSH    {r0-r15}            @ Save all registers
   B       .                   @ Infinite loop for debugging
   .align 4
 .size _default_handler, .-_default_handler
@@ -54,8 +53,7 @@ _default_handler:
 
 _reset_handler:
   @ disable interrupts with configurable priority levels
-  MOV     r0, #1
-  MSR     PRIMASK, r0
+  CPSID   I
 
   LDR     sp, _ekstack       @ Load kernel stack pointer
 
@@ -63,22 +61,22 @@ _reset_handler:
   LDR     r0, =_sikdata
   LDR     r1, =_skdata
   LDR     r2, =_ekdata
-.kdata_copy:
-  LDR     r3, [r0], #4        @ Load word from .kdata Flash section
-  CMP     r1, r2
-  IT      NE
-  STRNE   r3, [r1], #4        @ Store word in .kdata SRAM section
-  BNE     .kdata_copy
+  .kdata_copy:
+    LDR     r3, [r0], #4        @ Load word from .kdata Flash section
+    CMP     r1, r2
+    IT      NE
+    STRNE   r3, [r1], #4        @ Store word in .kdata SRAM section
+    BNE     .kdata_copy
 
   @ Zero out .kbss section in SRAM
   LDR     r0, =_skbss
   LDR     r1, =_ekbss
   MOV     r2, #0
-.kbss_zero:
-  CMP     r0, r1
-  ITT     NE
-  STRNE   r2, [r0], #4
-  BNE     .kbss_zero
+  .kbss_zero:
+    CMP     r0, r1
+    ITT     NE
+    STRNE   r2, [r0], #4
+    BNE     .kbss_zero
 
   @ System initialization
   BL      _sysinit
@@ -87,26 +85,25 @@ _reset_handler:
   LDR     r0, =_sidata
   LDR     r1, =_sdata
   LDR     r2, =_edata
-.data_copy:
-  LDR     r3, [r0], #4        @ Load word from .data Flash section
-  CMP     r1, r2
-  IT      NE
-  STRNE   r3, [r1], #4        @ Store word in .data SRAM section
-  BNE     .data_copy
+  .data_copy:
+    LDR     r3, [r0], #4        @ Load word from .data Flash section
+    CMP     r1, r2
+    IT      NE
+    STRNE   r3, [r1], #4        @ Store word in .data SRAM section
+    BNE     .data_copy
   
 	@ Zero out .bss section in SRAM
   LDR     r0, =_sbss
   LDR     r1, =_ebss
   MOV     r2, #0
-.bss_zero:
-  CMP     r0, r1
-  ITT     NE
-  STRNE   r2, [r0], #4
-  BNE     .bss_zero
+  .bss_zero:
+    CMP     r0, r1
+    ITT     NE
+    STRNE   r2, [r0], #4
+    BNE     .bss_zero
 
   @ enable interrupts with configurable priority levels
-  MOV     r0, #0
-  MSR     PRIMASK, r0
+  CPSIE   I
 
   @ Configure CONTROL register and switch to unprivileged thread mode
   MOV     r1, #0b011
@@ -152,9 +149,8 @@ _sysinit:
   BL      _SYSTICK_config
   CBNZ    r0, _default_handler
 
-  POP     {lr}               @ Restore the link register
-	BX      lr                 @ Return from sysinit
-  .align 4
+  POP     {pc}               @ Restore the link register
+  .align  4
 .size _sysinit, .-_sysinit   @ Define the size of the function
 
 
@@ -166,7 +162,6 @@ _sysinit:
   .type _SYSTICK_config, %function
 _SYSTICK_config:
   @ save link register 
-  PUSH    {lr}
   LDR     r0, =SYSTICK_BASE
   
   @ load the systick counter value (10499) in ST_LOAD to prooduce a tick each 1ms  
@@ -179,10 +174,9 @@ _SYSTICK_config:
   STR     r1, [r0, #0x08]           @ STK_VAL
 
   @ recover link register and return 0
-  POP     {lr}
   MOV     r0, #0
   BX      lr
-  .align 4
+  .align  4
   .size _SYSTICK_config, .-_SYSTICK_config
 
 @ RCC register details provided in STM32F401's ref manual page 103
@@ -282,7 +276,7 @@ _RCC_config:
   MOVW    r2, #0x4001       @ enable SYSCFG aand TIM1
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x44]   @ RCC_AHB1ENR
-  MOV     r0, #0          @ return 0
+  MOV     r0, #0            @ return 0
   BX      lr
   .align  4
   .size _RCC_config, .-_RCC_config
@@ -294,7 +288,6 @@ _RCC_config:
 @-----------------------------------
   .type _PWR_config, %function
 _PWR_config:
-  PUSH    {lr}
   LDR     r1, [r0]
   @ Disable access to RTC and it's backup domain
   @ Enter Stop mode when CPU enters DEEPSLEED
@@ -307,10 +300,9 @@ _PWR_config:
   LDR     r2, =PWR_CR_MASK
   ORR     r1, r1, r2
   STR     r1, [r0]
-  POP     {lr}
   MOV     r0, #0
   BX      lr
-  .align 4
+  .align  4
   .size _PWR_config, .-_PWR_config
 
 
@@ -321,7 +313,6 @@ _PWR_config:
 @-----------------------------------
   .type _NVIC_config, %function
 _NVIC_config:
-  PUSH    {lr}
   @ enable RCC / FLASH / FPU
   LDR     r0, =NVIC_ISER0
   LDR     r1, [r0]              @ NVIC_ISER0
@@ -332,7 +323,6 @@ _NVIC_config:
   MOV     r2, #(0b1 << 4)       @ set FPU bit
   ORR     r1, r1, r2
   STR     r1, [r0, #0x08]       @ NVIC_ISER2
-  POP     {lr}
   MOV     r0, #0
   BX      lr
   .align  4
@@ -381,9 +371,7 @@ _FLASH_config:
   
   @ decide whether we branch in based off the kernel's mode (PROD or DEV)
   .ifdef PRODUCTION_MODE
-    PUSH     {lr}
     BL       __FLASH_opt_config      @ configure FLASH option bytes
-    POP      {lr}
   .endif
 
   MOV     r0, #0      @ RETURN 0
@@ -396,6 +384,7 @@ _FLASH_config:
 @-----------------------------------
   .type __FLASH_opt_config, %function
 __FLASH_opt_config:
+  PUSH     {lr}
   @ Unlock the option bytes
   LDR     r1, =FLASH_OPTKEY1
   STR     r1, [r0, #0x08]         @ Store opt-key 1
@@ -435,7 +424,7 @@ __FLASH_opt_config:
   LDR     r1, [r0, #0x14]         @ FLASH_OPTCR
   ORR     r1, r1, #0b1            @ Set OPTLOCK bit
   STR     r1, [r0, #0x14]         @ FLASH_OPTCR
-  BX      lr
+  POP      {pc}
   .align 4
   .size __FLASH_opt_config, .-__FLASH_opt_config
 
@@ -487,7 +476,6 @@ _MPU_config:
   MOV     r2, #0b111
   ORR     r1, r2                @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
-
   MOV     r0, #0
   BX      lr
   .align 4
