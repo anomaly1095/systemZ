@@ -30,173 +30,66 @@
 .fpu fpv4-sp-d16
 .thumb
 
-.include "include.s"
+.include "data.s"
 
 
-@-----------------------------------------------------
-@----------------------------------------------------- Memory 
-@-----------------------------------------------------
+@------------------------------------------------------------
+@------------------------------------------------------------
+@------------------------------------------------------------Macros
+@------------------------------------------------------------
+@------------------------------------------------------------
 
+.define LITTLE_ENDIAN
+.define DEVELOPMENT_MODE 
+@ .define PRODUCTION_MODE
 
-@ This function can be used by kernel or by app and does not require SVC
-@ Function copies 1 word at a time so buffer needs to be 4 bytes aligned
-@ Arguments:
-@ r0: src (source address)
-@ r1: dest (destination address)
-@ r2: length (number of bytes to copy, assumed to be multiple of 4)
-.global memcpy_4
-.type memcpy_4, %function
-memcpy_4:
-  .loop:
-    LDR     r3, [r0], #4      @ Load word from src and increment src by 4
-    STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
-    SUBS    r2, r2, #4        @ Decrement length counter by 4
-    BNE     .loop             @ If length is not 0, continue loop
-    BX      lr                @ Return from function
-  .size memcpy_4, .-memcpy_4
+@ Macro used for configuring the various regions used by the system
+.macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
+  LDR     r0, =MPU_BASE
+	LDR     r1, =\region_base
+	MOVW    r2, #(0b10000 | \region_number) @ Region number, VALID bit
+	ORR     r1, r1, r2
+	STR     r1, [r0, #0x0C]                 @ MPU_RBAR reg
 
-@ This function can be used by kernel or by app and does not require SVC
-@ Function copies 1 byte at a time so no buffer alignment required
-@ Arguments:
-@ r0: src (source address)
-@ r1: dest (destination address)
-@ r2: length (number of bytes to copy)
-.global memcpy_1
-.type memcpy_1, %function
-memcpy_1:
-  .loop:
-    LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
-    STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
-    SUBS    r2, r2, #1        @ Decrement length counter by 1
-    BNE     .loop             @ If length is not 0, continue loop
-    BX      lr                @ Return from function
-  .size memcpy_1, .-memcpy_1
-
-@ This function sets memory with a 4-byte aligned value.
-@ Arguments:
-@ r0: dest (destination address)
-@ r1: value (byte value to set)
-@ r2: length (number of bytes to set, assumed to be multiple of 4)
-.global memset_4
-.type memset_4, %function
-memset_4:
-  @ Make a word ready containing 4 bytes of the required byte value
-  MOV     r3, r1              @ Move the byte value into r3
-  ORR     r3, r3, r3, LSL #8  @ Set byte 2
-  ORR     r3, r3, r3, LSL #16 @ Set byte 3 and byte 4
-  .loop:
-    STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
-    SUBS    r2, r2, #4          @ Decrement length counter by 4
-    BNE     .loop               @ If length is not 0, continue loop
-
-  .exit:
-    BX      lr                  @ Return from function
-  .size memset_4, .-memset_4
-
-@ This function can be used by kernel or by app and does not require SVC
-@ Function sets 1 byte at a time so no buffer alignment required
-@ Arguments:
-@ r0: dest (destination address)
-@ r1: value (byte value to set)
-@ r2: length (number of bytes to set)
-.global memset_1
-.type memset_1, %function
-memset_1:
-  .loop:
-    STRB    r1, [r0], #1        @ Store byte to dest and increment dest by 1
-    SUBS    r2, r2, #1          @ Decrement length counter by 1
-    BNE     .loop               @ If length is not 0, continue loop
-    BX      lr                  @ Return from function
-    .size memset_1, .-memset_1
-
-@ This function can be used by kernel or by app and does not require SVC
-@ It assumes the memory size to zero out is 4 bytes aligned
-@ Arguments:
-@ r0: dest (destination address)
-@ r2: length (number of bytes to zero out, assumed to be multiple of 4)
-.global memzero_4
-.type memzero_4, %function
-memzero_4:
-  MOV     r3, #0             @ Load zero into r3
-  .loop:
-    STR     r3, [r0], #4       @ Store zero to dest and increment dest by 4
-    SUBS    r2, r2, #4         @ Decrement length counter by 4
-    BNE     .loop              @ If length is not 0, continue loop
-
-  .exit:
-    BX      lr                 @ Return from function
-    .size memzero_4, .-memzero_4
-
-@ This function can be used by kernel or by app and does not require SVC
-@ Arguments:
-@ r0: dest (destination address)
-@ r2: length (number of bytes to zero out)
-.global memzero_1
-.type memzero_1, %function
-memzero_1:
-  MOV     r3, #0             @ Load zero into r3
-  .loop:
-    STRB    r3, [r0], #1       @ Store zero to dest and increment dest by 1
-    SUBS    r2, r2, #1         @ Decrement length counter by 1
-    BNE     .loop              @ If length is not 0, continue loop
-
-  .exit:
-    BX      lr                 @ Return from function
-    .size memzero_1, .-memzero_1
+	LDR     r2, =\region_mask
+	STR     r2, [r0, #0x10]                 @ MPU_RASR reg
+.endm
 
 @-----------------------------------
-@ Compares two memory blocks byte by byte.
-@ Arguments:
-@   r0: Pointer to the first memory block (src1).
-@   r1: Pointer to the second memory block (src2).
-@   r2: Number of bytes to compare.
-@ Returns:
-@   r0: 0 if the memory blocks are equal, non-zero otherwise.
+@ Macro used to select which register to select in the NVIC (0..7)
+@ Applies on NVIC_ISER, NVIC_ICER, NVIC_ISPR, NVIC_ICPR, NVIC_IABR
+@ arg0: interrupt position (irq_num)
+@ arg1: address of register 0 (NVIC0_addr)
+@ return: sets address of register to work on in r2 and normalizes irq_num in r0
+@ example: NVIC_REG_SELECT7 5, 0xE000E100 
 @-----------------------------------
-.global memcmp_1
-.type memcmp_1, %function
-memcmp_1:
-  .loop:
-    LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
-    LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
-    CMP     r3, r4         @ Compare bytes
-    BNE     .fail          @ Exit loop if bytes are not equal
-    SUBS    r2, r2, #1     @ Decrement length counter
-    BNE     .loop          @ Loop if length is not zero
-    MOV     r0, #0         @ If all bytes are equal, return 0
-    BX      lr
-  .fail:
-    MOV     r0, #1         @ If bytes are not equal, return non-zero
-    BX      lr
-  .size memcmp81, .-memcmp_1
+.macro NVIC_REG_SELECT7 irq_num:req, NVIC0_addr:req
+  LDR     r2, =\NVIC0_addr         @ Load the base address into r2
+
+  CMP     \irq_num, #31            @ Compare irq_num with 31
+  IT      GT                       @ If irq_num > 31, then...
+  ADDGT   r2, r2, #0x04            @ Adjust address if irq_num > 31
+
+  CMP     \irq_num, #63            @ Compare irq_num with 63
+  ITTE    GT                       @ If irq_num > 63, then...
+  ADDGT   r2, r2, #0x04            @ Adjust address if irq_num > 63
+  SUBGT   \irq_num, \irq_num, #64  @ Normalize the bit offset in irq_num to start at 0 if irq_num > 63
+  SUBLE   \irq_num, \irq_num, #32  @ Normalize the bit offset in irq_num to start at 0 if irq_num <= 63
+.endm
+
 
 @-----------------------------------
-@ Memory Compare (memcmp)
-@ Compares two memory blocks word by word.
-@ Arguments:
-@   r0: Pointer to the first memory block (src1).
-@   r1: Pointer to the second memory block (src2).
-@   r2: Number of bytes to compare.
-@ Returns:
-@   r0: 0 if the memory blocks are equal, non-zero otherwise.
+@ Macro used to select which register to select in the NVIC (0..59)
+@ Applies on NVIC_IPR
+@ arg0: interrupt position (irq_num)
+@ arg1: base address of NVIC_IPR registers (NVIC0_IPR_addr)
+@ return: sets the address of the register to work on in r2 and normalizes irq_num in \irq_num
 @-----------------------------------
-.global memcmp
-.type memcmp, %function
-memcmp:
-  .loop:
-    LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
-    LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
-    CMP     r3, r4         @ Compare words
-    BNE     .fail          @ Exit loop if words are not equal
-    SUBS    r2, r2, #4     @ Decrement length counter by 4
-    BGE     .loop          @ Loop if length is not zero or negative
-    MOV     r0, #0         @ If all words are equal, return 0
-    BX      lr             @ Return from function
-  .fail:
-    MOV     r0, #1         @ If words are not equal, return non-zero
-    BX      lr             @ Return from function
-  .size memcmp, .-memcmp
-
+.macro NVIC_REG_SELECT59 irq_num:req, NVIC0_IPR_addr:req
+  LDR     r2, =\NVIC0_IPR_addr     @ Load the base address into r2
+  LSR     \irq_num, \irq_num, #2   @ Divide irq_num by 4 to get the byte offset
+  ADD     r2, r2, \irq_num         @ Add the offset to the base address
+.endm
 
 
 @-----------------------------------------------------
@@ -630,7 +523,237 @@ memcmp:
 @ Configurable fault status registers (CFSR; UFSR+BFSR+MMFSR)
 
 
+
+@-----------------------------------------------------
+@-----------------------------------------------------
+@----------------------------------------------------- Memory 
+@-----------------------------------------------------
+@-----------------------------------------------------
+
+@-----------------------------------
+@ Used by the kernel to expand the KERNEL heap towards the top
+@ arg0: amount of SRAM needed
+@ returns pointer (address) of start of the allocated space
+@ returns 0 ((void*)(0x0)) if failed to allocate SRAM
+@-----------------------------------
+.type _ksbrk, %function
+_ksbrk:
+
+  LDR     r2, =k_brk
+  LDR     r2, [r2]           @ Load the address of kernel system break
+  ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
+  CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
+  BGE     .exit               @ Return 0 if failed to allocate
+
+  LDR     r2, =k_brk
+  STR     r0, [r2]           @ Store the value of the process's new system break 
+
+  .exit:
+    BX      lr
+  .align  4
+  .size _ksbrk, .-_ksbrk
+
+
+
+@-----------------------------------
+@ Used by the kernel to collapse the KERNEL heap towards the bottom freeing memory
+@ arg0: amount of SRAM to free
+@ returns pointer (address) of new system break
+@-----------------------------------
+.type _ksbrk_free, %function
+_ksbrk_free:
+  LDR     r1, =_ekdata       @ Load the address of the end of .kdata in SRAM
+
+  LDR     r2, =k_brk
+  LDR     r2, [r2]           @ Load the address of kernel system break
+  
+  SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
+  CMP     r0, r1             @ Compare new system break to end of .kdata
+  BLS     .error             @ If new BRK <= _ekdata, return 0
+
+  STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
+  CPSIE   i                  @ Enable interrupts (CPSIE i clears PRIMASK)
+  BX      lr                 @ Return with the new system break address
+
+  .error:
+    MOVS    r0, #0             @ Return 0 on error
+    BX      lr
+
+.align 4
+.size _ksbrk_free, .-_ksbrk_free
+
+
+@ This function can be used by kernel or by app and does not require SVC
+@ Function copies 1 word at a time so buffer needs to be 4 bytes aligned
+@ Arguments:
+@ r0: src (source address)
+@ r1: dest (destination address)
+@ r2: length (number of bytes to copy, assumed to be multiple of 4)
+.global memcpy_4
+.type memcpy_4, %function
+memcpy_4:
+  .loop:
+    LDR     r3, [r0], #4      @ Load word from src and increment src by 4
+    STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
+    SUBS    r2, r2, #4        @ Decrement length counter by 4
+    BNE     .loop             @ If length is not 0, continue loop
+    BX      lr                @ Return from function
+  .align    4
+  .size memcpy_4, .-memcpy_4
+
+@ This function can be used by kernel or by app and does not require SVC
+@ Function copies 1 byte at a time so no buffer alignment required
+@ Arguments:
+@ r0: src (source address)
+@ r1: dest (destination address)
+@ r2: length (number of bytes to copy)
+.global memcpy_1
+.type memcpy_1, %function
+memcpy_1:
+  .loop:
+    LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
+    STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
+    SUBS    r2, r2, #1        @ Decrement length counter by 1
+    BNE     .loop             @ If length is not 0, continue loop
+    BX      lr                @ Return from function
+  .align    4
+  .size memcpy_1, .-memcpy_1
+
+@ This function sets memory with a 4-byte aligned value.
+@ Arguments:
+@ r0: dest (destination address)
+@ r1: value (byte value to set)
+@ r2: length (number of bytes to set, assumed to be multiple of 4)
+.global memset_4
+.type memset_4, %function
+memset_4:
+  @ Make a word ready containing 4 bytes of the required byte value
+  MOV     r3, r1              @ Move the byte value into r3
+  ORR     r3, r3, r3, LSL #8  @ Set byte 2
+  ORR     r3, r3, r3, LSL #16 @ Set byte 3 and byte 4
+  .loop:
+    STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
+    SUBS    r2, r2, #4          @ Decrement length counter by 4
+    BNE     .loop               @ If length is not 0, continue loop
+
+  .exit:
+    BX      lr                  @ Return from function
+  .align    4
+  .size memset_4, .-memset_4
+
+@ This function can be used by kernel or by app and does not require SVC
+@ Function sets 1 byte at a time so no buffer alignment required
+@ Arguments:
+@ r0: dest (destination address)
+@ r1: value (byte value to set)
+@ r2: length (number of bytes to set)
+.global memset_1
+.type memset_1, %function
+memset_1:
+  .loop:
+    STRB    r1, [r0], #1        @ Store byte to dest and increment dest by 1
+    SUBS    r2, r2, #1          @ Decrement length counter by 1
+    BNE     .loop               @ If length is not 0, continue loop
+    BX      lr                  @ Return from function
+  .align    4
+    .size memset_1, .-memset_1
+
+@ This function can be used by kernel or by app and does not require SVC
+@ It assumes the memory size to zero out is 4 bytes aligned
+@ Arguments:
+@ r0: dest (destination address)
+@ r2: length (number of bytes to zero out, assumed to be multiple of 4)
+.global memzero_4
+.type memzero_4, %function
+memzero_4:
+  MOV     r3, #0             @ Load zero into r3
+  .loop:
+    STR     r3, [r0], #4       @ Store zero to dest and increment dest by 4
+    SUBS    r2, r2, #4         @ Decrement length counter by 4
+    BNE     .loop              @ If length is not 0, continue loop
+
+  .exit:
+    BX      lr                 @ Return from function
+  .align    4
+    .size memzero_4, .-memzero_4
+
+@ This function can be used by kernel or by app and does not require SVC
+@ Arguments:
+@ r0: dest (destination address)
+@ r2: length (number of bytes to zero out)
+.global memzero_1
+.type memzero_1, %function
+memzero_1:
+  MOV     r3, #0             @ Load zero into r3
+  .loop:
+    STRB    r3, [r0], #1       @ Store zero to dest and increment dest by 1
+    SUBS    r2, r2, #1         @ Decrement length counter by 1
+    BNE     .loop              @ If length is not 0, continue loop
+
+  .exit:
+    BX      lr                 @ Return from function
+  .align    4
+    .size memzero_1, .-memzero_1
+
+@-----------------------------------
+@ Compares two memory blocks byte by byte.
+@ Arguments:
+@   r0: Pointer to the first memory block (src1).
+@   r1: Pointer to the second memory block (src2).
+@   r2: Number of bytes to compare.
+@ Returns:
+@   r0: 0 if the memory blocks are equal, non-zero otherwise.
+@-----------------------------------
+.global memcmp_1
+.type memcmp_1, %function
+memcmp_1:
+  .loop:
+    LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
+    LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
+    CMP     r3, r4         @ Compare bytes
+    BNE     .fail          @ Exit loop if bytes are not equal
+    SUBS    r2, r2, #1     @ Decrement length counter
+    BNE     .loop          @ Loop if length is not zero
+    MOV     r0, #0         @ If all bytes are equal, return 0
+    BX      lr
+  .fail:
+    MOV     r0, #1         @ If bytes are not equal, return non-zero
+    BX      lr
+  .align    4
+  .size memcmp_1, .-memcmp_1
+
+@-----------------------------------
+@ Memory Compare (memcmp)
+@ Compares two memory blocks word by word.
+@ Arguments:
+@   r0: Pointer to the first memory block (src1).
+@   r1: Pointer to the second memory block (src2).
+@   r2: Number of bytes to compare.
+@ Returns:
+@   r0: 0 if the memory blocks are equal, non-zero otherwise.
+@-----------------------------------
+.global memcmp
+.type memcmp, %function
+memcmp:
+  .loop:
+    LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
+    LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
+    CMP     r3, r4         @ Compare words
+    BNE     .fail          @ Exit loop if words are not equal
+    SUBS    r2, r2, #4     @ Decrement length counter by 4
+    BGE     .loop          @ Loop if length is not zero or negative
+    MOV     r0, #0         @ If all words are equal, return 0
+    BX      lr             @ Return from function
+  .fail:
+    MOV     r0, #1         @ If words are not equal, return non-zero
+    BX      lr             @ Return from function
+  .align    4
+  .size memcmp, .-memcmp
+
+
+@-----------------------------------------------------
 @-----------------------------------------------------
 @----------------------------------------------------- Tasks 
+@-----------------------------------------------------
 @-----------------------------------------------------
 

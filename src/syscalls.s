@@ -37,7 +37,9 @@
 .section .text.syscalls, "ax", %progbits
 
 @-----------------------------------------------------
+@-----------------------------------------------------
 @-----------------------------------------------------NVIC syscalls
+@-----------------------------------------------------
 @----------------------------------------------------- 
 
 @-----------------------------------SYSCALL
@@ -51,7 +53,7 @@ _NVIC_enable_irq:
   MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT0_7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
+  NVIC_REG_SELECT7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
@@ -76,7 +78,7 @@ _NVIC_disable_irq:
   MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT0_7  r0, NVIC_ICER0   @ Select the appropriate NVIC_ICER register
+  NVIC_REG_SELECT7  r0, NVIC_ICER0   @ Select the appropriate NVIC_ICER register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
@@ -101,7 +103,7 @@ _NVIC_set_pend_irq:
   MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT0_7  r0, NVIC_ISPR0   @ Select the appropriate NVIC_ISPR register
+  NVIC_REG_SELECT7  r0, NVIC_ISPR0   @ Select the appropriate NVIC_ISPR register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
@@ -126,7 +128,7 @@ _NVIC_clear_pend_irq:
   MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT0_7  r0, NVIC_ICPR0   @ Select the appropriate NVIC_ICPR register
+  NVIC_REG_SELECT7  r0, NVIC_ICPR0   @ Select the appropriate NVIC_ICPR register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
@@ -152,7 +154,7 @@ _NVIC_check_active_irq:
   MSR     PRIMASK, r1        @ Disable interrupts
   @ Macro sets the address of the register in r2
   @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT0_7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
+  NVIC_REG_SELECT7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
   MOV     r3, #0b1
   LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
@@ -177,7 +179,7 @@ _NVIC_check_active_irq:
 _NVIC_set_pri_irq:
   MOV     r1, #1
   MSR     PRIMASK, r1        @ Disable interrupts
-  NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
+  NVIC_REG_SELECT59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   STRB    r1, [r2]                @ Store the priority number in the selected register byte
   MOV     r0, #0
   MOV     r1, #0
@@ -197,7 +199,7 @@ _NVIC_set_pri_irq:
 _NVIC_get_pri_irq:
   MOV     r1, #1
   MSR     PRIMASK, r1        @ Disable interrupts
-  NVIC_REG_SELECT0_59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
+  NVIC_REG_SELECT59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   LDRB    r0, [r2]                    @ Load the priority number from the selected register byte
   MOV     r1, #0
   MSR     PRIMASK, r1        @ Enable interrupts
@@ -227,13 +229,9 @@ _NVIC_soft_trigger_irq:
   .size _NVIC_soft_trigger_irq, .-_NVIC_soft_trigger_irq
 
 @-----------------------------------------------------
-@----------------------------------------------------- system control syscalls
-@----------------------------------------------------- 
-
-
-
 @-----------------------------------------------------
 @----------------------------------------------------- Memory Management syscalls
+@-----------------------------------------------------
 @-----------------------------------------------------
 
 @-----------------------------------
@@ -259,6 +257,7 @@ _sbrk:
     BX      lr
   .align  4
   .size _sbrk, .-_sbrk
+
 
 @-----------------------------------
 @ SYSCALL: Used by the app to collapse the APP process heap towards the bottom freeing memory
@@ -286,56 +285,3 @@ _sbrk_free:
   .align  4
   .size _sbrk_free, .-_sbrk_free
 
-
-
-@-----------------------------------
-@ Used by the kernel to expand the KERNEL heap towards the top
-@ arg0: amount of SRAM needed
-@ returns pointer (address) of start of the allocated space
-@ returns 0 ((void*)(0x0)) if failed to allocate SRAM
-@-----------------------------------
-.type _ksbrk, %function
-_ksbrk:
-
-  LDR     r2, =k_brk
-  LDR     r2, [r2]           @ Load the address of kernel system break
-  ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
-  CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
-  BGE     .exit               @ Return 0 if failed to allocate
-
-  LDR     r2, =k_brk
-  STR     r0, [r2]           @ Store the value of the process's new system break 
-
-  .exit:
-    BX      lr
-  .align  4
-  .size _ksbrk, .-_ksbrk
-
-
-
-@-----------------------------------
-@ Used by the kernel to collapse the KERNEL heap towards the bottom freeing memory
-@ arg0: amount of SRAM to free
-@ returns pointer (address) of new system break
-@-----------------------------------
-.type _ksbrk_free, %function
-_ksbrk_free:
-  LDR     r1, =_ekdata       @ Load the address of the end of .kdata in SRAM
-
-  LDR     r2, =k_brk
-  LDR     r2, [r2]           @ Load the address of kernel system break
-  
-  SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
-  CMP     r0, r1             @ Compare new system break to end of .kdata
-  BLS     .error             @ If new BRK <= _ekdata, return 0
-
-  STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
-  CPSIE   i                  @ Enable interrupts (CPSIE i clears PRIMASK)
-  BX      lr                 @ Return with the new system break address
-
-  .error:
-    MOVS    r0, #0             @ Return 0 on error
-    BX      lr
-
-.align 4
-.size _ksbrk_free, .-_ksbrk_free
