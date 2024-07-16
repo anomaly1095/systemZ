@@ -38,38 +38,31 @@
 @ all executed in privileged handler mode
 
   .section .text.IRQs, "ax", %progbits
-  .global NMI_Handler
-  .type NMI_Handler, %function
-  .global HardFault_Handler
-  .type HardFault_Handler, %function
-  .global MemManage_Handler
-  .type MemManage_Handler, %function
-  .global BusFault_Handler
-  .type BusFault_Handler, %function
-  .global UsageFault_Handler
-  .type UsageFault_Handler, %function
-  .global SVC_Handler
-  .type SVC_Handler, %function
-  .global DebugMon_Handler
-  .type DebugMon_Handler, %function
-  .global PendSV_Handler
-  .type PendSV_Handler, %function
-  .global SysTick_Handler
-  .type SysTick_Handler, %function
 
 @ System exception handlers
 
+  .global NMI_Handler
+  .type NMI_Handler, %function
 NMI_Handler:
 
+  .global HardFault_Handler
+  .type HardFault_Handler, %function
 HardFault_Handler:
 
+  .global MemManage_Handler
+  .type MemManage_Handler, %function
 MemManage_Handler:
 
+  .global BusFault_Handler
+  .type BusFault_Handler, %function
 BusFault_Handler:
 
+  .global UsageFault_Handler
+  .type UsageFault_Handler, %function
 UsageFault_Handler:
 
-
+  .global SVC_Handler
+  .type SVC_Handler, %function
 SVC_Handler:
   @ All Syscalls are emplemented inside src/sys-calls.asm
   @ All the Syscalls either return 0 or the expected return value
@@ -112,13 +105,45 @@ SVC_Handler:
   .align  4
   .size SVC_Handler, .-SVC_Handler
 
-
+  .global DebugMon_Handler
+  .type DebugMon_Handler, %function
 DebugMon_Handler:
 
+  .global PendSV_Handler
+  .type PendSV_Handler, %function
 PendSV_Handler:
 
-SysTick_Handler:
 
+  .global SysTick_Handler
+  .type SysTick_Handler, %function
+SysTick_Handler:
+  LDR     r0, =stk_cntrs
+  LDRH    r1, [r0]            @ Load number of milliseconds
+  LDR     r1, [r0, #0x02]     @ Load number of seconds
+  ADD     r1, r1, #1
+  
+  @ add callbacks (use for os scheduler)
+  PUSH    {r0-r3, lr}
+  LDR     r0, =stk_clbk
+  LDR     r1, [r0]
+  BLX     r1
+  LDR     r1, [r0, #0x04]
+  BLX     r1
+  LDR     r1, [r0, #0x08]
+  BLX     r1
+  LDR     r1, [r0, #0x0C]
+  BLX     r1
+  POP     {r0-r3, lr}
+
+  CMP     r1, #1000
+  ITT     EQ
+  ADDEQ   r2, r2, #1          @ Store new number of seconds
+  MOVEQ   r1, #0              @ reset millisecond counter
+  STRH    r1, [r0]            @ Store new number of milliseconds
+  STR     r2, [r0, #0x02]     @ Store new number of seconds
+  BX      lr
+  .align  4
+  .size SysTick_Handler, .-SysTick_Handler
 
 /* External Interrupts */
 @ WWDG_IRQHandler

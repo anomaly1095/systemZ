@@ -53,10 +53,19 @@ _default_handler:
 
 _reset_handler:
   @ disable interrupts with configurable priority levels
-  CPSID   I
-
   LDR     sp, _ekstack       @ Load kernel stack pointer
 
+  CPSID   I         @ disable interrupts till end of system initialization
+  
+  @ Disable fp instructions executing out of order
+  @ Disables IT folding
+  @ Disable write buffer use
+  @ Disables interruption of load/store and multiply/divide operations
+  DIS_OUTOFORDER_EXEC #1
+
+  @ set stack alignement
+  BL      stack_align_4
+  
   @ Copy .kdata section from FLASH to SRAM
   LDR     r0, =_sikdata
   LDR     r1, =_skdata
@@ -189,22 +198,19 @@ _RCC_config:
 @ Enable the high speed internal osciallator
 .HSI_enable:
   LDR     r1, [r0]        @ RCC_CR
-  MOV     r2, #0b1
-  ORR     r1, r1, r2
+  ORR     r1, r1, #0b01
   STR     r1, [r0]        @ RCC_CR
-  LSL     r2, r2, #1      @ make the mask ready for next op
   @ Wait for the high speed internal oscillator to be anabled
 .HSI_wait:
   LDR     r1, [r0]        @ RCC_CR
-  TST     r1, r2          @ use previously shifted mask to check if HSIRDY
+  TST     r1, #0b10          @ use previously shifted mask to check if HSIRDY
   BEQ     .HSI_wait
 
 @ Configure then enable the Phase locked loop
 .PLL_enable:
   @ Configure PLL
   LDR     r1, [r0, #0x04] @ RCC_PLLCFGR
-  MOVW    r2, #16         @ PLLM prescaler = 16
-  ORR     r1, r1, r2
+  ORR     r1, r1, #16     @ PLLM prescaler = 16
   MOVW    r2, #(336 << 6) @ PLLN prescaler = 336
   MOVT    r2, #0b01       @ PLLP prescaler = 4
   ORR     r1, r1, r2
@@ -227,16 +233,13 @@ _RCC_config:
 @ Set PLL as sysclk input thru the provided multiplexer
 .SYSCLK_config:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
-  MOVW    r2, #0b11
-  BIC     r1, r1, r2      @ clear the bits
-  MOVW    r2, #0b10
-  ORR      r1, r1, r2
+  BIC     r1, r1, #0b11      @ clear the bits
+  ORR     r1, r1, #0b10
   STR     r1, [r0, #0x08] @ PLL_CFGR
-  LSL     r2, r2, #1      @ shift the bits to allign sith SWS bits
   @ Wait for the multiplexer to select the PLL as SYSCLK input source
 .SYSCLK_wait:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
-  TST     r1, r2
+  TST     r1, #0b100
   BEQ     .SYSCLK_wait
 
 @ Set AHB APB1 APB2 prescalers
@@ -316,12 +319,10 @@ _NVIC_config:
   @ enable RCC / FLASH / FPU
   LDR     r0, =NVIC_ISER0
   LDR     r1, [r0]              @ NVIC_ISER0
-  MOV     r2, #(0b11 << 4)      @ set FLASH and RCC bits
-  ORR     r1, r1, r2
+  ORR     r1, r1, #(0b11 << 4)  @ set FLASH and RCC bits
   STR     r1, [r0]              @ NVIC_ISER0
   LDR     r1, [r0, #0x08]       @ NVIC_ISER2
-  MOV     r2, #(0b1 << 4)       @ set FPU bit
-  ORR     r1, r1, r2
+  ORR     r1, r1, #0b10000      @ set FPU bit
   STR     r1, [r0, #0x08]       @ NVIC_ISER2
   MOV     r0, #0
   BX      lr
@@ -341,12 +342,10 @@ _FLASH_config:
 @ Set latency at 2ws for 84mhz AHB clock
 .FLASH_access_control:
   LDR     r1, [r0]
-  MOVW    r2, #0b11       @ reset both instruction and data caches
-  ORR     r1, r1, r1
+  ORR     r1, r1, #0b11   @ reset both instruction and data caches
   STR     r1, [r0]        @ save changes
-  LDR     r1, [r0]
   MOVW    r2, #0x0702     @ enable caches, prefetch and set latency = 2Ws
-  ORR     r1, r1, r1
+  ORR     r1, r1, r2
   STR     r1, [r0]        @ save changes
 
 .FLASH_cr_optcr_config:
@@ -401,16 +400,9 @@ __FLASH_opt_config:
   MOVT    r2, #0xC0           
   ORR     r1, r1, r2              @ Set nWRP[7:0] to 0xC0 (protect sectors 0-5 for kernel)
   
-  @ If PCROP is not needed, skip the following two lines
-  MOV     r2, #1
-  ORR     r2, r2, #1              @ r2 = 0x80000000
-  ORR     r1, r1, r2              @ Set SPRMOD (optional)
-  
   @ set BOR (brownout level)
-  MOV     r2, #(0b11 << 2)
-  BIC     r1, r1, r2              @ cler BOR_LEV bits
-  MOV     r2, #(0b01 << 2)
-  ORR     r1, r1, r2              @ set new BOR_LEV bits at BOR level 2
+  BIC     r1, r1, #0b1100              @ cler BOR_LEV bits
+  ORR     r1, r1, #0b0100              @ set new BOR_LEV bits at BOR level 2
 
   @ Write modified value back to FLASH_OPTCR
   STR     r1, [r0, #0x14]         @ FLASH_OPTCR
@@ -473,8 +465,7 @@ _MPU_config:
 @  Enable background map, enable mpu during NMI AND FAULTS, enable MPU
 .MPU_enable:
   LDR     r1, [r0, #0x04]       @ MPU_CTRL reg
-  MOV     r2, #0b111
-  ORR     r1, r2                @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
+  ORR     r1, r1, #0b111        @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
   MOV     r0, #0
   BX      lr

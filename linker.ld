@@ -131,9 +131,9 @@ SECTIONS
   /* Kernel stack section */
   .kstack (NOLOAD): 
   {
-    ALIGN(8);
+    ALIGN(4);
     . = . + min_kstack;
-    ALIGN(8);
+    ALIGN(4);
   } > K_SRAM
 
   /*-----------------------------------------------*/
@@ -203,9 +203,9 @@ SECTIONS
   /* Application stack section */
   .stack (NOLOAD): 
   {
-    ALIGN(8);
+    ALIGN(4);
     . = . + min_stack;
-    ALIGN(8);
+    ALIGN(4);
   } > APP_SRAM
 
   /* Assertions to ensure memory allocations are within limits */

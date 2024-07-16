@@ -31,6 +31,55 @@
 .thumb
 
 
+@------------------------------------------------------------
+@------------------------------------------------------------
+@------------------------------------------------------------.data
+@------------------------------------------------------------
+@------------------------------------------------------------
+
+@ data section used by syscalls
+.section .data.syscalls, "aw", %progbits
+  .equ SVC_MASK, 0xFFFFFF00
+@ callback array for SYSTICK
+stk_clbk:
+  .word 0x0  @ add the functions to be called by systick here
+  .word 0x0  @ add the functions to be called by systick here
+  .word 0x0  @ add the functions to be called by systick here
+  .word 0x0  @ add the functions to be called by systick here
+
+p_brk:
+  .word _sheap       @ Application Process system break 
+k_brk:
+  .word _skheap      @ kernel system break
+
+  .align 4
+
+@------------------------------------------------------------
+@------------------------------------------------------------
+@------------------------------------------------------------.bss
+@------------------------------------------------------------
+@------------------------------------------------------------
+
+@ uninitialized data section used by syscalls
+.section .bss.syscalls, "aw", %progbits
+
+stk_cntrs:
+  .short     @ Milliseconds used by systick
+  .word      @ Seconds used by systick
+
+@ Global variable to hold last exception number, initialized to 0
+last_IRQ: 
+  .byte      @ will hold the last IRQ number and written only by ISR_get_active_num
+
+  .align 4
+
+@------------------------------------------------------------
+@------------------------------------------------------------
+@------------------------------------------------------------Macros
+@------------------------------------------------------------
+@------------------------------------------------------------
+
+.define LITTLE_ENDIAN
 .define DEVELOPMENT_MODE 
 @ .define PRODUCTION_MODE
 
@@ -82,6 +131,11 @@
 .endm
 
 
+@------------------------------------------------------------
+@------------------------------------------------------------
+@------------------------------------------------------------.rodata
+@------------------------------------------------------------
+@------------------------------------------------------------
 
 
 .section .rodata.registers.SCB, "a", %progbits
@@ -187,14 +241,3 @@
   @                     XN = 0    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 1     |   B = 0     |SRD=00000000| SIZE = 28 | ENABLE 
   .equ SECTION0_MASK, (0b0 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b1 << 17) | (0b0 << 16) | (0x0 << 8) | (28 << 1) | 0b1
 
-
-@ data section used by syscalls
-.section .data.syscalls, "aw", %progbits
-  .equ SVC_MASK, 0xFFFFFF00
-
-@ Application Process system break
-p_brk:
-  .word _sheap
-@ kernel system break
-k_brk:
-  .word _skheap

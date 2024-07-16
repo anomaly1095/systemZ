@@ -178,6 +178,4 @@ extern uint8_t memcmp_4(void *start1, void *start2, size_t len);
 extern uint8_t memcmp_1(void *start1, void *start2, size_t len);
 
 
-
-
 #endif // !SYSCALL_WRAPPERS_H 1
