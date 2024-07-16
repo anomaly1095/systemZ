@@ -41,7 +41,7 @@
 
 _default_handler:
   B       .                   @ Infinite loop for debugging
-  .align 4
+  .align  2
 .size _default_handler, .-_default_handler
 
 @----------------------------------------------
@@ -122,7 +122,7 @@ _reset_handler:
   LDR     sp, =_estack        @ Load app stack pointer in PSP
   BL      _start              @ Branch to application code
   B       _default_handler    @ Debug: if return from application
-  .align 4
+  .align  2
 .size _reset_handler, .-_reset_handler
 
 @----------------------------------------------
@@ -159,7 +159,7 @@ _sysinit:
   CBNZ    r0, _default_handler
 
   POP     {pc}               @ Restore the link register
-  .align  4
+  .align  2
 .size _sysinit, .-_sysinit   @ Define the size of the function
 
 
@@ -185,7 +185,7 @@ _SYSTICK_config:
   @ recover link register and return 0
   MOV     r0, #0
   BX      lr
-  .align  4
+  .align  2
   .size _SYSTICK_config, .-_SYSTICK_config
 
 @ RCC register details provided in STM32F401's ref manual page 103
@@ -281,7 +281,7 @@ _RCC_config:
   LDR     r1, [r0, #0x44]   @ RCC_AHB1ENR
   MOV     r0, #0            @ return 0
   BX      lr
-  .align  4
+  .align  2
   .size _RCC_config, .-_RCC_config
 
 
@@ -305,7 +305,7 @@ _PWR_config:
   STR     r1, [r0]
   MOV     r0, #0
   BX      lr
-  .align  4
+  .align  2
   .size _PWR_config, .-_PWR_config
 
 
@@ -326,7 +326,7 @@ _NVIC_config:
   STR     r1, [r0, #0x08]       @ NVIC_ISER2
   MOV     r0, #0
   BX      lr
-  .align  4
+  .align  2
   .size _NVIC_config, .-_NVIC_config
 
 
@@ -369,13 +369,13 @@ _FLASH_config:
   STR     r1, [r0, #0x10]     @ load contents of FLASH_CR
   
   @ decide whether we branch in based off the kernel's mode (PROD or DEV)
-  .ifdef PRODUCTION_MODE
+  .ifndef DEVELOPMENT_MODE
     BL       __FLASH_opt_config      @ configure FLASH option bytes
   .endif
 
   MOV     r0, #0      @ RETURN 0
   BX      lr
-  .align 4
+  .align  2
   .size _FLASH_config, .-_FLASH_config
 
 @-----------------------------------
@@ -416,8 +416,8 @@ __FLASH_opt_config:
   LDR     r1, [r0, #0x14]         @ FLASH_OPTCR
   ORR     r1, r1, #0b1            @ Set OPTLOCK bit
   STR     r1, [r0, #0x14]         @ FLASH_OPTCR
-  POP      {pc}
-  .align 4
+  POP     {pc}
+  .align  2
   .size __FLASH_opt_config, .-__FLASH_opt_config
 
 
@@ -469,5 +469,5 @@ _MPU_config:
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
   MOV     r0, #0
   BX      lr
-  .align 4
+  .align  2
   .size _MPU_config, .-_MPU_config

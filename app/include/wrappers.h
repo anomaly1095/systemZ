@@ -27,7 +27,7 @@
 */
 
 
-#ifndef SYSCALL_WRAPPERS_H 1
+#ifndef WRAPPERS_H 1
 #include <STM32F401.h>
 
 //----------------------------------------
@@ -75,14 +75,14 @@ extern uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM);
  * @param PRIO The priority to assign to the interrupt.
  * @return Returns 0 upon successful execution of the syscall.
  */
-extern uint8_t NVIC_set_pri_irq(uint8_t IRQ_NUM, uint8_t PRIO);
+extern uint8_t NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO);
 
 /**
  * @brief Get the priority of an interrupt NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  * @return Returns the priority of the interrupt
  */
-extern uint8_t NVIC_get_pri_irq(uint8_t IRQ_NUM);
+extern uint8_t NVIC_get_prio_irq(uint8_t IRQ_NUM);
 
 /**
  * @brief Triggers an interrupt of the IRQ specified in IRQ_NUM thru software
@@ -107,6 +107,7 @@ extern void *sbrk(size_t increment);
  * @return returns 0 (NULL) if failed to free SRAM
  */   
 extern void *sbrk_free(size_t decrement);
+
 
 
 //----------------------------------------
@@ -178,4 +179,4 @@ extern uint8_t memcmp_4(void *start1, void *start2, size_t len);
 extern uint8_t memcmp_1(void *start1, void *start2, size_t len);
 
 
-#endif // !SYSCALL_WRAPPERS_H 1
+#endif // !WRAPPERS_H 1

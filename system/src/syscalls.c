@@ -27,7 +27,22 @@
 */
 
 
-#include <STM32F401.h>
+#ifndef TYPES_H
+  #define TYPES_H     1
+
+  typedef signed char int8_t;
+  typedef signed short int int16_t;
+  typedef signed int int32_t;
+  typedef signed long long int int64_t;
+  typedef unsigned char uint8_t;
+  typedef unsigned short int uint16_t;
+  typedef unsigned int uint32_t;
+  typedef unsigned long long int uint64_t;
+  typedef float float32_t;
+  typedef double float64_t;
+  typedef unsigned int size_t;
+
+#endif // !TYPES_H  1
 
 //----------------------------------------
 //----------------------------------------SYSCALLS  
@@ -97,7 +112,6 @@ uint8_t NVIC_set_pend_irq(uint8_t IRQ_NUM)
     uint8_t result;
   SVC_CALL(2, result);
   return result;
-
 }
 
 /**
@@ -122,7 +136,6 @@ uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM)
   uint8_t result;
   SVC_CALL(4, result);
   return result;
-
 }
 
 /**
@@ -131,12 +144,11 @@ uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM)
  * @param PRIO The priority to assign to the interrupt.
  * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_set_pri_irq(uint8_t IRQ_NUM, uint8_t PRIO)
+uint8_t NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO)
 {
     uint8_t result;
   SVC_CALL(5, result);
   return result;
-
 }
 
 /**
@@ -144,12 +156,11 @@ uint8_t NVIC_set_pri_irq(uint8_t IRQ_NUM, uint8_t PRIO)
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  * @return Returns the priority of the interrupt
  */
-uint8_t NVIC_get_pri_irq(uint8_t IRQ_NUM)
+uint8_t NVIC_get_prio_irq(uint8_t IRQ_NUM)
 {
     uint8_t result;
   SVC_CALL(6, result);
   return result;
-
 }
 
 /**
@@ -162,7 +173,6 @@ uint8_t NVIC_soft_trigger_irq(uint8_t IRQ_NUM)
   uint8_t result;
   SVC_CALL(7, result);
   return result;
-
 }
 
 /**

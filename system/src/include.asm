@@ -33,15 +33,24 @@
 .include "data.s"
 
 
-@------------------------------------------------------------
-@------------------------------------------------------------
-@------------------------------------------------------------Macros
-@------------------------------------------------------------
-@------------------------------------------------------------
+/**
+  * Functions that will be rarely used or get called by 
+  * the SVC handler are written as macro 
+  * Functions Frequently used like memory management and used by the kernel 
+  * will be normal branches and called directly by kernel code
+  */
+
+@-----------------------------------------------------
+@-----------------------------------------------------
+@-----------------------------------------------------NVIC 
+@-----------------------------------------------------
+@----------------------------------------------------- 
 
 .define LITTLE_ENDIAN
+
+@ used by FLASH set_options function
 .define DEVELOPMENT_MODE 
-@ .define PRODUCTION_MODE
+
 
 @ Macro used for configuring the various regions used by the system
 .macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
@@ -92,8 +101,133 @@
 .endm
 
 
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to enable an interrupt
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+.macro _NVIC_enable_irq
+  @ Macro sets the address of the register in r2
+  @ Normalizes the irq num in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
+  MOV     r3, #0b1
+  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
+  LDR     r1, [r2]              @ load the value of the NVIC_ISER
+  ORR     r1, r1, r3            @ Set the bit of the IRQ
+  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  MOV     r0, #0
+.endm
+  
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to disable an interrupt
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+.macro _NVIC_disable_irq
+  @ Macro sets the address of the register in r2
+  @ Normalizes the irq num in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_ICER0   @ Select the appropriate NVIC_ICER register
+  MOV     r3, #0b1
+  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
+  LDR     r1, [r2]              @ load the value of the NVIC_ISER
+  ORR     r1, r1, r3            @ Set the bit of the IRQ
+  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  MOV     r0, #0
+.endm
+
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to set an interrupt as pending
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+.macro _NVIC_set_pend_irq
+  @ Macro sets the address of the register in r2
+  @ Normalizes the irq num in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_ISPR0   @ Select the appropriate NVIC_ISPR register
+  MOV     r3, #0b1
+  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
+  LDR     r1, [r2]              @ load the value of the NVIC_ISER
+  ORR     r1, r1, r3            @ Set the bit of the IRQ
+  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  MOV     r0, #0
+.endm
+
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to remove an interrupt from pending list
+@ arg0: number of the IRQ (0..239)
+@-----------------------------------
+.macro _NVIC_clear_pend_irq
+  @ Macro sets the address of the register in r2
+  @ Normalizes the irq num in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_ICPR0   @ Select the appropriate NVIC_ICPR register
+  MOV     r3, #0b1
+  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
+  LDR     r1, [r2]              @ load the value of the NVIC_ISER
+  ORR     r1, r1, r3            @ Set the bit of the IRQ
+  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  MOV     r0, #0
+.endm
+
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to check interrupt if the interrupt is active
+@ arg0: number of the IRQ (0..239)
+@ return: 1 if active / 0 if idle
+@-----------------------------------
+.macro _NVIC_check_active_irq
+  @ Macro sets the address of the register in r2
+  @ Normalizes the irq num in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
+  MOV     r3, #0b1
+  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
+  LDR     r1, [r2]              @ load the value of the NVIC_ISER
+  TST     r1, r3                @ check if bit is set (IRQ active)
+  ITE     NE
+  MOVNE   r0, #1                @ bit is set (IRQ active)
+  MOVEQ   r0, #0                @ bit is not set (IRQ idle)
+.endm  
+
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to set the priority of the interrupt
+@ arg0: number of the IRQ (0..239)
+@ arg1: priority number
+@-----------------------------------
+.macro _NVIC_set_prio_irq
+  NVIC_REG_SELECT59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
+  STRB    r1, [r2]                @ Store the priority number in the selected register byte
+  MOV     r0, #0
+.endm
+
+@-----------------------------------SYSCALL
+@ syscall used by apps (called by SVC)
+@ called by software to get the priority of the interrupt
+@ arg0: number of the IRQ (0..239)
+@ return: priority number of the IRQ
+@-----------------------------------
+.macro _NVIC_get_prio_irq
+  NVIC_REG_SELECT59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
+  LDRB    r0, [r2]                    @ Load the priority number from the selected register byte
+.endm
+
+@-----------------------------------SYSCALL
+@ function used directly by apps or thru syscall
+@ access to this register can be thru unpriviledged thread mode
+@ check SCR reg in page 230 of the stm32-cortex-M4 Referance Manual
+@ called by software to trigger an interrupt on the mask specified in arg0
+@ arg0: IRQ number (0..239)
+@-----------------------------------
+.macro _NVIC_soft_trigger_irq
+  LDR     r1, =NVIC_STIR
+  STR     r0, [r1]
+  MOV     r0, #0
+.endm
+
+@-----------------------------------------------------
 @-----------------------------------------------------
 @----------------------------------------------------- SCB 
+@-----------------------------------------------------
 @-----------------------------------------------------
 
 /*--------ACTLR---------*/
@@ -518,17 +652,186 @@
 .endm
 
 
-/*--------SHCSR---------*/
-/*--------SHCSR---------*/
-@ Configurable fault status registers (CFSR; UFSR+BFSR+MMFSR)
+/*--------UFSR---------*/
+/*--------UFSR---------*/
+
+.macro check_fault_bit reg:req, bit_offset:req
+  LDR     r0, =\reg
+  LDR     r1, [r0]
+  TST     r1, r1, #(0b1 << bit_offset)
+  ITE     NE
+  MOVNE   r0, #1  @ bit set
+  MOVEQ   r0, #0  @ bit not set
+.endm
+
+.macro div_by0_UsageFault
+  check_fault_bit UFSR, 25
+.endm
+
+.macro unalignement_UsageFault
+  check_fault_bit UFSR, 24
+.endm
+
+.macro coprocessor_UsageFault
+  check_fault_bit UFSR, 19
+.endm
+
+.macro invPC_UsageFault
+  check_fault_bit UFSR, 18
+.endm
+
+.macro invEPSR_UsageFault
+  check_fault_bit UFSR, 17
+.endm
+
+.macro undef_instr_UsageFault
+  check_fault_bit UFSR, 16
+.endm
+
+/*--------BFSR---------*/
+/*--------BFSR---------*/
+
+.macro BFAR_valid_addr
+  check_fault_bit BFSR, 15
+.endm
+
+.macro FP_LazyState_BusFault
+  check_fault_bit BFSR, 13
+.endm
+
+.macro push_BusFault
+  check_fault_bit BFSR, 12
+.endm
+
+.macro pop_BusFault
+  check_fault_bit BFSR, 11
+.endm
+
+.macro imprecise_BusFault
+  check_fault_bit BFSR, 10
+.endm
+
+.macro precise_DBus_error
+  check_fault_bit BFSR, 9
+.endm
+
+.macro IBus_error
+  check_fault_bit BFSR, 8
+.endm
+
+/*--------MMFSR---------*/
+/*--------MMFSR---------*/
+
+.macro MMAR_valid_addr
+  check_fault_bit MMFSR, 7
+.endm
+
+.macro FP_LazyState_MemMan_fault
+  check_fault_bit MMFSR, 5
+.endm
+
+.macro push_MemMan_fault
+  check_fault_bit MMFSR, 4
+.endm
+
+.macro pop_MemMan_fault
+  check_fault_bit MMFSR, 3
+.endm
+
+.macro DataAccess_MemMan_fault
+  check_fault_bit MMFSR, 1
+.endm
+
+.macro ExecNot_section_MemMan_fault
+  check_fault_bit MMFSR, 0
+.endm
+
+/*--------HFSR---------*/
+/*--------HFSR---------*/
+
+.macro forced_HardFault
+  check_fault_bit HFSR, 30         @ Check for Forced Hard Fault
+.endm
+
+.macro vect_table_HardFault
+  check_fault_bit HFSR, 1          @ Check for Vector Table Read Fault
+.endm
+
+/*--------MMFAR---------*/
+/*--------MMFAR---------*/
+
+.macro get_MemManFault_addr
+  LDR     r0, =MMFAR
+  LDR     r0, [r0]      @ load the address of the memory management fault
+.endm
+
+/*--------BFAR---------*/
+/*--------BFAR---------*/
+
+.macro get_BusFault_addr
+  LDR     r0, =BFAR
+  LDR     r0, [r0]      @ load the address of the BUS fault
+.endm
+
+/*--------AFSR---------*/
+/*--------AFSR---------*/
+
+.macro get_AuxFault_addr
+  LDR     r0, =AFSR
+  LDR     r0, [r0]      @ load the Auxiliary fault status register
+.endm
 
 
 
 @-----------------------------------------------------
 @-----------------------------------------------------
-@----------------------------------------------------- Memory 
+@----------------------------------------------------- Memory management
 @-----------------------------------------------------
 @-----------------------------------------------------
+
+
+@-----------------------------------
+@ SYSCALL: Used by the app to expand the APP process heap towards the top
+@ arg0: amount of SRAM needed
+@ returns: pointer (address) of start of the allocated space, or 0 if failed to allocate SRAM
+@-----------------------------------
+.macro _sbrk
+  MRS     r1, PSP             @ Get PSP (Process Stack Pointer)
+  
+  LDR     r2, =p_brk
+  LDR     r2, [r2]            @ Load the address of app system break
+  
+  ADD     r0, r2, r0          @ Calculate new system break address
+  CMP     r0, r1              @ Compare with PSP
+  BGE     .exit                @ Return 0 if failed to allocate
+
+  LDR     r2, =p_brk
+  STR     r0, [r2]            @ Store the new system break
+  .exit:
+.endm
+
+@-----------------------------------
+@ SYSCALL: Used by the app to collapse the APP process heap towards the bottom freeing memory
+@ arg0: amount of SRAM to free
+@ returns: pointer (address) of new system break, or 0 on error
+@-----------------------------------
+.macro _sbrk_free
+  LDR     r1, =_edata         @ Load the address of the end of .data in SRAM
+
+  LDR     r2, =p_brk
+  LDR     r2, [r2]            @ Load the address of app system break
+  
+  SUBS    r0, r2, r0          @ Subtract the requested amount of memory from the system break address
+  BLE     .exit                @ Return 0 if error (requested amount exceeds current heap size)
+
+  CMP     r0, r1              @ Compare new system break with end of .data
+  BLT     .exit                @ Return 0 if error (new system break is below end of .data)
+
+  LDR     r2, =p_brk
+  STR     r0, [r2]            @ Store the new system break
+  .exit:
+.endm
+
 
 @-----------------------------------
 @ Used by the kernel to expand the KERNEL heap towards the top
@@ -550,7 +853,7 @@ _ksbrk:
 
   .exit:
     BX      lr
-  .align  4
+  .align  2
   .size _ksbrk, .-_ksbrk
 
 
@@ -579,7 +882,7 @@ _ksbrk_free:
     MOVS    r0, #0             @ Return 0 on error
     BX      lr
 
-.align 4
+  .align    2
 .size _ksbrk_free, .-_ksbrk_free
 
 
@@ -592,13 +895,12 @@ _ksbrk_free:
 .global memcpy_4
 .type memcpy_4, %function
 memcpy_4:
-  .loop:
     LDR     r3, [r0], #4      @ Load word from src and increment src by 4
     STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
     SUBS    r2, r2, #4        @ Decrement length counter by 4
-    BNE     .loop             @ If length is not 0, continue loop
+    BNE     memcpy_4          @ If length is not 0, continue loop
     BX      lr                @ Return from function
-  .align    4
+  .align    2
   .size memcpy_4, .-memcpy_4
 
 @ This function can be used by kernel or by app and does not require SVC
@@ -610,13 +912,12 @@ memcpy_4:
 .global memcpy_1
 .type memcpy_1, %function
 memcpy_1:
-  .loop:
     LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
     STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
     SUBS    r2, r2, #1        @ Decrement length counter by 1
-    BNE     .loop             @ If length is not 0, continue loop
+    BNE     memcpy_1             @ If length is not 0, continue loop
     BX      lr                @ Return from function
-  .align    4
+  .align    2
   .size memcpy_1, .-memcpy_1
 
 @ This function sets memory with a 4-byte aligned value.
@@ -638,7 +939,7 @@ memset_4:
 
   .exit:
     BX      lr                  @ Return from function
-  .align    4
+  .align    2
   .size memset_4, .-memset_4
 
 @ This function can be used by kernel or by app and does not require SVC
@@ -650,12 +951,11 @@ memset_4:
 .global memset_1
 .type memset_1, %function
 memset_1:
-  .loop:
     STRB    r1, [r0], #1        @ Store byte to dest and increment dest by 1
     SUBS    r2, r2, #1          @ Decrement length counter by 1
-    BNE     .loop               @ If length is not 0, continue loop
+    BNE     memset_1               @ If length is not 0, continue loop
     BX      lr                  @ Return from function
-  .align    4
+  .align    2
     .size memset_1, .-memset_1
 
 @ This function can be used by kernel or by app and does not require SVC
@@ -674,7 +974,7 @@ memzero_4:
 
   .exit:
     BX      lr                 @ Return from function
-  .align    4
+  .align    2
     .size memzero_4, .-memzero_4
 
 @ This function can be used by kernel or by app and does not require SVC
@@ -692,7 +992,7 @@ memzero_1:
 
   .exit:
     BX      lr                 @ Return from function
-  .align    4
+  .align    2
     .size memzero_1, .-memzero_1
 
 @-----------------------------------
@@ -707,19 +1007,18 @@ memzero_1:
 .global memcmp_1
 .type memcmp_1, %function
 memcmp_1:
-  .loop:
     LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
     LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
     CMP     r3, r4         @ Compare bytes
     BNE     .fail          @ Exit loop if bytes are not equal
     SUBS    r2, r2, #1     @ Decrement length counter
-    BNE     .loop          @ Loop if length is not zero
+    BNE     memcmp_1          @ Loop if length is not zero
     MOV     r0, #0         @ If all bytes are equal, return 0
     BX      lr
   .fail:
     MOV     r0, #1         @ If bytes are not equal, return non-zero
     BX      lr
-  .align    4
+  .align    2
   .size memcmp_1, .-memcmp_1
 
 @-----------------------------------
@@ -732,28 +1031,27 @@ memcmp_1:
 @ Returns:
 @   r0: 0 if the memory blocks are equal, non-zero otherwise.
 @-----------------------------------
-.global memcmp
-.type memcmp, %function
-memcmp:
-  .loop:
+.global memcmp_4
+.type memcmp_4, %function
+memcmp_4:
     LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
     LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
     CMP     r3, r4         @ Compare words
     BNE     .fail          @ Exit loop if words are not equal
     SUBS    r2, r2, #4     @ Decrement length counter by 4
-    BGE     .loop          @ Loop if length is not zero or negative
+    BGE     memcmp_4          @ Loop if length is not zero or negative
     MOV     r0, #0         @ If all words are equal, return 0
     BX      lr             @ Return from function
   .fail:
     MOV     r0, #1         @ If words are not equal, return non-zero
     BX      lr             @ Return from function
-  .align    4
-  .size memcmp, .-memcmp
+  .align    2
+  .size memcmp_4, .-memcmp_4
 
 
 @-----------------------------------------------------
 @-----------------------------------------------------
-@----------------------------------------------------- Tasks 
+@----------------------------------------------------- Tasks
 @-----------------------------------------------------
 @-----------------------------------------------------
 

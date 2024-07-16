@@ -38,8 +38,8 @@
 @------------------------------------------------------------
 
 @ data section used by syscalls
-.section .data.syscalls, "aw", %progbits
-  .equ SVC_MASK, 0xFFFFFF00
+.section .data.system, "aw", %progbits
+
 @ callback array for SYSTICK
 stk_clbk:
   .word 0x0  @ add the functions to be called by systick here
@@ -52,7 +52,7 @@ p_brk:
 k_brk:
   .word _skheap      @ kernel system break
 
-  .align 4
+  .align 2
 
 @------------------------------------------------------------
 @------------------------------------------------------------
@@ -61,7 +61,7 @@ k_brk:
 @------------------------------------------------------------
 
 @ uninitialized data section used by syscalls
-.section .bss.syscalls, "aw", %progbits
+.section .bss.system, "aw", %nobits
 
 stk_cntrs:
   .short     @ Milliseconds used by systick
@@ -71,7 +71,7 @@ stk_cntrs:
 last_IRQ: 
   .byte      @ will hold the last IRQ number and written only by ISR_get_active_num
 
-  .align 4
+  .align 2
 
 @------------------------------------------------------------
 @------------------------------------------------------------
