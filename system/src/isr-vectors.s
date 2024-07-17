@@ -148,27 +148,20 @@ g_pfnVectors:
 @  isr vectors will be overrided by _default_handler or by a stronger definition of the isr 
 
   .weak      NMI_Handler
-  .thumb_set NMI_Handler, _default_handler
 
   .weak      HardFault_Handler
-  .thumb_set HardFault_Handler, _default_handler
 
   .weak      MemManage_Handler
-  .thumb_set MemManage_Handler, _default_handler
 
   .weak      BusFault_Handler
-  .thumb_set BusFault_Handler, _default_handler
 
   .weak      UsageFault_Handler
-  .thumb_set UsageFault_Handler, _default_handler
 
   .weak      SVC_Handler
 
   .weak      DebugMon_Handler
-  .thumb_set DebugMon_Handler, _default_handler
 
   .weak      PendSV_Handler
-  .thumb_set PendSV_Handler, _default_handler
 
   .weak      SysTick_Handler
 

@@ -107,6 +107,7 @@ PendSV_Handler:
   .global SysTick_Handler
   .type SysTick_Handler, %function
 SysTick_Handler:
+  CPSID   I                     @ Disable interrupts
   LDR     r0, =stk_cntrs
   LDRH    r1, [r0]            @ Load number of milliseconds
   LDR     r1, [r0, #0x02]     @ Load number of seconds
@@ -131,6 +132,7 @@ SysTick_Handler:
   MOVEQ   r1, #0              @ reset millisecond counter
   STRH    r1, [r0]            @ Store new number of milliseconds
   STR     r2, [r0, #0x02]     @ Store new number of seconds
+  CPSIE   I                     @ Enable interrupts
   BX      lr
   .align  2
   .size SysTick_Handler, .-SysTick_Handler
@@ -195,4 +197,3 @@ SysTick_Handler:
 @ I2C3_ER_IRQHandler
 @ FPU_IRQHandler
 @ SPI4_IRQHandler
-

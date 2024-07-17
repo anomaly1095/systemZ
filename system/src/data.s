@@ -79,17 +79,29 @@ last_IRQ:
 @------------------------------------------------------------
 @------------------------------------------------------------
 
+
+
+.section .rodata.SVC_handlers, "a", %progbits
+@ number of SVC handlers
+.equ NUM_SVC_HANDLERS, 100
+
+@ generate N iteerations of extern ofor each SVC_HANDLER
+.macro SVC_HANLERS_EXTERN
+  .rept NUM_SVC_HANDLERS
+  .extern SVC\@_Handler
+  .endr
+.endm
+SVC_HANLERS_EXTERN
+
+@ generate N iterations of extern ofor each SVC_HANDLER
 .macro SVC_HANDLERS_TABLE
 SVC_Table:
-  .rept 100
+  .rept NUM_SVC_HANDLERS
   .word SVC\@_Handler
   .endr
 .endm
-
-.section .rodata.SVC_handlers, "a", %progbits
 SVC_HANDLERS_TABLE
 .align 2
-
 
 .section .rodata.registers.SCB, "a", %progbits
 @      Name   Address           Type    Req privilege Reset val
