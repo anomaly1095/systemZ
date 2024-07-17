@@ -233,23 +233,24 @@
 /*--------ACTLR---------*/
 /*--------ACTLR---------*/
 
-@ Macro used for configuring the various regions used by the system
-@ state: 1 to disable  or 0 to enable
 .macro DIS_OUTOFORDER_EXEC state:req
   LDR     r0, =ACTLR
   LDR     r1, [r0]
-  MOVW    r3, 0x207     @ mask for disabling features
   LDR     r2, =\state
   CBZ     r2, .enable   @ check if state is 0 (enable)
   .disable:
   @ Disable features: Set bits
-  ORR     r1, r1, r3
+  ORR     r1, r1, 0x207 @ mask for disabling features
   B       .exit
   .enable:
   @ Enable features: Clear bits
-  BIC     r1, r1, r3
+  BIC     r1, r1, 0x207 @ mask for enabling features
   .exit:
-  STR     r1, [r0]      @ write back the modified value to ACTLR
+  DSB                 @ Data Synchronization Barrier
+  ISB                 @ Instruction Synchronization Barrier
+  STR     r1, [r0]    @ write back the modified value to ACTLR
+  DSB                 @ Ensure the write is complete before continuing
+  ISB                 @ Ensure the new instructions are fetched correctly
 .endm
 
 /*--------CPUID---------*/
@@ -296,35 +297,35 @@
   SET_PENDING_BIT 0x80000000 @ Set the NMI pending bit (bit 31)
 .endm
 
-.macro PENDSV_set_pending:
+.macro PENDSV_set_pending
   SET_PENDING_BIT 0x10000000 @ Set the PENDSV pending bit (bit 28)
 .endm
 
-.macro PENDSV_clear_pending:
+.macro PENDSV_clear_pending
   SET_PENDING_BIT 0x8000000 @ Clear the PENDSV pending bit (bit 27)
 .endm
 
-.macro PENDSV_check_pending:
+.macro PENDSV_check_pending
   CHECK_PENDING_BIT 0x10000000 @ Check the PENDSV pending bit (bit 28)
 .endm
 
-.macro SYSTICK_set_pending:
+.macro SYSTICK_set_pending
   SET_PENDING_BIT 0x4000000 @ Set the SYSTICK pending bit (bit 26)
 .endm
 
-.macro SYSTICK_clear_pending:
+.macro SYSTICK_clear_pending
   SET_PENDING_BIT 0x2000000 @ Clear the SYSTICK pending bit (bit 25)
 .endm
 
-.macro SYSTICK_check_pending:
+.macro SYSTICK_check_pending
   CHECK_PENDING_BIT 0x4000000 @ Check the SYSTICK pending bit (bit 26)
 .endm
 
-.macro ISR_check_pending:
+.macro ISR_check_pending
   CHECK_PENDING_BIT 0x400000 @ Check if any ISR is pending excluding NMI and Faults.
 .endm
 
-.macro ISR_highest_pending:
+.macro ISR_highest_pending
   CPSID   I                 @ Disable interrupts
   LDR     r0, =ICSR         @ Load the address of ICSR
   LDR     r1, [r0]          @ Load the current value of ICSR
@@ -457,7 +458,7 @@
 .endm
 
 @ Macro to Disable NMI and HardFault handlers to ignore bus faults caused by load and store instructions
-.macro NMI_HARDFAULT_en_bus_fault_handling
+.macro NMI_HARDFAULT_dis_bus_fault_handling
   manipulate_register CCR, 0x2000000, BIC
 .endm
 
@@ -1049,9 +1050,402 @@ memcmp_4:
   .size memcmp_4, .-memcmp_4
 
 
-@-----------------------------------------------------
-@-----------------------------------------------------
-@----------------------------------------------------- Tasks
-@-----------------------------------------------------
-@-----------------------------------------------------
+.macro SVC_HANDLERS
+@-------NVIC--------@
+SVC0_Handler:
+  _NVIC_enable_irq
+  BX      lr
 
+SVC1_Handler:
+  _NVIC_disable_irq
+  BX      lr
+
+SVC2_Handler:
+  _NVIC_set_pend_irq
+  BX      lr
+
+SVC3_Handler:
+  _NVIC_clear_pend_irq
+  BX      lr
+
+SVC4_Handler:
+  _NVIC_check_active_irq
+  BX      lr
+
+SVC5_Handler:
+  _NVIC_set_prio_irq
+  BX      lr
+
+SVC6_Handler:
+  _NVIC_get_prio_irq
+  BX      lr
+
+SVC7_Handler:
+  _NVIC_soft_trigger_irq
+  BX      lr
+
+@-------Memory management--------@
+SVC8_Handler:
+  _sbrk
+  BX      lr
+
+SVC9_Handler:
+  _sbrk_free
+  BX      lr
+
+SVC10_Handler:
+  BX      lr
+
+SVC11_Handler:
+  BX      lr
+
+SVC12_Handler:
+  BX      lr
+
+SVC13_Handler:
+  BX      lr
+
+SVC14_Handler:
+  BX      lr
+
+@-------SCB--------@
+SVC15_Handler:
+  DIS_OUTOFORDER_EXEC #0
+  BX      lr
+
+SVC16_Handler:
+  GET_CPUID
+  BX      lr
+
+SVC17_Handler:
+  NMI_set_pending
+  BX      lr
+
+SVC18_Handler:
+  PENDSV_set_pending
+  BX      lr
+
+SVC19_Handler:
+  PENDSV_clear_pending
+  BX      lr
+
+SVC20_Handler:
+  SYSTICK_set_pending
+  BX      lr
+
+SVC21_Handler:
+  SYSTICK_clear_pending
+  BX      lr
+
+SVC22_Handler:
+  SYSTICK_check_pending
+  BX      lr
+
+SVC23_Handler:
+  ISR_check_pending
+  BX      lr
+
+SVC24_Handler:
+  prio_split16_0
+  BX      lr
+
+SVC25_Handler:
+  prio_split8_2
+  BX      lr
+
+SVC26_Handler:
+  prio_split4_4
+  BX      lr
+
+SVC27_Handler:
+  prio_split2_8
+  BX      lr
+
+SVC28_Handler:
+  prio_split0_16
+  BX      lr
+
+SVC29_Handler:
+  reset_request
+  BX      lr
+
+SVC30_Handler:
+  sev_on_pend
+  BX      lr
+
+SVC31_Handler:
+  sleep_deep
+  BX      lr
+
+SVC32_Handler:
+  sleep_on_exit
+  BX      lr
+
+SVC33_Handler:
+  stack_align_4
+  BX      lr
+
+SVC34_Handler:
+  stack_align_8
+  BX      lr
+
+SVC35_Handler:
+  NMI_HARDFAULT_dis_bus_fault_handling
+  BX      lr
+
+SVC36_Handler:
+  NMI_HARDFAULT_en_bus_fault_handling
+  BX      lr
+
+SVC37_Handler:
+  div0_notrap
+  BX      lr
+
+SVC38_Handler:
+  div0_trap
+  BX      lr
+
+SVC39_Handler:
+  unalign_notrap
+  BX      lr
+
+SVC40_Handler:
+  unalign_trap
+  BX      lr
+
+SVC41_Handler:
+  app_access_STIR
+  BX      lr
+
+SVC42_Handler:
+  exit_nested_irqs_on_return
+  BX      lr
+
+SVC43_Handler:
+  set_UsageFault_prio 
+  BX      lr
+
+SVC44_Handler:
+  set_MemMan_fault_prio
+  BX      lr
+
+SVC45_Handler:
+  set_SVC_prio
+  BX      lr
+
+SVC46_Handler:
+  set_SYSTICK_prio
+  BX      lr
+
+SVC47_Handler:
+  set_PendSV_prio
+  BX      lr
+
+SVC48_Handler:
+  enable_UsageFault
+  BX      lr
+
+SVC49_Handler:
+  enable_BusFault
+  BX      lr
+
+SVC50_Handler:
+  enable_MemMan_fault
+  BX      lr
+
+SVC51_Handler:
+  disable_UsageFault
+  BX      lr
+
+SVC52_Handler:
+  disable_BusFault
+  BX      lr
+
+SVC53_Handler:
+  disable_MemMan_fault
+  BX      lr
+
+SVC54_Handler:
+  is_SVC_pending
+  BX      lr
+
+SVC55_Handler:
+  is_BusFault_pending
+  BX      lr
+
+SVC56_Handler:
+  is_MemMan_fault_pending
+  BX      lr
+
+SVC57_Handler:
+  is_UsageFault_pending
+  BX      lr
+
+SVC58_Handler:
+  is_SYSTICK_active
+  BX      lr
+
+SVC59_Handler:
+  is_PendSV_active
+  BX      lr
+
+SVC60_Handler:
+  is_DBGMon_active
+  BX      lr
+
+SVC61_Handler:
+  is_SVC_active
+  BX      lr
+
+SVC62_Handler:
+  is_UsageFault_active
+  BX      lr
+
+SVC63_Handler:
+  is_BusFault_active
+  BX      lr
+
+SVC64_Handler:
+  is_MemMan_fault_active
+  BX      lr
+
+SVC65_Handler:
+  div_by0_UsageFault
+  BX      lr
+
+SVC66_Handler:
+  unalignement_UsageFault
+  BX      lr
+
+SVC67_Handler:
+  coprocessor_UsageFault
+  BX      lr
+
+SVC68_Handler:
+  invPC_UsageFault
+  BX      lr
+
+SVC69_Handler:
+  invEPSR_UsageFault
+  BX      lr
+
+SVC70_Handler:
+  BFAR_valid_addr
+  BX      lr
+
+SVC71_Handler:
+  FP_LazyState_BusFault
+  BX      lr
+
+SVC72_Handler:
+  push_BusFault
+  BX      lr
+
+SVC73_Handler:
+  pop_BusFault
+  BX      lr
+
+SVC74_Handler:
+  imprecise_BusFault
+  BX      lr
+
+SVC75_Handler:
+  precise_DBus_error
+  BX      lr
+
+SVC76_Handler:
+  IBus_error
+  BX      lr
+
+SVC77_Handler:
+  MMAR_valid_addr
+  BX      lr
+
+SVC78_Handler:
+  FP_LazyState_MemMan_fault
+  BX      lr
+
+SVC79_Handler:
+  push_MemMan_fault
+  BX      lr
+
+SVC80_Handler:
+  pop_MemMan_fault
+  BX      lr
+
+SVC81_Handler:
+  DataAccess_MemMan_fault
+  BX      lr
+
+SVC82_Handler:
+  ExecNot_section_MemMan_fault
+  BX      lr
+
+SVC83_Handler:
+  forced_HardFault
+  BX      lr
+
+SVC84_Handler:
+  push_MemMan_fault
+  BX      lr
+
+SVC85_Handler:
+  vect_table_HardFault
+  BX      lr
+
+SVC86_Handler:
+  get_MemManFault_addr
+  BX      lr
+
+SVC87_Handler:
+  get_BusFault_addr
+  BX      lr
+
+SVC88_Handler:
+  get_AuxFault_addr
+  BX      lr
+
+SVC89_Handler:
+  unassigned
+  BX      lr
+
+SVC90_Handler:
+  unassigned
+  BX      lr
+
+SVC91_Handler:
+  unassigned
+  BX      lr
+
+SVC92_Handler:
+  unassigned
+  BX      lr
+
+SVC93_Handler:
+  unassigned
+  BX      lr
+
+SVC94_Handler:
+  unassigned
+  BX      lr
+
+SVC95_Handler:
+  unassigned
+  BX      lr
+
+SVC96_Handler:
+  unassigned
+  BX      lr
+
+SVC97_Handler:
+  unassigned
+  BX      lr
+
+SVC98_Handler:
+  unassigned
+  BX      lr
+
+SVC99_Handler:
+  unassigned
+  BX      lr
+.endm

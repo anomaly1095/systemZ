@@ -79,6 +79,17 @@ last_IRQ:
 @------------------------------------------------------------
 @------------------------------------------------------------
 
+.macro SVC_HANDLERS_TABLE
+SVC_Table:
+  .rept 100
+  .word SVC\@_Handler
+  .endr
+.endm
+
+.section .rodata.SVC_handlers, "a", %progbits
+SVC_HANDLERS_TABLE
+.align 2
+
 
 .section .rodata.registers.SCB, "a", %progbits
 @      Name   Address           Type    Req privilege Reset val

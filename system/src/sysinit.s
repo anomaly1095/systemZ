@@ -57,10 +57,7 @@ _reset_handler:
 
   CPSID   I         @ disable interrupts till end of system initialization
   
-  @ Disable fp instructions executing out of order
-  @ Disables IT folding
-  @ Disable write buffer use
-  @ Disables interruption of load/store and multiply/divide operations
+  @ check definition in include.asm
   DIS_OUTOFORDER_EXEC #1
 
   @ set stack alignement

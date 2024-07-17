@@ -76,7 +76,7 @@ SVC_Handler:
   LDRB    r4, [r4, #-2]         @ Load the byte of the SVC instruction
   BIC     r4, r4, #0xFFFFFF00   @ Extract the immediate value from the SVC instruction
 
-  LDR     r5, =.Table        @ Load the address of the SVC table
+  LDR     r5, =SVC_Table        @ Load the address of the SVC table
   LDR     r4, [r5, r4, LSL #2]  @ Get the address of the SVC handler from the table
   BLX     r4                    @ Branch to the SVC handler
 
@@ -85,91 +85,12 @@ SVC_Handler:
   STR     r0, [r4]              @ Store the return value in the process stack
   CPSIE   I                     @ Enable interrupts
   POP     {r4-r5, pc}           @ Restore r4, r5, and set pc = lr
-  .align    2
-.Table:
-  .word SVC0_Handler
-  .word SVC1_Handler
-  .word SVC2_Handler
-  .word SVC3_Handler
-  .word SVC4_Handler
-  .word SVC5_Handler
-  .word SVC6_Handler
-  .word SVC7_Handler
-  .word SVC8_Handler
-  .word SVC9_Handler
-  .word SVC10_Handler
-  .word SVC11_Handler
-  .word SVC12_Handler
-  .word SVC13_Handler
-  .word SVC14_Handler
-  .word SVC15_Handler
 
-SVC0_Handler:
-  _NVIC_enable_irq
-  BX      lr
-
-SVC1_Handler:
-  _NVIC_disable_irq
-  BX      lr
-
-SVC2_Handler:
-  _NVIC_set_pend_irq
-  BX      lr
-
-SVC3_Handler:
-  _NVIC_clear_pend_irq
-  BX      lr
-
-SVC4_Handler:
-  _NVIC_check_active_irq
-  BX      lr
-
-SVC5_Handler:
-  _NVIC_set_prio_irq
-  BX      lr
-
-SVC6_Handler:
-  _NVIC_get_prio_irq
-  BX      lr
-
-SVC7_Handler:
-  _NVIC_soft_trigger_irq
-  BX      lr
-
-SVC8_Handler:
-  _sbrk
-  BX      lr
-
-SVC9_Handler:
-  _sbrk_free
-  BX      lr
-
-SVC10_Handler:
-  @ Add code for SVC10
-  BX      lr
-
-SVC11_Handler:
-  @ Add code for SVC11
-  BX      lr
-
-SVC12_Handler:
-  @ Add code for SVC12
-  BX      lr
-
-SVC13_Handler:
-  @ Add code for SVC13
-  BX      lr
-
-SVC14_Handler:
-  @ Add code for SVC14
-  BX      lr
-
-SVC15_Handler:
-  @ Add code for SVC15
-  BX      lr
-
+  SVC_HANDLERS
+  
   .align  2
   .size SVC_Handler, .-SVC_Handler
+
 
 @---------------------------------------------------------------------- 
   .global DebugMon_Handler
