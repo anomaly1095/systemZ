@@ -49,7 +49,6 @@
 /*---------------------------------------------------------------*/
 /*-------------------Macros to manipulate bits-------------------*/
 /*---------------------------------------------------------------*/
-
   /* Clear the bits with MASK and set new vbits with VALUE in the register REG*/
   #define MODIFY_REG(REG, MASK, VALUE) ((REG) = ((REG) & ~(MASK)) | (VALUE))
 
@@ -1305,6 +1304,7 @@
   #define GPIOC_BASE        (0x40020800U)
   #define GPIOD_BASE        (0x40020C00U)
   #define GPIOE_BASE        (0x40021000U)
+
   #define GPIOH_BASE        (0x40021C00U)
 
   #define GPIO_MODER_OFFSET   (0x00U)
@@ -1318,157 +1318,120 @@
   #define GPIO_AFRL_OFFSET    (0x20U)
   #define GPIO_AFRH_OFFSET    (0x24U)
 
+  #define GPIOA_MODER   (*(volatile uint32_t *)(GPIOA_BASE + GPIO_MODER_OFFSET))
+  #define GPIOA_OTYPER  (*(volatile uint32_t *)(GPIOA_BASE + GPIO_OTYPER_OFFSET))
+  #define GPIOA_OSPEEDR (*(volatile uint32_t *)(GPIOA_BASE + GPIO_OSPEEDR_OFFSET))
+  #define GPIOA_PUPDR   (*(volatile uint32_t *)(GPIOA_BASE + GPIO_PUPDR_OFFSET))
+  #define GPIOA_IDR     (*(volatile uint32_t *)(GPIOA_BASE + GPIO_IDR_OFFSET))
+  #define GPIOA_ODR     (*(volatile uint32_t *)(GPIOA_BASE + GPIO_ODR_OFFSET))
+  #define GPIOA_BSRR    (*(volatile uint32_t *)(GPIOA_BASE + GPIO_BSRR_OFFSET))
+  #define GPIOA_LCKR    (*(volatile uint32_t *)(GPIOA_BASE + GPIO_LCKR_OFFSET))
+  #define GPIOA_AFRL    (*(volatile uint32_t *)(GPIOA_BASE + GPIO_AFRL_OFFSET))
+  #define GPIOA_AFRH    (*(volatile uint32_t *)(GPIOA_BASE + GPIO_AFRH_OFFSET))
+
+  #define GPIOB_MODER   (*(volatile uint32_t *)(GPIOB_BASE + GPIO_MODER_OFFSET))
+  #define GPIOB_OTYPER  (*(volatile uint32_t *)(GPIOB_BASE + GPIO_OTYPER_OFFSET))
+  #define GPIOB_OSPEEDR (*(volatile uint32_t *)(GPIOB_BASE + GPIO_OSPEEDR_OFFSET))
+  #define GPIOB_PUPDR   (*(volatile uint32_t *)(GPIOB_BASE + GPIO_PUPDR_OFFSET))
+  #define GPIOB_IDR     (*(volatile uint32_t *)(GPIOB_BASE + GPIO_IDR_OFFSET))
+  #define GPIOB_ODR     (*(volatile uint32_t *)(GPIOB_BASE + GPIO_ODR_OFFSET))
+  #define GPIOB_BSRR    (*(volatile uint32_t *)(GPIOB_BASE + GPIO_BSRR_OFFSET))
+  #define GPIOB_LCKR    (*(volatile uint32_t *)(GPIOB_BASE + GPIO_LCKR_OFFSET))
+  #define GPIOB_AFRL    (*(volatile uint32_t *)(GPIOB_BASE + GPIO_AFRL_OFFSET))
+  #define GPIOB_AFRH    (*(volatile uint32_t *)(GPIOB_BASE + GPIO_AFRH_OFFSET))
+
+  #define GPIOC_MODER   (*(volatile uint32_t *)(GPIOC_BASE + GPIO_MODER_OFFSET))
+  #define GPIOC_OTYPER  (*(volatile uint32_t *)(GPIOC_BASE + GPIO_OTYPER_OFFSET))
+  #define GPIOC_OSPEEDR (*(volatile uint32_t *)(GPIOC_BASE + GPIO_OSPEEDR_OFFSET))
+  #define GPIOC_PUPDR   (*(volatile uint32_t *)(GPIOC_BASE + GPIO_PUPDR_OFFSET))
+  #define GPIOC_IDR     (*(volatile uint32_t *)(GPIOC_BASE + GPIO_IDR_OFFSET))
+  #define GPIOC_ODR     (*(volatile uint32_t *)(GPIOC_BASE + GPIO_ODR_OFFSET))
+  #define GPIOC_BSRR    (*(volatile uint32_t *)(GPIOC_BASE + GPIO_BSRR_OFFSET))
+  #define GPIOC_LCKR    (*(volatile uint32_t *)(GPIOC_BASE + GPIO_LCKR_OFFSET))
+  #define GPIOC_AFRL    (*(volatile uint32_t *)(GPIOC_BASE + GPIO_AFRL_OFFSET))
+  #define GPIOC_AFRH    (*(volatile uint32_t *)(GPIOC_BASE + GPIO_AFRH_OFFSET))
+
+  #define GPIOD_MODER   (*(volatile uint32_t *)(GPIOD_BASE + GPIO_MODER_OFFSET))
+  #define GPIOD_OTYPER  (*(volatile uint32_t *)(GPIOD_BASE + GPIO_OTYPER_OFFSET))
+  #define GPIOD_OSPEEDR (*(volatile uint32_t *)(GPIOD_BASE + GPIO_OSPEEDR_OFFSET))
+  #define GPIOD_PUPDR   (*(volatile uint32_t *)(GPIOD_BASE + GPIO_PUPDR_OFFSET))
+  #define GPIOD_IDR     (*(volatile uint32_t *)(GPIOD_BASE + GPIO_IDR_OFFSET))
+  #define GPIOD_ODR     (*(volatile uint32_t *)(GPIOD_BASE + GPIO_ODR_OFFSET))
+  #define GPIOD_BSRR    (*(volatile uint32_t *)(GPIOD_BASE + GPIO_BSRR_OFFSET))
+  #define GPIOD_LCKR    (*(volatile uint32_t *)(GPIOD_BASE + GPIO_LCKR_OFFSET))
+  #define GPIOD_AFRL    (*(volatile uint32_t *)(GPIOD_BASE + GPIO_AFRL_OFFSET))
+  #define GPIOD_AFRH    (*(volatile uint32_t *)(GPIOD_BASE + GPIO_AFRH_OFFSET))
+
+  #define GPIOE_MODER   (*(volatile uint32_t *)(GPIOE_BASE + GPIO_MODER_OFFSET))
+  #define GPIOE_OTYPER  (*(volatile uint32_t *)(GPIOE_BASE + GPIO_OTYPER_OFFSET))
+  #define GPIOE_OSPEEDR (*(volatile uint32_t *)(GPIOE_BASE + GPIO_OSPEEDR_OFFSET))
+  #define GPIOE_PUPDR   (*(volatile uint32_t *)(GPIOE_BASE + GPIO_PUPDR_OFFSET))
+  #define GPIOE_IDR     (*(volatile uint32_t *)(GPIOE_BASE + GPIO_IDR_OFFSET))
+  #define GPIOE_ODR     (*(volatile uint32_t *)(GPIOE_BASE + GPIO_ODR_OFFSET))
+  #define GPIOE_BSRR    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_BSRR_OFFSET))
+  #define GPIOE_LCKR    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_LCKR_OFFSET))
+  #define GPIOE_AFRL    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_AFRL_OFFSET))
+  #define GPIOE_AFRH    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_AFRH_OFFSET))
+
+  #define GPIOH_MODER   (*(volatile uint32_t *)(GPIOE_BASE + GPIO_MODER_OFFSET))
+  #define GPIOH_OTYPER  (*(volatile uint32_t *)(GPIOE_BASE + GPIO_OTYPER_OFFSET))
+  #define GPIOH_OSPEEDR (*(volatile uint32_t *)(GPIOE_BASE + GPIO_OSPEEDR_OFFSET))
+  #define GPIOH_PUPDR   (*(volatile uint32_t *)(GPIOE_BASE + GPIO_PUPDR_OFFSET))
+  #define GPIOH_IDR     (*(volatile uint32_t *)(GPIOE_BASE + GPIO_IDR_OFFSET))
+  #define GPIOH_ODR     (*(volatile uint32_t *)(GPIOE_BASE + GPIO_ODR_OFFSET))
+  #define GPIOH_BSRR    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_BSRR_OFFSET))
+  #define GPIOH_LCKR    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_LCKR_OFFSET))
+  #define GPIOH_AFRL    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_AFRL_OFFSET))
+  #define GPIOH_AFRH    (*(volatile uint32_t *)(GPIOE_BASE + GPIO_AFRH_OFFSET))
+
+  #define GPIOx_BASE(GPIO_PORT)     GPIO##GPIO_PORT##_BASE
+  #define GPIOx_MODER(GPIO_PORT)    GPIO##GPIO_PORT##_MODER
+  #define GPIOx_OTYPER(GPIO_PORT)   GPIO##GPIO_PORT##_OTYPER
+  #define GPIOx_OSPEEDR(GPIO_PORT)  GPIO##GPIO_PORT##_OSPEEDR
+  #define GPIOx_PUPDR(GPIO_PORT)    GPIO##GPIO_PORT##_PUPDR
+  #define GPIOx_IDR(GPIO_PORT)      GPIO##GPIO_PORT##_IDR
+  #define GPIOx_ODR(GPIO_PORT)      GPIO##GPIO_PORT##_ODR
+  #define GPIOx_BSRR(GPIO_PORT)     GPIO##GPIO_PORT##_BSRR
+  #define GPIOx_LCKR(GPIO_PORT)     GPIO##GPIO_PORT##_LCKR
+
 
   /*--------GPIOx_MODER---------*/
   /*--------GPIOx_MODER---------*/
 
-  #define GPIOx_SET_MODE(GPIOx_BASE, PIN_N, MODE) \
+  /// @param PIN_N is the pin number of the port (0..15)
+  /// @param MODE 
+  // 00: Input (reset state) /
+  // 01: General purpose output mode /
+  // 10: Alternate function mode /
+  // 11: Analog mode
+  #define GPIOx_SET_MODE(GPIO_PORT, PIN_N, MODE) \
     do { \
-      CLEAR_BITS((GPIOx_BASE) + GPIO_MODER_OFFSET, 0b11U << ((PIN_N) / 2U)); \
-      SET_BITS((GPIOx_BASE) + GPIO_MODER_OFFSET, (MODE) << ((PIN_N) / 2U)); \
+      CLEAR_BITS(GPIOx_MODER(GPIO_PORT), 0b11U << ((PIN_N) / 2U)); \
+      SET_BITS(GPIOx_MODER(GPIO_PORT), (MODE) << ((PIN_N) / 2U)); \
     } while (0)
 
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param MODE 
-  // 00: Input (reset state) /
-  // 01: General purpose output mode /
-  // 10: Alternate function mode /
-  // 11: Analog mode
-  #define GPIOA_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOA_BASE, PIN_N, MODE)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param MODE 
-  // 00: Input (reset state) /
-  // 01: General purpose output mode /
-  // 10: Alternate function mode /
-  // 11: Analog mode
-  #define GPIOB_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOB_BASE, PIN_N, MODE)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param MODE 
-  // 00: Input (reset state) /
-  // 01: General purpose output mode /
-  // 10: Alternate function mode /
-  // 11: Analog mode
-  #define GPIOC_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOC_BASE, PIN_N, MODE)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param MODE 
-  // 00: Input (reset state) /
-  // 01: General purpose output mode /
-  // 10: Alternate function mode /
-  // 11: Analog mode
-  #define GPIOD_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOD_BASE, PIN_N, MODE)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param MODE 
-  // 00: Input (reset state) /
-  // 01: General purpose output mode /
-  // 10: Alternate function mode /
-  // 11: Analog mode
-  #define GPIOE_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOE_BASE, PIN_N, MODE)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param MODE 
-  // 00: Input (reset state) /
-  // 01: General purpose output mode /
-  // 10: Alternate function mode /
-  // 11: Analog mode
-  #define GPIOH_SET_MODE(PIN_N, MODE) GPIOx_SET_MODE(GPIOH_BASE, PIN_N, MODE)
 
 
   /*--------GPIOx_OTYPER---------*/
   /*--------GPIOx_OTYPER---------*/
 
   /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOA_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOA_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+  #define GPIOx_SET_OPENDRAIN(GPIO_PORT, PIN_N) \
+    SET_BIT(GPIOx_OTYPER(GPIO_PORT), PIN_N)
   /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOA_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOA_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOB_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOB_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOB_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOB_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOC_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOC_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOC_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOC_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOD_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOD_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOD_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOD_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOE_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOE_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOE_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOE_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOH_SET_OPENDRAIN(PIN_N)    SET_BIT(GPIOH_BASE + GPIO_OTYPER_OFFSET, PIN_N)
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOH_SET_PUSHPULL(PIN_N)     CLEAR_BIT(GPIOH_BASE + GPIO_OTYPER_OFFSET, PIN_N)
+  #define GPIOx_SET_PUSHPULL(GPIO_PORT, PIN_N) \
+    CLEAR_BIT(GPIOx_OTYPER(GPIO_PORT), PIN_N)
 
 
   /*--------GPIOx_OSPEEDR---------*/
   /*--------GPIOx_OSPEEDR---------*/
 
-  #define GPIOx_SET_OSPEED(GPIOx_BASE, PIN_N, OSPEED) \
+  #define GPIOx_SET_OSPEED(GPIO_PORT, PIN_N, OSPEED) \
     do { \
-      CLEAR_BITS((GPIOx_BASE) + GPIO_OSPEEDR_OFFSET, 0b11U << ((PIN_N) / 2U)); \
-      SET_BITS((GPIOx_BASE) + GPIO_OSPEEDR_OFFSET, (OSPEED) << ((PIN_N) / 2U)); \
+      CLEAR_BITS(GPIOx_OSPEEDR(GPIO_PORT), 0b11U << ((PIN_N) / 2U)); \
+      SET_BITS(GPIOx_OSPEEDR(GPIO_PORT), (OSPEED) << ((PIN_N) / 2U)); \
     } while (0)
 
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param OSPEED is the signal output speed to apply to that pin: 
-  // 00: Low speed /
-  // 01: Medium speed /
-  // 10: High speed /
-  // 11: Very high speed /
-  #define GPIOA_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOA_BASE, PIN_N, OSPEED)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param OSPEED is the signal output speed to apply to that pin: 
-  // 00: Low speed /
-  // 01: Medium speed /
-  // 10: High speed /
-  // 11: Very high speed /
-  #define GPIOB_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOB_BASE, PIN_N, OSPEED)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param OSPEED is the signal output speed to apply to that pin: 
-  // 00: Low speed /
-  // 01: Medium speed /
-  // 10: High speed /
-  // 11: Very high speed /
-  #define GPIOC_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOC_BASE, PIN_N, OSPEED)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param OSPEED is the signal output speed to apply to that pin: 
-  // 00: Low speed /
-  // 01: Medium speed /
-  // 10: High speed /
-  // 11: Very high speed /
-  #define GPIOD_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOD_BASE, PIN_N, OSPEED)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param OSPEED is the signal output speed to apply to that pin: 
-  // 00: Low speed /
-  // 01: Medium speed /
-  // 10: High speed /
-  // 11: Very high speed /
-  #define GPIOE_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOE_BASE, PIN_N, OSPEED)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param OSPEED is the signal output speed to apply to that pin: 
-  // 00: Low speed /
-  // 01: Medium speed /
-  // 10: High speed /
-  // 11: Very high speed /
-  #define GPIOH_SET_OSPEED(PIN_N, OSPEED) GPIOx_SET_OSPEED(GPIOH_BASE, PIN_N, OSPEED)
 
   /*--------GPIOx_PUPDR---------*/
   /*--------GPIOx_PUPDR---------*/
@@ -1480,116 +1443,59 @@
   // 01: Pull-up
   // 10: Pull-down
   // 11: Reserved
-  #define GPIO_SET_PUPD(GPIO_BASE, PIN_N, STATE) \
+  #define GPIO_SET_PUPD(GPIO_PORT, PIN_N, STATE) \
     do { \
-      CLEAR_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, 0b11U << ((PIN_N) * 2U)); \
-      SET_BITS((GPIO_BASE) + GPIO_PUPDR_OFFSET, (STATE) << ((PIN_N) * 2U)); \
+      CLEAR_BITS(GPIOx_PUPDR(GPIO_PORT), 0b11U << ((PIN_N) * 2U)); \
+      SET_BITS(GPIOx_PUPDR(GPIO_PORT), (STATE) << ((PIN_N) * 2U)); \
     } while (0)
 
-  /// Macros for GPIOA
-  #define GPIOA_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOA_BASE, PIN_N, STATE)
-
-  /// Macros for GPIOB
-  #define GPIOB_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOB_BASE, PIN_N, STATE)
-
-  /// Macros for GPIOC
-  #define GPIOC_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOC_BASE, PIN_N, STATE)
-
-  /// Macros for GPIOD
-  #define GPIOD_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOD_BASE, PIN_N, STATE)
-
-  /// Macros for GPIOE
-  #define GPIOE_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOE_BASE, PIN_N, STATE)
-
-  /// Macros for GPIOH
-  #define GPIOH_SET_PUPD(PIN_N, STATE) GPIO_SET_PUPD(GPIOH_BASE, PIN_N, STATE)
-
 
   /*--------GPIOx_IDR---------*/
   /*--------GPIOx_IDR---------*/
 
   /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOA_PINREAD(PIN_N) READ_BIT(GPIOA_BASE + GPIO_IDR_OFFSET, (PIN_N))
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOB_PINREAD(PIN_N) READ_BIT(GPIOB_BASE + GPIO_IDR_OFFSET, (PIN_N))
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOC_PINREAD(PIN_N) READ_BIT(GPIOC_BASE + GPIO_IDR_OFFSET, (PIN_N))
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOD_PINREAD(PIN_N) READ_BIT(GPIOD_BASE + GPIO_IDR_OFFSET, (PIN_N))
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOE_PINREAD(PIN_N) READ_BIT(GPIOE_BASE + GPIO_IDR_OFFSET, (PIN_N))
-  /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIOH_PINREAD(PIN_N) READ_BIT(GPIOH_BASE + GPIO_IDR_OFFSET, (PIN_N))
-
+  #define GPIOx_PINREAD(GPIO_PORT, PIN_N) READ_BIT(GPIOx_IDR(GPIO_PORT), (PIN_N))
 
   /*--------GPIOx_BSSR---------*/
   /*--------GPIOx_BSSR---------*/
 
   /// @param GPIO_BASE is the base address of the GPIO port
   /// @param PIN_N is the pin number of the port (0..15)
-  #define GPIO_PIN_HIGH(GPIO_BASE, PIN_N) SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N))
-  #define GPIO_PIN_LOW(GPIO_BASE, PIN_N) SET_BIT((GPIO_BASE) + GPIO_BSRR_OFFSET, (PIN_N) + 16U)
-
-  /// Macros for GPIOA
-  #define GPIOA_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOA_BASE, PIN_N)
-  #define GPIOA_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOA_BASE, PIN_N)
-
-  /// Macros for GPIOB
-  #define GPIOB_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOB_BASE, PIN_N)
-  #define GPIOB_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOB_BASE, PIN_N)
-
-  /// Macros for GPIOC
-  #define GPIOC_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOC_BASE, PIN_N)
-  #define GPIOC_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOC_BASE, PIN_N)
-
-  /// Macros for GPIOD
-  #define GPIOD_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOD_BASE, PIN_N)
-  #define GPIOD_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOD_BASE, PIN_N)
-
-  /// Macros for GPIOE
-  #define GPIOE_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOE_BASE, PIN_N)
-  #define GPIOE_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOE_BASE, PIN_N)
-
-  /// Macros for GPIOH
-  #define GPIOH_PIN_HIGH(PIN_N) GPIO_PIN_HIGH(GPIOH_BASE, PIN_N)
-  #define GPIOH_PIN_LOW(PIN_N) GPIO_PIN_LOW(GPIOH_BASE, PIN_N)
+  #define GPIOx_PIN_HIGH(GPIO_PORT, PIN_N) \
+    SET_BIT(GPIOx_BSSR(GPIO_PORT), PIN_N)
+  #define GPIOx_PIN_LOW(GPIO_PORT, PIN_N) \
+    SET_BIT(GPIOx_BSSR(GPIO_PORT), PIN_N + 16U)
 
 
   /*--------GPIOx_AFRL/AFRH---------*/
   /*--------GPIOx_AFRL/AFRH---------*/
 
-  #define GPIO_SET_AF(GPIOx_BASE, PIN_N, AF_NUM) \
+  /**
+  * @brief  Set the alternate function for a GPIO pin.
+  * @note   This macro modifies the GPIO alternate function register (AFRL/AFRH) for a given pin.
+  * @param  GPIO_PORT The GPIO port (A, B, C, D, E, H) where the pin belongs.
+  * @param  PIN_N     The pin number within the GPIO port (0 to 15).
+  * @param  AF_NUM    The alternate function number to set (0 to 15).
+  * @retval None
+  */
+  #define GPIO_SET_AF(GPIO_PORT, PIN_N, AF_NUM) \
     do { \
-      CLEAR_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
-        0xFU << (((PIN_N) - ((PIN_N) < 8U ? 0U : 8U)) / 4U)); \
-      SET_BITS(GPIOx_BASE + ((PIN_N) < 8U ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET), \
-        (AF_NUM) << (((PIN_N) - ((PIN_N) < 8U ? 0U : 8U)) / 4U)); \
+        /* Calculate the base address of GPIOx */ \
+        uint32_t gpio_base = GPIOx_BASE(GPIO_PORT); \
+        /* Calculate the offset of AFRL or AFRH based on PIN_N */ \
+        uint32_t af_offset = ((PIN_N) < 8U) ? GPIO_AFRL_OFFSET : GPIO_AFRH_OFFSET; \
+        /* Calculate the bit shift position for the AF register */ \
+        uint32_t af_shift = (((PIN_N) & 0x7U) * 4U); \
+        /* Mask and set the alternate function bits */ \
+        MODIFY_REG(gpio_base + af_offset, 0xFU << af_shift, (AF_NUM) << af_shift); \
     } while (0)
 
 
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param AF_NUM is the alternate function number (0..15)
-  #define GPIOA_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOA_BASE, PIN_N, AF_NUM)
+  /// Example usage:
+  /// Set alternate function AF_NUM for pin PIN_N on GPIO_PORT
+  #define GPIO_SET_AF_BY_PORT(GPIO_PORT, PIN_N, AF_NUM) \
+    GPIO_SET_AF(GPIO_PORT, PIN_N, AF_NUM)
 
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param AF_NUM is the alternate function number (0..15)
-  #define GPIOB_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOB_BASE, PIN_N, AF_NUM)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param AF_NUM is the alternate function number (0..15)
-  #define GPIOC_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOC_BASE, PIN_N, AF_NUM)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param AF_NUM is the alternate function number (0..15)
-  #define GPIOD_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOD_BASE, PIN_N, AF_NUM)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param AF_NUM is the alternate function number (0..15)
-  #define GPIOE_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOE_BASE, PIN_N, AF_NUM)
-
-  /// @param PIN_N is the pin number of the port (0..15)
-  /// @param AF_NUM is the alternate function number (0..15)
-  #define GPIOH_SET_AF(PIN_N, AF_NUM) GPIO_SET_AF(GPIOH_BASE, PIN_N, AF_NUM)
 
 #endif // !GPIO_HAL 1
 
@@ -1799,6 +1705,223 @@
 #ifndef USART_HAL
   #define USART_HAL 1
 
+  #define USART6_BASE 0x40011400U
+  #define USART1_BASE 0x40011000U
+  #define USART2_BASE 0x40004400U
+
+  #define USART_SR_OFFSET     (0x00U)
+  #define USART_DR_OFFSET     (0x04U)
+  #define USART_BRR_OFFSET    (0x08U)
+  #define USART_CR1_OFFSET    (0x0CU)
+  #define USART_CR2_OFFSET    (0x10U)
+  #define USART_CR3_OFFSET    (0x14U)
+  #define USART_GTPR_OFFSET   (0x18U)
+
+  #define USART6_SR     (*(volatile uint32_t *)(USART6_BASE + USART_SR_OFFSET))
+  #define USART6_DR     (*(volatile uint32_t *)(USART6_BASE + USART_DR_OFFSET))
+  #define USART6_BRR    (*(volatile uint32_t *)(USART6_BASE + USART_BRR_OFFSET))
+  #define USART6_CR1    (*(volatile uint32_t *)(USART6_BASE + USART_CR1_OFFSET))
+  #define USART6_CR2    (*(volatile uint32_t *)(USART6_BASE + USART_CR2_OFFSET))
+  #define USART6_CR3    (*(volatile uint32_t *)(USART6_BASE + USART_CR3_OFFSET))
+  #define USART6_GTPR   (*(volatile uint32_t *)(USART6_BASE + USART_GTPR_OFFSET))
+
+
+  #define USART1_SR     (*(volatile uint32_t *)(USART1_BASE + USART_SR_OFFSET))
+  #define USART1_DR     (*(volatile uint32_t *)(USART1_BASE + USART_DR_OFFSET))
+  #define USART1_BRR    (*(volatile uint32_t *)(USART1_BASE + USART_BRR_OFFSET))
+  #define USART1_CR1    (*(volatile uint32_t *)(USART1_BASE + USART_CR1_OFFSET))
+  #define USART1_CR2    (*(volatile uint32_t *)(USART1_BASE + USART_CR2_OFFSET))
+  #define USART1_CR3    (*(volatile uint32_t *)(USART1_BASE + USART_CR3_OFFSET))
+  #define USART1_GTPR   (*(volatile uint32_t *)(USART1_BASE + USART_GTPR_OFFSET))
+
+  #define USART2_SR     (*(volatile uint32_t *)(USART2_BASE + USART_SR_OFFSET))
+  #define USART2_DR     (*(volatile uint32_t *)(USART2_BASE + USART_DR_OFFSET))
+  #define USART2_BRR    (*(volatile uint32_t *)(USART2_BASE + USART_BRR_OFFSET))
+  #define USART2_CR1    (*(volatile uint32_t *)(USART2_BASE + USART_CR1_OFFSET))
+  #define USART2_CR2    (*(volatile uint32_t *)(USART2_BASE + USART_CR2_OFFSET))
+  #define USART2_CR3    (*(volatile uint32_t *)(USART2_BASE + USART_CR3_OFFSET))
+  #define USART2_GTPR   (*(volatile uint32_t *)(USART2_BASE + USART_GTPR_OFFSET))
+
+  #define USARTx_SR(USART_NUM) USART##USART_NUM##_SR
+  #define USARTx_DR(USART_NUM) USART##USART_NUM##_DR
+  #define USARTx_BRR(USART_NUM) USART##USART_NUM##_BRR
+  #define USARTx_CR1(USART_NUM) USART##USART_NUM##_CR1
+  #define USARTx_CR2(USART_NUM) USART##USART_NUM##_CR2
+  #define USARTx_CR3(USART_NUM) USART##USART_NUM##_CR3
+  #define USARTx_GTPR(USART_NUM) USART##USART_NUM##_GTPR
+
+/*--------USARTx_SR---------*/
+/*--------USARTx_SR---------*/
+
+  #define USARTx_CHECK_CTS_FLAG(USART_NUM)  READ_BIT(USARTx_SR(USART_NUM), 9U)
+  #define USARTx_CLEAR_CTS_FLAG(USART_NUM)  CLEAR_BIT(USARTx_SR(USART_NUM), 9U)
+  #define USARTx_CHECK_LBD_FLAG(USART_NUM)  READ_BIT(USARTx_SR(USART_NUM), 8U)
+  #define USARTx_CLEAR_LBD_FLAG(USART_NUM)  CLEAR_BIT(USARTx_SR(USART_NUM), 8U)
+  #define USARTx_CLEAR_TXE_FLAG(USART_NUM)  READ_BIT(USARTx_SR(USART_NUM), 7U)  
+  #define USARTx_CHECK_TC_FLAG(USART_NUM)   READ_BIT(USARTx_SR(USART_NUM), 6U)
+  #define USARTx_CLEAR_TC_FLAG(USART_NUM)   CLEAR_BIT(USARTx_SR(USART_NUM), 6U)
+  #define USARTx_CHECK_RXNE_FLAG(USART_NUM) READ_BIT(USARTx_SR(USART_NUM), 5U)
+  #define USARTx_CLEAR_RXNE_FLAG(USART_NUM) CLEAR_BIT(USARTx_SR(USART_NUM), 5U)
+  #define USARTx_CHECK_IDLE_FLAG(USART_NUM) READ_BIT(USARTx_SR(USART_NUM), 5U)
+  #define USARTx_CHECK_ORE_FLAG(USART_NUM)  READ_BIT(USARTx_SR(USART_NUM), 5U)
+  #define USARTx_CHECK_NF_FLAG(USART_NUM)   READ_BIT(USARTx_SR(USART_NUM), 5U)
+  #define USARTx_CHECK_FE_FLAG(USART_NUM)   READ_BIT(USARTx_SR(USART_NUM), 5U)
+  #define USARTx_CHECK_PE_FLAG(USART_NUM)   READ_BIT(USARTx_SR(USART_NUM), 5U)
+
+/*--------USARTx_DR---------*/
+/*--------USARTx_DR---------*/
+
+  #define USARTx_READ_DATA(USART_NUM) (USARTx_DR(USART_NUM))
+
+  #define USARTx_WRITE_DATA(USART_NUM, DATA) \
+    do { \
+      USARTx_DR(USART_NUM) = (DATA); \  
+    } while(0)
+
+/*--------USARTx_BRR---------*/
+/*--------USARTx_BRR---------*/
+
+  #define USARTx_SET_BAUD_RATE(USART_NUM, BAUD_RATE, PCLK) \
+    do { \
+      USARTx_BRR(USART_NUM) = ((PCLK) / (BAUD_RATE)); \
+    } while(0)
+
+/*--------USARTx_CR1---------*/
+/*--------USARTx_CR1---------*/
+
+  #define USARTx_SET_OVER16(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 15U)
+  #define USARTx_SET_OVER8(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 15U)
+
+  #define USARTx_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 13U)
+  #define USARTx_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 13U)
+
+  #define USARTx_SET_WORDLEN8(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 12U)
+  #define USARTx_SET_WORDLEN9(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 12U)
+
+  #define USARTx_IDLE_WKUP(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 11U)
+  #define USARTx_ADDR_MARK_WKUP(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 11U)
+
+  #define USARTx_PARITY_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 10U)
+  #define USARTx_PARITY_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 10U)
+
+  #define USARTx_SET_EVEN_PARITY(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 9U)
+  #define USARTx_SET_ODD_PARITY(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 9U)
+
+  #define USARTx_PEI_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 8U)
+  #define USARTx_PEI_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 8U)
+
+  #define USARTx_TXEI_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 7U)
+  #define USARTx_TXEI_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 7U)
+
+  #define USARTx_TCI_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 6U)
+  #define USARTx_SET_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 6U)
+
+  #define USARTx_RXN_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 5U)
+  #define USARTx_RXN_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 5U)
+
+  #define USARTx_IDLEI_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 4U)
+  #define USARTx_IDLEI_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 4U)
+
+  #define USARTx_TRANS_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 3U)
+  #define USARTx_TRANS_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 3U)
+
+  #define USARTx_RECV_DIS(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 2U)
+  #define USARTx_RECV_EN(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 2U)
+
+  #define USARTx_RCV_ACTIVE(USART_NUM) CLEAR_BIT(USARTx_CR1(USART_NUM), 1U)
+  #define USARTx_RCV_MUTE(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 1U)
+
+  #define USARTx_SEND_BREAK(USART_NUM) SET_BIT(USARTx_CR1(USART_NUM), 0U)
+
+/*--------USARTx_CR2---------*/
+/*--------USARTx_CR2---------*/
+
+  #define USARTx_LINEN_EN(USART_NUM)        SET_BIT(USARTx_CR2(USART_NUM), 14U)
+  #define USARTx_LINEN_DIS(USART_NUM)       CLEAR_BIT(USARTx_CR2(USART_NUM), 14U)
+
+  #define USARTx_STOPBITS(USART_NUM, BIT_MASK) \
+    do { \
+      CLEAR_BITS(USARTx_CR2(USART_NUM), 0b11U << 12U); \
+      SET_BIT(USARTx_CR2(USART_NUM), BIT_MASK << 12U); \
+    } while(0)
+
+  #define USARTx_STOPBITS_1(USART_NUM)      USARTx_STOPBITS(USART_NUM, 0b00U)
+  #define USARTx_STOPBITS_0_5(USART_NUM)    USARTx_STOPBITS(USART_NUM, 0b01U)
+  #define USARTx_STOPBITS_2(USART_NUM)      USARTx_STOPBITS(USART_NUM, 0b10U)
+  #define USARTx_STOPBITS_1_5(USART_NUM)    USARTx_STOPBITS(USART_NUM, 0b11U)
+
+  #define USARTx_CLKEN(USART_NUM)           SET_BIT(USARTx_CR2(USART_NUM), 11U)
+  #define USARTx_CLKDIS(USART_NUM)          CLEAR_BIT(USARTx_CR2(USART_NUM), 11U)
+
+  #define USARTx_CPOL_LOW(USART_NUM)        CLEAR_BIT(USARTx_CR2(USART_NUM), 10U)
+  #define USARTx_CPOL_HIGH(USART_NUM)       SET_BIT(USARTx_CR2(USART_NUM), 10U)
+
+  #define USARTx_CPHA_FIRST(USART_NUM)      CLEAR_BIT(USARTx_CR2(USART_NUM), 9U)
+  #define USARTx_CPHA_SECOND(USART_NUM)     SET_BIT(USARTx_CR2(USART_NUM), 9U)
+
+  #define USARTx_LBCL_NORMAL(USART_NUM)     CLEAR_BIT(USARTx_CR2(USART_NUM), 8U)
+  #define USARTx_LBCL_CLOCK(USART_NUM)      SET_BIT(USARTx_CR2(USART_NUM), 8U)
+
+  #define USARTx_LBDIE_EN(USART_NUM)        SET_BIT(USARTx_CR2(USART_NUM), 6U)
+  #define USARTx_LBDIE_DIS(USART_NUM)       CLEAR_BIT(USARTx_CR2(USART_NUM), 6U)
+
+  #define USARTx_LBDL_10BIT(USART_NUM)      CLEAR_BIT(USARTx_CR2(USART_NUM), 5U)
+  #define USARTx_LBDL_11BIT(USART_NUM)      SET_BIT(USARTx_CR2(USART_NUM), 5U)
+
+
+  /*--------USARTx_CR3---------*/
+  /*--------USARTx_CR3---------*/
+
+  #define USARTx_ONEBIT_EN(USART_NUM)       SET_BIT(USARTx_CR3(USART_NUM), 11U)
+  #define USARTx_ONEBIT_DIS(USART_NUM)      CLEAR_BIT(USARTx_CR3(USART_NUM), 11U)
+
+  #define USARTx_CTSIE_EN(USART_NUM)        SET_BIT(USARTx_CR3(USART_NUM), 10U)
+  #define USARTx_CTSIE_DIS(USART_NUM)       CLEAR_BIT(USARTx_CR3(USART_NUM), 10U)
+
+  #define USARTx_CTSE_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 9U)
+  #define USARTx_CTSE_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 9U)
+
+  #define USARTx_RTSE_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 8U)
+  #define USARTx_RTSE_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 8U)
+
+  #define USARTx_DMAT_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 7U)
+  #define USARTx_DMAT_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 7U)
+
+  #define USARTx_DMAR_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 6U)
+  #define USARTx_DMAR_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 6U)
+
+  #define USARTx_SCEN_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 5U)
+  #define USARTx_SCEN_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 5U)
+
+  #define USARTx_NACK_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 4U)
+  #define USARTx_NACK_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 4U)
+
+  #define USARTx_HDSEL_EN(USART_NUM)        SET_BIT(USARTx_CR3(USART_NUM), 3U)
+  #define USARTx_HDSEL_DIS(USART_NUM)       CLEAR_BIT(USARTx_CR3(USART_NUM), 3U)
+
+  #define USARTx_IRLP_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 2U)
+  #define USARTx_IRLP_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 2U)
+
+  #define USARTx_IREN_EN(USART_NUM)         SET_BIT(USARTx_CR3(USART_NUM), 1U)
+  #define USARTx_IREN_DIS(USART_NUM)        CLEAR_BIT(USARTx_CR3(USART_NUM), 1U)
+
+  #define USARTx_EIE_EN(USART_NUM)          SET_BIT(USARTx_CR3(USART_NUM), 0U)
+  #define USARTx_EIE_DIS(USART_NUM)         CLEAR_BIT(USARTx_CR3(USART_NUM), 0U)
+
+  /*--------USARTx_GTPR---------*/
+  /*--------USARTx_GTPR---------*/
+
+  #define USARTx_GT(USART_NUM, GT) \
+    do { \
+      USARTx_GTPR(USART_NUM) &= ~(0xFFU << 8U); \
+      USARTx_GTPR(USART_NUM) |= ((GT) & 0xFFU) << 8U; \
+    } while(0)
+
+  #define USARTx_PSC(USART_NUM, PSC) \
+    do { \
+      USARTx_GTPR(USART_NUM) &= ~0xFFU; \
+      USARTx_GTPR(USART_NUM) |= (PSC) & 0xFFU; \
+    } while(0)
 
 
 #endif // !USART_HAL 1

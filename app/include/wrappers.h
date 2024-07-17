@@ -109,6 +109,495 @@ extern void *sbrk(size_t increment);
 extern void *sbrk_free(size_t decrement);
 
 
+/* @-------System control--------@ */
+
+/**
+ * @brief 
+ * @return 
+ */   
+void enable_outoforder_exec();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void disable_outoforder_exec();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void get_CPUID();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void NMI_set_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void PendSV_set_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void PendSV_clear_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SYSTICK_set_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SYSTICK_clear_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SYSTICK_check_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void ISR_check_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split16_0();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split8_2();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split4_4();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split2_8();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split0_16();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void RESET_request();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SEV_on_pend();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void sleep_is_sleep_deep();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void sleep_on_exit();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void Stack_align4bytes();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void Stack_align8bytes();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void NMI_HardF_dis_fault_handling();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void NMI_HardF_en_fault_handling();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void DIV0_notrap();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void DIV0_trap();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void unalign_NTrap();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void unalign_Trap();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void APP_access_STIR();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void exit_nested_IRQs_on_ret();
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_UsageFault_prio(uint8_t prio);
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_MemMan_fault_prio(uint8_t prio);
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_SVC_prio(uint8_t prio);
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_SYSTICK_prio(uint8_t prio);
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_PendSV_prio(uint8_t prio);
+
+/**
+ * @brief 
+ * @return 
+ */   
+void en_UsageFault();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void en_BusFault();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void en_MemMan_fault();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void dis_UsageFault();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void dis_BusFault();
+
+/**
+ * @brief 
+ * @return 
+ */   
+void dis_MemMan_fault();
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_SVC_pend();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_BusFault_pend();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_MemMan_fault_pend();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_UsageFault_pend();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_SYSTICK_actv();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_PendSV_actv();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_DBGMon_actv();
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_SVC_actv();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_UsageFault_actv();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_BusFault_active();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_MemMan_fault_active();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t div_by0_UsageFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t unalignement_UsageFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t coprocessor_UsageFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t invPC_UsageFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t invEPSR_UsageFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t BFAR_valid_addr();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t FP_LazyState_BusFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t push_BusFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t pop_BusFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t imprecise_BusFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t precise_DBus_error();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t IBus_error();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t MMAR_valid_addr();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t FP_LazyState_MemMan_fault();
+
+
+/**
+ * @brief
+ * @return 
+ */   
+uint8_t push_MemMan_fault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t pop_MemMan_fault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t DataAccess_MemMan_fault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t ExecNot_section_MemMan_fault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t forced_HardFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t push_MemMan_fault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t vect_table_HardFault();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint32_t *get_MemManFault_addr();
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint32_t *get_BusFault_addr();
+
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint32_t *get_AuxFault_addr();
+
 
 //----------------------------------------
 //----------------------------------------Wrapper for various functions that can be used by app developers

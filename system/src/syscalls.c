@@ -158,11 +158,11 @@ void NVIC_soft_trigger_irq(uint8_t IRQ_NUM){ SVC_CALL(7U); }
  * @return Returns the new pointer address
  * @return returns 0 ((void*)(0x0)) if failed to allocate SRAM
  */   
-uint32_t *sbrk(size_t increment)
+void *sbrk(size_t increment)
 {
-  uint32_t *result;
+  uint8_t *result;
   SVC_CALL_RET(8U, result);
-  return result;
+  return (void*)result;
 }
 
 /**
@@ -171,11 +171,11 @@ uint32_t *sbrk(size_t increment)
  * @return Returns the new pointer address
  * @return returns 0 ((void*)(0x0)) if failed to free SRAM
  */
-uint32_t *sbrk_free(size_t decrement)
+void *sbrk_free(size_t decrement)
 {
   uint32_t *result;
   SVC_CALL_RET(9U, result);
-  return result;
+  return (void*)result;
 }
 
 
@@ -703,8 +703,6 @@ uint8_t FP_LazyState_MemMan_fault()
 
 /**
  * @brief 
-
-
  * @return 
  */   
 uint8_t push_MemMan_fault()
@@ -773,7 +771,7 @@ uint8_t push_MemMan_fault()
  * @brief 
  * @return 
  */   
-uint8_t _vect_table_HardFault()
+uint8_t vect_table_HardFault()
 {
   uint32_t result;
   SVC_CALL(85U);
@@ -784,31 +782,31 @@ uint8_t _vect_table_HardFault()
  * @brief 
  * @return 
  */   
-uint32_t *_get_MemManFault_addr()
+void *get_MemManFault_addr()
 {
-  uint32_t *result;
+  uint8_t *result;
   SVC_CALL(86U);
-  return result;
+  return (void*)result;
 }
 
 /**
  * @brief 
  * @return 
  */   
-uint32_t *get_BusFault_addr()
+void *get_BusFault_addr()
 {
-  uint32_t *result;
+  uint8_t *result;
   SVC_CALL(87U);
-  return result;
+  return (void*)result;
 }
 
 /**
  * @brief 
  * @return 
  */   
-uint32_t *_get_AuxFault_addr()
+void *get_AuxFault_addr()
 {
-  uint32_t *result;
+  uint8_t *result;
   SVC_CALL(87U);
-  return result;
+  return (void*)result;
 }
