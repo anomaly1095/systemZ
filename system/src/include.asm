@@ -115,7 +115,6 @@
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  MOV     r0, #0
 .endm
   
 @-----------------------------------SYSCALL
@@ -132,7 +131,6 @@
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  MOV     r0, #0
 .endm
 
 @-----------------------------------SYSCALL
@@ -149,7 +147,6 @@
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  MOV     r0, #0
 .endm
 
 @-----------------------------------SYSCALL
@@ -166,7 +163,6 @@
   LDR     r1, [r2]              @ load the value of the NVIC_ISER
   ORR     r1, r1, r3            @ Set the bit of the IRQ
   STR     r1, [r2]              @ store the mask in the NVIC_ISER
-  MOV     r0, #0
 .endm
 
 @-----------------------------------SYSCALL
@@ -197,7 +193,6 @@
 .macro _NVIC_set_prio_irq
   NVIC_REG_SELECT59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
   STRB    r1, [r2]                @ Store the priority number in the selected register byte
-  MOV     r0, #0
 .endm
 
 @-----------------------------------SYSCALL
@@ -221,7 +216,6 @@
 .macro _NVIC_soft_trigger_irq
   LDR     r1, =NVIC_STIR
   STR     r0, [r1]
-  MOV     r0, #0
 .endm
 
 @-----------------------------------------------------
@@ -502,42 +496,43 @@
 /*--------SHPRx---------*/
 
 @ Macro to set priority for various system exceptions
-.macro set_exception_priority reg:req, bit_offset:req, prio:req
-  LDR     r0, =\reg                              @ Load the address of the priority register
-  LDR     r1, [r0]                               @ Load the current value of the register
-  BIC     r1, r1, #(0xFF << \bit_offset)         @ Clear the current priority bits
-  ORR     r1, r1, #(\prio << \bit_offset)        @ Set new priority bits
-  STR     r1, [r0]                               @ Store the new value back into the register
+.macro set_exception_priority reg:req, bit_offset:req
+  LDR     r1, =\reg                              @ Load the address of the priority register
+  LDR     r2, [r1]                               @ Load the current value of the register
+  BIC     r2, r2, #(0xFF << \bit_offset)         @ Clear the current priority bits
+  ORR     r2, r2, r0, LSL \bit_offset            @ Set new priority bits from r0
+  STR     r2, [r1]                               @ Store the new value back into the register
 .endm
+
 
 @ Macro to set Usage Fault priority in SHPR1
 .macro set_UsageFault_prio prio:req
-  set_exception_priority SHPR1, 20, \prio        @ Set Usage Fault priority (bit offset 20)
+  set_exception_priority SHPR1, 20        @ Set Usage Fault priority (bit offset 20)
 .endm
 
 @ Macro to set Bus Fault priority in SHPR1
 .macro set_BusFault_prio prio:req
-  set_exception_priority SHPR1, 12, \prio        @ Set Bus Fault priority (bit offset 12)
+  set_exception_priority SHPR1, 12        @ Set Bus Fault priority (bit offset 12)
 .endm
 
 @ Macro to set Memory Management Fault priority in SHPR1
 .macro set_MemMan_fault_prio prio:req
-  set_exception_priority SHPR1, 4, \prio         @ Set Memory Management Fault priority (bit offset 4)
+  set_exception_priority SHPR1, 4         @ Set Memory Management Fault priority (bit offset 4)
 .endm
 
 @ Macro to set SVCall priority in SHPR2
 .macro set_SVC_prio prio:req
-  set_exception_priority SHPR2, 28, \prio        @ Set SVCall priority (bit offset 28)
+  set_exception_priority SHPR2, 28        @ Set SVCall priority (bit offset 28)
 .endm
 
 @ Macro to set SysTick priority in SHPR3
 .macro set_SYSTICK_prio prio:req
-  set_exception_priority SHPR3, 28, \prio        @ Set SysTick priority (bit offset 28)
+  set_exception_priority SHPR3, 28        @ Set SysTick priority (bit offset 28)
 .endm
 
 @ Macro to set PendSV priority in SHPR3
 .macro set_PendSV_prio prio:req
-  set_exception_priority SHPR3, 20, \prio        @ Set PendSV priority (bit offset 20)
+  set_exception_priority SHPR3, 20        @ Set PendSV priority (bit offset 20)
 .endm
 
 
@@ -1105,347 +1100,350 @@ SVC12_Handler:
 SVC13_Handler:
   BX      lr
 
+@-------SCB--------@
+
 SVC14_Handler:
+  _DIS_OUTOFORDER_EXEC #1
   BX      lr
 
-@-------SCB--------@
 SVC15_Handler:
-  DIS_OUTOFORDER_EXEC #0
+  _DIS_OUTOFORDER_EXEC #0
   BX      lr
 
 SVC16_Handler:
-  GET_CPUID
+  _GET_CPUID
   BX      lr
 
 SVC17_Handler:
-  NMI_set_pending
+  _NMI_set_pending
   BX      lr
 
 SVC18_Handler:
-  PENDSV_set_pending
+  _PENDSV_set_pending
   BX      lr
 
 SVC19_Handler:
-  PENDSV_clear_pending
+  _PENDSV_clear_pending
   BX      lr
 
 SVC20_Handler:
-  SYSTICK_set_pending
+  _SYSTICK_set_pending
   BX      lr
 
 SVC21_Handler:
-  SYSTICK_clear_pending
+  _SYSTICK_clear_pending
   BX      lr
 
 SVC22_Handler:
-  SYSTICK_check_pending
+  _SYSTICK_check_pending
   BX      lr
 
 SVC23_Handler:
-  ISR_check_pending
+  _ISR_check_pending
   BX      lr
 
 SVC24_Handler:
-  prio_split16_0
+  _prio_split16_0
   BX      lr
 
 SVC25_Handler:
-  prio_split8_2
+  _prio_split8_2
   BX      lr
 
 SVC26_Handler:
-  prio_split4_4
+  _prio_split4_4
   BX      lr
 
 SVC27_Handler:
-  prio_split2_8
+  _prio_split2_8
   BX      lr
 
 SVC28_Handler:
-  prio_split0_16
+  _prio_split0_16
   BX      lr
 
 SVC29_Handler:
-  reset_request
+  _reset_request
   BX      lr
 
 SVC30_Handler:
-  sev_on_pend
+  _sev_on_pend
   BX      lr
 
 SVC31_Handler:
-  sleep_deep
+  _sleep_deep
   BX      lr
 
 SVC32_Handler:
-  sleep_on_exit
+  _sleep_on_exit
   BX      lr
 
 SVC33_Handler:
-  stack_align_4
+  _stack_align_4
   BX      lr
 
 SVC34_Handler:
-  stack_align_8
+  _stack_align_8
   BX      lr
 
 SVC35_Handler:
-  NMI_HARDFAULT_dis_bus_fault_handling
+  _NMI_HARDFAULT_dis_bus_fault_handling
   BX      lr
 
 SVC36_Handler:
-  NMI_HARDFAULT_en_bus_fault_handling
+  _NMI_HARDFAULT_en_bus_fault_handling
   BX      lr
 
 SVC37_Handler:
-  div0_notrap
+  _div0_notrap
   BX      lr
 
 SVC38_Handler:
-  div0_trap
+  _div0_trap
   BX      lr
 
 SVC39_Handler:
-  unalign_notrap
+  _unalign_notrap
   BX      lr
 
 SVC40_Handler:
-  unalign_trap
+  _unalign_trap
   BX      lr
 
 SVC41_Handler:
-  app_access_STIR
+  _app_access_STIR
   BX      lr
 
 SVC42_Handler:
-  exit_nested_irqs_on_return
+  _exit_nested_irqs_on_return
   BX      lr
 
 SVC43_Handler:
-  set_UsageFault_prio 
+  _set_UsageFault_prio 
   BX      lr
 
 SVC44_Handler:
-  set_MemMan_fault_prio
+  _set_MemMan_fault_prio
   BX      lr
 
 SVC45_Handler:
-  set_SVC_prio
+  _set_SVC_prio
   BX      lr
 
 SVC46_Handler:
-  set_SYSTICK_prio
+  _set_SYSTICK_prio
   BX      lr
 
 SVC47_Handler:
-  set_PendSV_prio
+  _set_PendSV_prio
   BX      lr
 
 SVC48_Handler:
-  enable_UsageFault
+  _enable_UsageFault
   BX      lr
 
 SVC49_Handler:
-  enable_BusFault
+  _enable_BusFault
   BX      lr
 
 SVC50_Handler:
-  enable_MemMan_fault
+  _enable_MemMan_fault
   BX      lr
 
 SVC51_Handler:
-  disable_UsageFault
+  _disable_UsageFault
   BX      lr
 
 SVC52_Handler:
-  disable_BusFault
+  _disable_BusFault
   BX      lr
 
 SVC53_Handler:
-  disable_MemMan_fault
+  _disable_MemMan_fault
   BX      lr
 
 SVC54_Handler:
-  is_SVC_pending
+  _is_SVC_pending
   BX      lr
 
 SVC55_Handler:
-  is_BusFault_pending
+  _is_BusFault_pending
   BX      lr
 
 SVC56_Handler:
-  is_MemMan_fault_pending
+  _is_MemMan_fault_pending
   BX      lr
 
 SVC57_Handler:
-  is_UsageFault_pending
+  _is_UsageFault_pending
   BX      lr
 
 SVC58_Handler:
-  is_SYSTICK_active
+  _is_SYSTICK_active
   BX      lr
 
 SVC59_Handler:
-  is_PendSV_active
+  _is_PendSV_active
   BX      lr
 
 SVC60_Handler:
-  is_DBGMon_active
+  _is_DBGMon_active
   BX      lr
 
 SVC61_Handler:
-  is_SVC_active
+  _is_SVC_active
   BX      lr
 
 SVC62_Handler:
-  is_UsageFault_active
+  _is_UsageFault_active
   BX      lr
 
 SVC63_Handler:
-  is_BusFault_active
+  _is_BusFault_active
   BX      lr
 
 SVC64_Handler:
-  is_MemMan_fault_active
+  _is_MemMan_fault_active
   BX      lr
 
 SVC65_Handler:
-  div_by0_UsageFault
+  _div_by0_UsageFault
   BX      lr
 
 SVC66_Handler:
-  unalignement_UsageFault
+  _unalignement_UsageFault
   BX      lr
 
 SVC67_Handler:
-  coprocessor_UsageFault
+  _coprocessor_UsageFault
   BX      lr
 
 SVC68_Handler:
-  invPC_UsageFault
+  _invPC_UsageFault
   BX      lr
 
 SVC69_Handler:
-  invEPSR_UsageFault
+  _invEPSR_UsageFault
   BX      lr
 
 SVC70_Handler:
-  BFAR_valid_addr
+  _BFAR_valid_addr
   BX      lr
 
 SVC71_Handler:
-  FP_LazyState_BusFault
+  _FP_LazyState_BusFault
   BX      lr
 
 SVC72_Handler:
-  push_BusFault
+  _push_BusFault
   BX      lr
 
 SVC73_Handler:
-  pop_BusFault
+  _pop_BusFault
   BX      lr
 
 SVC74_Handler:
-  imprecise_BusFault
+  _imprecise_BusFault
   BX      lr
 
 SVC75_Handler:
-  precise_DBus_error
+  _precise_DBus_error
   BX      lr
 
 SVC76_Handler:
-  IBus_error
+  _IBus_error
   BX      lr
 
 SVC77_Handler:
-  MMAR_valid_addr
+  _MMAR_valid_addr
   BX      lr
 
 SVC78_Handler:
-  FP_LazyState_MemMan_fault
+  _FP_LazyState_MemMan_fault
   BX      lr
 
 SVC79_Handler:
-  push_MemMan_fault
+  _push_MemMan_fault
   BX      lr
 
 SVC80_Handler:
-  pop_MemMan_fault
+  _pop_MemMan_fault
   BX      lr
 
 SVC81_Handler:
-  DataAccess_MemMan_fault
+  _DataAccess_MemMan_fault
   BX      lr
 
 SVC82_Handler:
-  ExecNot_section_MemMan_fault
+  _ExecNot_section_MemMan_fault
   BX      lr
 
 SVC83_Handler:
-  forced_HardFault
+  _forced_HardFault
   BX      lr
 
 SVC84_Handler:
-  push_MemMan_fault
+  _push_MemMan_fault
   BX      lr
 
 SVC85_Handler:
-  vect_table_HardFault
+  _vect_table_HardFault
   BX      lr
 
 SVC86_Handler:
-  get_MemManFault_addr
+  _get_MemManFault_addr
   BX      lr
 
 SVC87_Handler:
-  get_BusFault_addr
+  _get_BusFault_addr
   BX      lr
 
 SVC88_Handler:
-  get_AuxFault_addr
+  _get_AuxFault_addr
   BX      lr
 
 SVC89_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC90_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC91_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC92_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC93_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC94_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC95_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC96_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC97_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC98_Handler:
-  unassigned
+  NOP
   BX      lr
 
 SVC99_Handler:
-  unassigned
+  NOP
   BX      lr
 .endm
+

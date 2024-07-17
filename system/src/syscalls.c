@@ -69,7 +69,7 @@
 #define SVC_NUM(N) "SVC    #" #N "\t\n"
 
 // Define the SVC call macro returns uint8_t
-#define SVC_CALL(N, result)             \
+#define SVC_CALL_RET(N, result)             \
   __asm__ volatile (            \
     SVC_NUM(N)                  \
     "MOV    %[result], r0\t\n"  \
@@ -78,53 +78,39 @@
     : "memory"                  \
   );
 
+#define SVC_CALL(N)             \
+  __asm__ volatile (            \
+    SVC_NUM(N)                  \
+    :                           \
+    :                           \
+    : "memory"                  \
+  );
+
+/* @-------NVIC--------@ */
+
 /**
  * @brief Enable an interrupt in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
- * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_enable_irq(uint8_t IRQ_NUM)
-{
-  uint8_t result;
-  SVC_CALL(0, result);
-  return result;
-}
+void NVIC_enable_irq(uint8_t IRQ_NUM){ SVC_CALL(0U); }
 
 /**
  * @brief Disable an interrupt in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
- * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_disable_irq(uint8_t IRQ_NUM)
-{
-  uint8_t result;
-  SVC_CALL(1, result);
-  return result;
-}
+void NVIC_disable_irq(uint8_t IRQ_NUM){ SVC_CALL(1U); }
 
 /**
  * @brief Set an interrupt as pending in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
- * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_set_pend_irq(uint8_t IRQ_NUM)
-{
-    uint8_t result;
-  SVC_CALL(2, result);
-  return result;
-}
+void NVIC_set_pend_irq(uint8_t IRQ_NUM){ SVC_CALL(2U); }
 
 /**
  * @brief Clears an interrupt from pending list in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
- * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_clear_pend_irq(uint8_t IRQ_NUM)
-{
-  uint8_t result;
-  SVC_CALL(3, result);
-  return result;
-}
+void NVIC_clear_pend_irq(uint8_t IRQ_NUM){ SVC_CALL(3U); }
 
 /**
  * @brief Check if an interrupt is active in NVIC using SVC syscall.
@@ -134,7 +120,7 @@ uint8_t NVIC_clear_pend_irq(uint8_t IRQ_NUM)
 uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM)
 {
   uint8_t result;
-  SVC_CALL(4, result);
+  SVC_CALL_RET(4U, result);
   return result;
 }
 
@@ -144,12 +130,7 @@ uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM)
  * @param PRIO The priority to assign to the interrupt.
  * @return Returns 0 upon successful execution of the syscall.
  */
-uint8_t NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO)
-{
-    uint8_t result;
-  SVC_CALL(5, result);
-  return result;
-}
+void NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO){ SVC_CALL(5U); }
 
 /**
  * @brief Get the priority of an interrupt NVIC using SVC syscall.
@@ -158,22 +139,18 @@ uint8_t NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO)
  */
 uint8_t NVIC_get_prio_irq(uint8_t IRQ_NUM)
 {
-    uint8_t result;
-  SVC_CALL(6, result);
+  uint8_t result;
+  SVC_CALL_RET(6U, result);
   return result;
 }
 
 /**
  * @brief Triggers an interrupt of the IRQ specified in IRQ_NUM thru software
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
- * @return Returns the priority of the interrupt
  */   
-uint8_t NVIC_soft_trigger_irq(uint8_t IRQ_NUM)
-{
-  uint8_t result;
-  SVC_CALL(7, result);
-  return result;
-}
+void NVIC_soft_trigger_irq(uint8_t IRQ_NUM){ SVC_CALL(7U); }
+
+/* @-------Memory management--------@ */
 
 /**
  * @brief Expand the APP process heap towards the top
@@ -181,10 +158,10 @@ uint8_t NVIC_soft_trigger_irq(uint8_t IRQ_NUM)
  * @return Returns the new pointer address
  * @return returns 0 ((void*)(0x0)) if failed to allocate SRAM
  */   
-void *sbrk(size_t increment)
+uint32_t *sbrk(size_t increment)
 {
-  void *result;
-  SVC_CALL(8, result);
+  uint32_t *result;
+  SVC_CALL_RET(8U, result);
   return result;
 }
 
@@ -193,11 +170,645 @@ void *sbrk(size_t increment)
  * @param decrement Ammount of memory to deallocate
  * @return Returns the new pointer address
  * @return returns 0 ((void*)(0x0)) if failed to free SRAM
- */   
-void *sbrk_free(size_t decrement)
+ */
+uint32_t *sbrk_free(size_t decrement)
 {
-  void *result;
-  SVC_CALL(9, result);
+  uint32_t *result;
+  SVC_CALL_RET(9U, result);
   return result;
 }
 
+
+/* @-------System control--------@ */
+
+/**
+ * @brief 
+ * @return 
+ */   
+void enable_outoforder_exec(){ SVC_CALL(14U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void disable_outoforder_exec(){ SVC_CALL(15U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void get_CPUID(){ SVC_CALL(16U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void NMI_set_pend(){ SVC_CALL(17U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void PendSV_set_pend(){ SVC_CALL(18U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void PendSV_clear_pend(){ SVC_CALL(19U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SYSTICK_set_pend(){ SVC_CALL(20U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SYSTICK_clear_pend(){ SVC_CALL(21U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SYSTICK_check_pend(){ SVC_CALL(22U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void ISR_check_pend(){ SVC_CALL(23U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split16_0(){ SVC_CALL(24U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split8_2(){ SVC_CALL(25U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split4_4(){ SVC_CALL(26U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split2_8(){ SVC_CALL(27U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void prio_set_split0_16(){ SVC_CALL(28U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void RESET_request(){ SVC_CALL(29U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void SEV_on_pend(){ SVC_CALL(30U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void sleep_is_sleep_deep(){ SVC_CALL(31U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void sleep_on_exit(){ SVC_CALL(32U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void Stack_align4bytes(){ SVC_CALL(33U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void Stack_align8bytes(){ SVC_CALL(34U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void NMI_HardF_dis_fault_handling(){ SVC_CALL(35U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void NMI_HardF_en_fault_handling(){ SVC_CALL(36U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void DIV0_notrap(){ SVC_CALL(37U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void DIV0_trap(){ SVC_CALL(38U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void unalign_NTrap(){ SVC_CALL(39U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void unalign_Trap(){ SVC_CALL(40U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void APP_access_STIR(){ SVC_CALL(41U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void exit_nested_IRQs_on_ret(){ SVC_CALL(42U); }
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_UsageFault_prio(uint8_t prio){ SVC_CALL(43U); }
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_MemMan_fault_prio(uint8_t prio){ SVC_CALL(44U); }
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_SVC_prio(uint8_t prio){ SVC_CALL(45U); }
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_SYSTICK_prio(uint8_t prio){ SVC_CALL(46U); }
+
+/**
+ * @brief 
+ * @param prio 
+ * @return 
+ */   
+void Set_PendSV_prio(uint8_t prio){ SVC_CALL(47U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void en_UsageFault(){ SVC_CALL(48U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void en_BusFault(){ SVC_CALL(49U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void en_MemMan_fault(){ SVC_CALL(50U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void dis_UsageFault(){ SVC_CALL(51U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void dis_BusFault(){ SVC_CALL(52U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+void dis_MemMan_fault(){ SVC_CALL(53U); }
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_SVC_pend()
+{
+  uint8_t result;
+  SVC_CALL(54U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_BusFault_pend()
+{
+  uint8_t result;
+  SVC_CALL(55U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_MemMan_fault_pend()
+{
+  uint8_t result;
+  SVC_CALL(56U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_UsageFault_pend()
+{
+  uint8_t result;
+  SVC_CALL(57U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_SYSTICK_actv()
+{
+  uint8_t result;
+  SVC_CALL(58U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_PendSV_actv()
+{
+  uint8_t result;
+  SVC_CALL(59U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_DBGMon_actv()
+{
+  uint8_t result;
+  SVC_CALL(60U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_SVC_actv()
+{
+  uint8_t result;
+  SVC_CALL(61U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_UsageFault_actv()
+{
+  uint8_t result;
+  SVC_CALL(62U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_BusFault_active()
+{
+  uint8_t result;
+  SVC_CALL(63U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t is_MemMan_fault_active()
+{
+  uint8_t result;
+  SVC_CALL(64U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t div_by0_UsageFault()
+{
+  uint8_t result;
+  SVC_CALL(65U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t unalignement_UsageFault()
+{
+  uint8_t result;
+  SVC_CALL(66U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t coprocessor_UsageFault()
+{
+  uint8_t result;
+  SVC_CALL(67U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t invPC_UsageFault()
+{
+  uint8_t result;
+  SVC_CALL(68U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t invEPSR_UsageFault()
+{
+  uint8_t result;
+  SVC_CALL(69U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t BFAR_valid_addr()
+{
+  uint8_t result;
+  SVC_CALL(70U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t FP_LazyState_BusFault()
+{
+  uint8_t result;
+  SVC_CALL(71U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t push_BusFault()
+{
+  uint8_t result;
+  SVC_CALL(72U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t pop_BusFault()
+{
+  uint8_t result;
+  SVC_CALL(73U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t imprecise_BusFault()
+{
+  uint8_t result;
+  SVC_CALL(74U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t precise_DBus_error()
+{
+  uint8_t result;
+  SVC_CALL(75U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t IBus_error()
+{
+  uint8_t result;
+  SVC_CALL(76U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t MMAR_valid_addr()
+{
+  uint8_t result;
+  SVC_CALL(77U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t FP_LazyState_MemMan_fault()
+{
+  uint8_t result;
+  SVC_CALL(78U);
+  return result;
+}
+
+/**
+ * @brief 
+
+
+ * @return 
+ */   
+uint8_t push_MemMan_fault()
+{
+  uint8_t result;
+  SVC_CALL(79U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t pop_MemMan_fault()
+{
+  uint8_t result;
+  SVC_CALL(80U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t DataAccess_MemMan_fault()
+{
+  uint8_t result;
+  SVC_CALL(81U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t ExecNot_section_MemMan_fault()
+{
+  uint8_t result;
+  SVC_CALL(82U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t forced_HardFault()
+{
+  uint8_t result;
+  SVC_CALL(83U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t push_MemMan_fault()
+{
+  uint8_t result;
+  SVC_CALL(84U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint8_t _vect_table_HardFault()
+{
+  uint32_t result;
+  SVC_CALL(85U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint32_t *_get_MemManFault_addr()
+{
+  uint32_t *result;
+  SVC_CALL(86U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint32_t *get_BusFault_addr()
+{
+  uint32_t *result;
+  SVC_CALL(87U);
+  return result;
+}
+
+/**
+ * @brief 
+ * @return 
+ */   
+uint32_t *_get_AuxFault_addr()
+{
+  uint32_t *result;
+  SVC_CALL(87U);
+  return result;
+}
