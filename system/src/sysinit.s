@@ -32,6 +32,310 @@
 .include "include.s"
 
 
+
+@----------------------------------------------
+// system interrupt vector table for stm32F401xx
+  .section .isr_vectors, "a", %progbits
+  .type  g_pfnVectors, %object
+  .extern _reset_handler
+  .extern _default_handler
+@----------------------------------------------
+ 
+g_pfnVectors:
+  .word  _ekstack     @ end of kernel stack (lowest address)  
+  .word  _reset_handler @ initial address of PC
+  .word  NMI_Handler
+  .word  HardFault_Handler
+  .word  MemManage_Handler
+  .word  BusFault_Handler
+  .word  UsageFault_Handler
+  .word  0
+  .word  0
+  .word  0
+  .word  0
+  .word  SVC_Handler
+  .word  DebugMon_Handler
+  .word  0
+  .word  PendSV_Handler
+  .word  SysTick_Handler
+  
+  /* External Interrupts */
+  .word     WWDG_IRQHandler
+  .word     PVD_IRQHandler
+  .word     TAMP_STAMP_IRQHandler
+  .word     RTC_WKUP_IRQHandler
+  .word     FLASH_IRQHandler                  
+  .word     RCC_IRQHandler                    
+  .word     EXTI0_IRQHandler
+  .word     EXTI1_IRQHandler 
+  .word     EXTI2_IRQHandler 
+  .word     EXTI3_IRQHandler 
+  .word     EXTI4_IRQHandler 
+  .word     DMA1_Stream0_IRQHandler 
+  .word     DMA1_Stream1_IRQHandler 
+  .word     DMA1_Stream2_IRQHandler 
+  .word     DMA1_Stream3_IRQHandler 
+  .word     DMA1_Stream4_IRQHandler 
+  .word     DMA1_Stream5_IRQHandler 
+  .word     DMA1_Stream6_IRQHandler 
+  .word     ADC_IRQHandler
+  .word     0               				  
+  .word     0              					  
+  .word     0                                 
+  .word     0                                 
+  .word     EXTI9_5_IRQHandler
+  .word     TIM1_BRK_TIM9_IRQHandler
+  .word     TIM1_UP_TIM10_IRQHandler
+  .word     TIM1_TRG_COM_TIM11_IRQHandler
+  .word     TIM1_CC_IRQHandler
+  .word     TIM2_IRQHandler
+  .word     TIM3_IRQHandler
+  .word     TIM4_IRQHandler
+  .word     I2C1_EV_IRQHandler
+  .word     I2C1_ER_IRQHandler
+  .word     I2C2_EV_IRQHandler
+  .word     I2C2_ER_IRQHandler
+  .word     SPI1_IRQHandler
+  .word     SPI2_IRQHandler
+  .word     USART1_IRQHandler
+  .word     USART2_IRQHandler
+  .word     0               				  
+  .word     EXTI15_10_IRQHandler
+  .word     RTC_Alarm_IRQHandler
+  .word     OTG_FS_WKUP_IRQHandler
+  .word     0
+  .word     0
+  .word     0
+  .word     0
+  .word     DMA1_Stream7_IRQHandler
+  .word     0           
+  .word     SDIO_IRQHandler
+  .word     TIM5_IRQHandler
+  .word     SPI3_IRQHandler
+  .word     0
+  .word     0
+  .word     0
+  .word     0
+  .word     DMA2_Stream0_IRQHandler
+  .word     DMA2_Stream1_IRQHandler
+  .word     DMA2_Stream2_IRQHandler
+  .word     DMA2_Stream3_IRQHandler
+  .word     DMA2_Stream4_IRQHandler
+  .word     0		  
+  .word     0	  
+  .word     0	  
+  .word     0	  
+  .word     0	  
+  .word     0	  
+  .word     OTG_FS_IRQHandler
+  .word     DMA2_Stream5_IRQHandler 
+  .word     DMA2_Stream6_IRQHandler 
+  .word     DMA2_Stream7_IRQHandler 
+  .word     USART6_IRQHandler
+  .word     I2C3_EV_IRQHandler
+  .word     I2C3_ER_IRQHandler
+  .word     0
+  .word     0
+  .word     0
+  .word     0
+  .word     0
+  .word     0
+  .word     0
+  .word     FPU_IRQHandler
+  .word     0
+  .word     0
+  .word     SPI4_IRQHandler
+
+  .size  g_pfnVectors, .-g_pfnVectors
+
+@  isr vectors will be overrided by _default_handler or by a stronger definition of the isr 
+
+  .weak      NMI_Handler
+
+  .weak      HardFault_Handler
+
+  .weak      MemManage_Handler
+
+  .weak      BusFault_Handler
+
+  .weak      UsageFault_Handler
+
+  .weak      SVC_Handler
+
+  .weak      DebugMon_Handler
+
+  .weak      PendSV_Handler
+
+  .weak      SysTick_Handler
+
+  .weak      WWDG_IRQHandler
+  .thumb_set WWDG_IRQHandler, _default_handler
+                
+  .weak      PVD_IRQHandler
+  .thumb_set PVD_IRQHandler, _default_handler
+            
+  .weak      TAMP_STAMP_IRQHandler
+  .thumb_set TAMP_STAMP_IRQHandler, _default_handler
+          
+  .weak      RTC_WKUP_IRQHandler
+  .thumb_set RTC_WKUP_IRQHandler, _default_handler
+          
+  .weak      FLASH_IRQHandler
+  .thumb_set FLASH_IRQHandler, _default_handler
+                
+  .weak      RCC_IRQHandler
+  .thumb_set RCC_IRQHandler, _default_handler
+                
+  .weak      EXTI0_IRQHandler
+  .thumb_set EXTI0_IRQHandler, _default_handler
+                
+  .weak      EXTI1_IRQHandler
+  .thumb_set EXTI1_IRQHandler, _default_handler
+                  
+  .weak      EXTI2_IRQHandler
+  .thumb_set EXTI2_IRQHandler, _default_handler
+              
+  .weak      EXTI3_IRQHandler
+  .thumb_set EXTI3_IRQHandler, _default_handler
+                      
+  .weak      EXTI4_IRQHandler
+  .thumb_set EXTI4_IRQHandler, _default_handler
+                
+  .weak      DMA1_Stream0_IRQHandler
+  .thumb_set DMA1_Stream0_IRQHandler, _default_handler
+      
+  .weak      DMA1_Stream1_IRQHandler
+  .thumb_set DMA1_Stream1_IRQHandler, _default_handler
+                
+  .weak      DMA1_Stream2_IRQHandler
+  .thumb_set DMA1_Stream2_IRQHandler, _default_handler
+                
+  .weak      DMA1_Stream3_IRQHandler
+  .thumb_set DMA1_Stream3_IRQHandler, _default_handler
+              
+  .weak      DMA1_Stream4_IRQHandler
+  .thumb_set DMA1_Stream4_IRQHandler, _default_handler
+                
+  .weak      DMA1_Stream5_IRQHandler
+  .thumb_set DMA1_Stream5_IRQHandler, _default_handler
+                
+  .weak      DMA1_Stream6_IRQHandler
+  .thumb_set DMA1_Stream6_IRQHandler, _default_handler
+                
+  .weak      ADC_IRQHandler
+  .thumb_set ADC_IRQHandler, _default_handler
+          
+  .weak      EXTI9_5_IRQHandler
+  .thumb_set EXTI9_5_IRQHandler, _default_handler
+          
+  .weak      TIM1_BRK_TIM9_IRQHandler
+  .thumb_set TIM1_BRK_TIM9_IRQHandler, _default_handler
+          
+  .weak      TIM1_UP_TIM10_IRQHandler
+  .thumb_set TIM1_UP_TIM10_IRQHandler, _default_handler
+    
+  .weak      TIM1_TRG_COM_TIM11_IRQHandler
+  .thumb_set TIM1_TRG_COM_TIM11_IRQHandler, _default_handler
+    
+  .weak      TIM1_CC_IRQHandler
+  .thumb_set TIM1_CC_IRQHandler, _default_handler
+                
+  .weak      TIM2_IRQHandler
+  .thumb_set TIM2_IRQHandler, _default_handler
+                
+  .weak      TIM3_IRQHandler
+  .thumb_set TIM3_IRQHandler, _default_handler
+                
+  .weak      TIM4_IRQHandler
+  .thumb_set TIM4_IRQHandler, _default_handler
+                
+  .weak      I2C1_EV_IRQHandler
+  .thumb_set I2C1_EV_IRQHandler, _default_handler
+                  
+  .weak      I2C1_ER_IRQHandler
+  .thumb_set I2C1_ER_IRQHandler, _default_handler
+                  
+  .weak      I2C2_EV_IRQHandler
+  .thumb_set I2C2_EV_IRQHandler, _default_handler
+                
+  .weak      I2C2_ER_IRQHandler
+  .thumb_set I2C2_ER_IRQHandler, _default_handler
+                        
+  .weak      SPI1_IRQHandler
+  .thumb_set SPI1_IRQHandler, _default_handler
+                      
+  .weak      SPI2_IRQHandler
+  .thumb_set SPI2_IRQHandler, _default_handler
+                
+  .weak      USART1_IRQHandler
+  .thumb_set USART1_IRQHandler, _default_handler
+                  
+  .weak      USART2_IRQHandler
+  .thumb_set USART2_IRQHandler, _default_handler
+
+  .weak      EXTI15_10_IRQHandler
+  .thumb_set EXTI15_10_IRQHandler, _default_handler
+
+  .weak      RTC_Alarm_IRQHandler
+  .thumb_set RTC_Alarm_IRQHandler, _default_handler
+          
+  .weak      OTG_FS_WKUP_IRQHandler
+  .thumb_set OTG_FS_WKUP_IRQHandler, _default_handler
+          
+  .weak      DMA1_Stream7_IRQHandler
+  .thumb_set DMA1_Stream7_IRQHandler, _default_handler
+                  
+  .weak      SDIO_IRQHandler
+  .thumb_set SDIO_IRQHandler, _default_handler
+                  
+  .weak      TIM5_IRQHandler
+  .thumb_set TIM5_IRQHandler, _default_handler
+                  
+  .weak      SPI3_IRQHandler
+  .thumb_set SPI3_IRQHandler, _default_handler
+                  
+  .weak      DMA2_Stream0_IRQHandler
+  .thumb_set DMA2_Stream0_IRQHandler, _default_handler
+            
+  .weak      DMA2_Stream1_IRQHandler
+  .thumb_set DMA2_Stream1_IRQHandler, _default_handler
+                
+  .weak      DMA2_Stream2_IRQHandler
+  .thumb_set DMA2_Stream2_IRQHandler, _default_handler
+          
+  .weak      DMA2_Stream3_IRQHandler
+  .thumb_set DMA2_Stream3_IRQHandler, _default_handler
+          
+  .weak      DMA2_Stream4_IRQHandler
+  .thumb_set DMA2_Stream4_IRQHandler, _default_handler
+          
+  .weak      OTG_FS_IRQHandler
+  .thumb_set OTG_FS_IRQHandler, _default_handler
+                  
+  .weak      DMA2_Stream5_IRQHandler
+  .thumb_set DMA2_Stream5_IRQHandler, _default_handler
+                
+  .weak      DMA2_Stream6_IRQHandler
+  .thumb_set DMA2_Stream6_IRQHandler, _default_handler
+                
+  .weak      DMA2_Stream7_IRQHandler
+  .thumb_set DMA2_Stream7_IRQHandler, _default_handler
+                
+  .weak      USART6_IRQHandler
+  .thumb_set USART6_IRQHandler, _default_handler
+
+  .weak      I2C3_EV_IRQHandler
+  .thumb_set I2C3_EV_IRQHandler, _default_handler
+
+  .weak      I2C3_ER_IRQHandler   
+  .thumb_set I2C3_ER_IRQHandler, _default_handler
+
+  .weak      FPU_IRQHandler
+  .thumb_set FPU_IRQHandler, _default_handler
+
+  .weak      SPI4_IRQHandler
+  .thumb_set SPI4_IRQHandler, _default_handlers
+
 @----------------------------------------------
 @ Default Handler Section
 .section .text.default_handler, "ax", %progbits
@@ -67,22 +371,22 @@ _reset_handler:
   LDR     r0, =_sikdata
   LDR     r1, =_skdata
   LDR     r2, =_ekdata
-  .kdata_copy:
+  1:
     LDR     r3, [r0], #4        @ Load word from .kdata Flash section
     CMP     r1, r2
     IT      NE
     STRNE   r3, [r1], #4        @ Store word in .kdata SRAM section
-    BNE     .kdata_copy
+    BNE     1f
 
   @ Zero out .kbss section in SRAM
   LDR     r0, =_skbss
   LDR     r1, =_ekbss
   MOV     r2, #0
-  .kbss_zero:
+  2:
     CMP     r0, r1
     ITT     NE
     STRNE   r2, [r0], #4
-    BNE     .kbss_zero
+    BNE     2f
 
   @ System initialization
   BL      _sysinit
@@ -91,22 +395,22 @@ _reset_handler:
   LDR     r0, =_sidata
   LDR     r1, =_sdata
   LDR     r2, =_edata
-  .data_copy:
+  3:
     LDR     r3, [r0], #4        @ Load word from .data Flash section
     CMP     r1, r2
     IT      NE
     STRNE   r3, [r1], #4        @ Store word in .data SRAM section
-    BNE     .data_copy
+    BNE     3f
   
 	@ Zero out .bss section in SRAM
   LDR     r0, =_sbss
   LDR     r1, =_ebss
   MOV     r2, #0
-  .bss_zero:
+  4:
     CMP     r0, r1
     ITT     NE
     STRNE   r2, [r0], #4
-    BNE     .bss_zero
+    BNE     4f
 
   @ enable interrupts with configurable priority levels
   CPSIE   I
@@ -193,18 +497,18 @@ _SYSTICK_config:
 _RCC_config:
   LDR     r0, =RCC_BASE
 @ Enable the high speed internal osciallator
-.HSI_enable:
+1:
   LDR     r1, [r0]        @ RCC_CR
   ORR     r1, r1, #0b01
   STR     r1, [r0]        @ RCC_CR
   @ Wait for the high speed internal oscillator to be anabled
-.HSI_wait:
+2:
   LDR     r1, [r0]        @ RCC_CR
   TST     r1, #0b10          @ use previously shifted mask to check if HSIRDY
-  BEQ     .HSI_wait
+  BEQ     2f
 
 @ Configure then enable the Phase locked loop
-.PLL_enable:
+3:
   @ Configure PLL
   LDR     r1, [r0, #0x04] @ RCC_PLLCFGR
   ORR     r1, r1, #16     @ PLLM prescaler = 16
@@ -222,25 +526,25 @@ _RCC_config:
   ORR     r1, r1, r2
   STR     r1, [r0]        @ RCC_CR
   LSL     r2, r2, #1      @ make the mask ready for the next op
-.PLL_wait:
+4:
   LDR     r1, [r0]        @ RCC_CR
   TST     r1, r2          @ use previously shifted mask to check if PLLRDY
-  BEQ     .PLL_wait
+  BEQ     4f
 
 @ Set PLL as sysclk input thru the provided multiplexer
-.SYSCLK_config:
+5:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   BIC     r1, r1, #0b11      @ clear the bits
   ORR     r1, r1, #0b10
   STR     r1, [r0, #0x08] @ PLL_CFGR
   @ Wait for the multiplexer to select the PLL as SYSCLK input source
-.SYSCLK_wait:
+6:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   TST     r1, #0b100
-  BEQ     .SYSCLK_wait
+  BEQ     6f
 
 @ Set AHB APB1 APB2 prescalers
-.BUS_prescaler_config:
+7:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   MOVW    r2, #0b1111     
   MOVW    r2, #0xE0F0     @ clear HPRE and PPRE2 bits (AHB & APB2 prescaler bits)
@@ -250,21 +554,21 @@ _RCC_config:
   STR     r1, [r0, #0x08] @ PLL_CFGR
 
 @ enable rcc interrupts
-.RCC_interrupt_config:
+8:
   LDR     r1, [r0, #0x0C] @ RCC_CIR
   MOVW    r2, #(0b111111 << 8)  @ enable all RCC interrupts
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x0C] @ RCC_CIR
 
 @ Enable AHB1 essencial peripherals clocks
-.AHB1_enable_periph_clks:
+9:
   LDR     r1, [r0, #0x30]   @ RCC_AHB1ENR
   MOVW    r2, #0b11         @ enable GPIOA GPIOB 
   MOVT    r2, #(0b11 << 5)  @ enable DMA1 DMA2
   ORR     r1, r1, r2
   LDR     r1, [r0, #0x30]   @ RCC_AHB1ENR
 @ Enable APB1 essencial peripheral clocks
-.APB1_enable_periph_clks:
+10:
   LDR     r1, [r0, #0x40]   @ RCC_APB1ENR
   MOVW    r2, #0b1001       @ enable TIM2 TIM5
   MOVT    r2, #0x1000       @ enable PWR interface
@@ -337,7 +641,7 @@ _FLASH_config:
   LDR     r0, =FLASH_BASE
 @ reset & enable caches, enable frefetch
 @ Set latency at 2ws for 84mhz AHB clock
-.FLASH_access_control:
+1:
   LDR     r1, [r0]
   ORR     r1, r1, #0b11   @ reset both instruction and data caches
   STR     r1, [r0]        @ save changes
@@ -345,7 +649,7 @@ _FLASH_config:
   ORR     r1, r1, r2
   STR     r1, [r0]        @ save changes
 
-.FLASH_cr_optcr_config:
+2:
   @ Unlock the FLASH_CR
   LDR     r1, =FLASH_KEY1
   STR     r1, [r0, #0x04]     @ store key 1
@@ -428,14 +732,14 @@ _MPU_config:
   LDR     r0, =MPU_BASE
 @ Check for system's support for MPU
 @ Check support for separate or unified sections
-.MPU_type:
+1:
   LDR     r1, [r0]
   CMP     r2, #0
   IT      EQ
   BXEQ    lr            @ we return to system init
 @ Configure the 8 sections for the system
 @ (macro used is defined in src/common/macros.asm)
-.MPU_sections_config:
+2:
   @ Configure REGION0: 0x00000000 to 0x1FFFFFFF (FLASH for kernel and apps)
   MPU_CONFIG_REGION SECTION0_BASE, 0, SECTION0_MASK
 
@@ -460,7 +764,7 @@ _MPU_config:
   @ Configure REGION7: 0xE0000000 to 0xE00FFFFF (System Peripheral Space)
   MPU_CONFIG_REGION SECTION7_BASE, 7, SECTION7_MASK
 @  Enable background map, enable mpu during NMI AND FAULTS, enable MPU
-.MPU_enable:
+3:
   LDR     r1, [r0, #0x04]       @ MPU_CTRL reg
   ORR     r1, r1, #0b111        @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
