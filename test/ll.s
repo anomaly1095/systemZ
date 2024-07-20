@@ -24,7 +24,8 @@ _start:
 @ example before calling function do: LDR r0, =head_ptrs then offset it by n bytes
 @ n being  multiple of 8
 @  r0: Address of head ptr 
-@  r1: Value to add to linked list
+@  r1: Value to add to linked 
+@ return void
 .global _ll_add_node
 .type _ll_add_node, %function
 
@@ -71,6 +72,7 @@ _start:
 @ example before calling function do: LDR r0, =head_ptrs then offset it by n bytes n being  multiple of 8
 @   r0: Address of head ptr 
 @   r1: Value to remove from linked list
+@ return void
 .macro _ll_rem_node free_function:req
   PUSH    {r0-r3, lr}           @ Save registers and return address
   
@@ -124,4 +126,31 @@ _start:
   @ exit
   5:
     POP     {r0-r3, pc}           @ Restore registers and return
+.endm
+
+@ arg0: address of head node
+@ arg1: value to search
+@ return: address of node if found
+@ return 0(null): if not found
+.macro _ll_search_node
+  PUSH    {r1, r2, lr}   @ Save r1, r2, and lr
+
+1:
+  LDR     r2, [r0], #4   @ Load the value of the data field in r2
+  CMP     r2, r1         @ Compare it with the search value
+  BEQ     2f          @ Branch if found
+
+  LDR     r0, [r0]       @ Load the next_ptr field into r0
+  CMP     r0, #0         @ Check if next_ptr is null
+  BEQ     3f             @ Branch if not found
+
+  B       1b             @ Continue searching
+
+2:
+  POP     {r1, r2, pc}   @ Restore registers and return
+
+3:
+  MOVS    r0, #0         @ Set return value to 0 (null)
+  POP     {r1, r2, pc}   @ Restore registers and return
+
 .endm

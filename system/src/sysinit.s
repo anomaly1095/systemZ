@@ -362,7 +362,7 @@ _reset_handler:
   CPSID   I         @ disable interrupts till end of system initialization
   
   @ check definition in include.asm
-  DIS_OUTOFORDER_EXEC #1
+  DIS_OUTOFORDER_EXEC #0
 
   @ set stack alignement
   BL      stack_align_4
@@ -376,7 +376,7 @@ _reset_handler:
     CMP     r1, r2
     IT      NE
     STRNE   r3, [r1], #4        @ Store word in .kdata SRAM section
-    BNE     1f
+    BNE     1b
 
   @ Zero out .kbss section in SRAM
   LDR     r0, =_skbss
@@ -386,7 +386,7 @@ _reset_handler:
     CMP     r0, r1
     ITT     NE
     STRNE   r2, [r0], #4
-    BNE     2f
+    BNE     2b
 
   @ System initialization
   BL      _sysinit
@@ -400,7 +400,7 @@ _reset_handler:
     CMP     r1, r2
     IT      NE
     STRNE   r3, [r1], #4        @ Store word in .data SRAM section
-    BNE     3f
+    BNE     3b
   
 	@ Zero out .bss section in SRAM
   LDR     r0, =_sbss
@@ -410,7 +410,7 @@ _reset_handler:
     CMP     r0, r1
     ITT     NE
     STRNE   r2, [r0], #4
-    BNE     4f
+    BNE     4b
 
   @ enable interrupts with configurable priority levels
   CPSIE   I
@@ -505,7 +505,7 @@ _RCC_config:
 2:
   LDR     r1, [r0]        @ RCC_CR
   TST     r1, #0b10          @ use previously shifted mask to check if HSIRDY
-  BEQ     2f
+  BEQ     2b
 
 @ Configure then enable the Phase locked loop
 3:
@@ -529,7 +529,7 @@ _RCC_config:
 4:
   LDR     r1, [r0]        @ RCC_CR
   TST     r1, r2          @ use previously shifted mask to check if PLLRDY
-  BEQ     4f
+  BEQ     4b
 
 @ Set PLL as sysclk input thru the provided multiplexer
 5:
@@ -541,7 +541,7 @@ _RCC_config:
 6:
   LDR     r1, [r0, #0x08] @ PLL_CFGR
   TST     r1, #0b100
-  BEQ     6f
+  BEQ     6b
 
 @ Set AHB APB1 APB2 prescalers
 7:

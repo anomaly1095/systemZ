@@ -64,8 +64,9 @@ free_blocks: .word
 @ Pointer to the first free block in kernel heap
 kfree_blocks: .word
 
-@ array of linker list head pointers for each external IRQ (55*4 = 220bytes)
-ll_heads:   .space 220
+@ array of linker list head pointers for each external IRQ
+IRQ_head_nodes:
+  .space  55 * 8  @ Allocate space for 55 head nodes, each 8 bytes
 
 stk_cntrs:
   .short     @ Milliseconds used by systick

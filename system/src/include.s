@@ -231,15 +231,14 @@
   LDR     r0, =ACTLR
   LDR     r1, [r0]
   LDR     r2, =\state
-  CBZ     r2, 2f   @ check if state is 0 (enable)
-  1:
+  CBZ     r2, 1f   @ check if state is 0 (enable)
   @ Disable features: Set bits
   ORR     r1, r1, 0x207 @ mask for disabling features
-  B       3f
-  2:
+  B       2f
+  1:
   @ Enable features: Clear bits
   BIC     r1, r1, 0x207 @ mask for enabling features
-  3:
+  2:
   DSB                 @ Data Synchronization Barrier
   ISB                 @ Instruction Synchronization Barrier
   STR     r1, [r0]    @ write back the modified value to ACTLR
@@ -261,21 +260,17 @@
 /*--------ICSR---------*/
 
 .macro SET_PENDING_BIT bit_mask:req
-  CPSID   I                @ Disable interrupts
   LDR     r0, =ICSR        @ Load the address of ICSR
   LDR     r1, [r0]         @ Load the current value of ICSR
   ORR     r1, r1, #\bit_mask    @ Set the specified pending bit
   STR     r1, [r0]         @ Write back the modified value to ICSR
-  CPSIE   I                @ Enable interrupts
 .endm
 
 .macro CLEAR_PENDING_BIT bit_mask:req
-  CPSID   I                @ Disable interrupts
   LDR     r0, =ICSR        @ Load the address of ICSR
   LDR     r1, [r0]         @ Load the current value of ICSR
   BIC     r1, r1, #\bit_mask    @ Clear the specified pending bit
   STR     r1, [r0]         @ Write back the modified value to ICSR
-  CPSIE   I                @ Enable interrupts
 .endm
 
 .macro CHECK_PENDING_BIT bit_mask:req
@@ -856,7 +851,7 @@
 
   LDR     r2, [r0, #4]          @ Load the value of next_ptr field of the next node
   CBZ     r2, 5f                @ Exit if no more nodes
-  B       1f                    @ Continue loop
+  B       1b                    @ Continue loop
 
 @ remove_head
 2:
@@ -889,6 +884,33 @@
 @ exit
 5:
   POP     {r0-r3, pc}           @ Restore registers and return
+.endm
+
+
+@ arg0: address of head node
+@ arg1: value to search
+@ return: address of node if found
+@ return 0(null): if not found
+.macro _ll_search_node
+  PUSH    {r1, r2, lr}   @ Save r1, r2, and lr
+@ search
+1:
+  LDR     r2, [r0]       @ Load the value of the data field in r2
+  CMP     r2, r1         @ Compare it with the search value
+  BEQ     2f             @ Branch if found
+
+  LDR     r0, [r0, #4]   @ Load the next_ptr field into r0
+  CMP     r0, #0         @ Check if next_ptr is null
+  BEQ     3f             @ Branch if not found
+
+  B       1b             @ Continue searching
+@ return success
+2:
+  POP     {r1, r2, pc}   @ Restore registers and return
+@ return fail
+3:
+  MOVS    r0, #0         @ Set return value to 0 (null)
+  POP     {r1, r2, pc}   @ Restore registers and return
 .endm
 
 
@@ -980,16 +1002,14 @@ _ksbrk_free:
   
   SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
   CMP     r0, r1             @ Compare new system break to end of .kdata
-  BLS     1f             @ If new BRK <= _ekdata, return 0
+  BLS     1f                 @ If new BRK <= _ekdata, return 0
 
   STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
-  CPSIE   i                  @ Enable interrupts (CPSIE i clears PRIMASK)
   BX      lr                 @ Return with the new system break address
 
   1:
     MOVS    r0, #0             @ Return 0 on error
     BX      lr
-
   .align    2
 .size _ksbrk_free, .-_ksbrk_free
 
@@ -1003,11 +1023,11 @@ _ksbrk_free:
 .global memcpy_4
 .type memcpy_4, %function
 memcpy_4:
-    LDR     r3, [r0], #4      @ Load word from src and increment src by 4
-    STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
-    SUBS    r2, r2, #4        @ Decrement length counter by 4
-    BNE     memcpy_4          @ If length is not 0, continue loop
-    BX      lr                @ Return from function
+  LDR     r3, [r0], #4      @ Load word from src and increment src by 4
+  STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
+  SUBS    r2, r2, #4        @ Decrement length counter by 4
+  BNE     memcpy_4          @ If length is not 0, continue loop
+  BX      lr                @ Return from function
   .align    2
   .size memcpy_4, .-memcpy_4
 
@@ -1020,11 +1040,11 @@ memcpy_4:
 .global memcpy_1
 .type memcpy_1, %function
 memcpy_1:
-    LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
-    STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
-    SUBS    r2, r2, #1        @ Decrement length counter by 1
-    BNE     memcpy_1             @ If length is not 0, continue loop
-    BX      lr                @ Return from function
+  LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
+  STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
+  SUBS    r2, r2, #1        @ Decrement length counter by 1
+  BNE     memcpy_1             @ If length is not 0, continue loop
+  BX      lr                @ Return from function
   .align    2
   .size memcpy_1, .-memcpy_1
 
@@ -1043,7 +1063,7 @@ memset_4:
   1:
     STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
     SUBS    r2, r2, #4          @ Decrement length counter by 4
-    BNE     1f               @ If length is not 0, continue loop
+    BNE     1b               @ If length is not 0, continue loop
 
   2:
     BX      lr                  @ Return from function
@@ -1078,7 +1098,7 @@ memzero_4:
   1:
     STR     r3, [r0], #4        @ Store zero to dest and increment dest by 4
     SUBS    r2, r2, #4          @ Decrement length counter by 4
-    BNE     1f                  @ If length is not 0, continue loop
+    BNE     1b                  @ If length is not 0, continue loop
     BX      lr                  @ Return from function
   .align    2
     .size memzero_4, .-memzero_4
@@ -1094,7 +1114,7 @@ memzero_1:
   1:
     STRB    r3, [r0], #1      @ Store zero to dest and increment dest by 1
     SUBS    r2, r2, #1        @ Decrement length counter by 1
-    BNE     1f                @ If length is not 0, continue loop
+    BNE     1b                @ If length is not 0, continue loop
     BX      lr                @ Return from function
   .align    2
     .size memzero_1, .-memzero_1
@@ -1152,6 +1172,54 @@ memcmp_4:
   .align    2
   .size memcmp_4, .-memcmp_4
 
+
+@ This mechanism is used as syscall by user app to add functions
+@ as callbacks to get called when IRQs happen
+@ arg0: Address of Head node of the linked list to add function to 
+@ arg1: Function to call when the IRQ gets called
+.macro _add_callback IRQ_head_node:req func:req
+@ add the function pointer to the linked list and use _malloc not _kmalloc 
+@ for node allocation because this should happen in user space
+  _ll_add_node _malloc
+.endm
+
+@ This mechanism is used as syscall by user app to remove functions
+@ as callbacks to no longer get called when IRQs happen
+@ arg0: Address of Head node of the linked list to remove function from 
+@ arg1: Function to remove from callback list
+.macro _rem_callback IRQ_head_node:req func:req
+@ remove the function pointer from the linked list and use _free not _kfree 
+@ for node deallocation because this should happen in user space
+  _ll_rem_node _free
+.endm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @-----------------------------------------------------
 @-----------------------------------------------------
 @----------------------------------------------------- Syscall list
@@ -1202,9 +1270,11 @@ SVC9_Handler:
   BX      lr
 
 SVC10_Handler:
+  _malloc
   BX      lr
 
 SVC11_Handler:
+  _free
   BX      lr
 
 SVC12_Handler:
@@ -1516,11 +1586,11 @@ SVC88_Handler:
   BX      lr
 
 SVC89_Handler:
-  NOP
+  _add_callback                  @ Call the macro to add the node
   BX      lr
 
 SVC90_Handler:
-  NOP
+  _rem_callback                  @ Expand the macro to remove the node
   BX      lr
 
 SVC91_Handler:
