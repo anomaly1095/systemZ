@@ -690,7 +690,10 @@
   /*--------RCC_CFGR---------*/
 
   /// @param SOURCE Is the source of output in Microcontroller clock output 2
-  /// 0b00: SYSCLK / 0b01: PLLI2S / 0b10: HSE / 0b11: PLL
+  // 00: System clock (SYSCLK) selected
+  // 01: PLLI2S clock selected
+  // 10: HSE oscillator clock selected
+  // 11: PLL clock selected
   #define RCC_MCO2_SRC(SOURCE) \
     do { \
       CLEAR_BITS(RCC_CFGR, 0b11 << 30U); \
@@ -1077,7 +1080,7 @@
   #define RCC_LPEN_SPI4()    SET_BIT(RCC_APB2LPENR, 13U)
   #define RCC_LPEN_SPI1()    SET_BIT(RCC_APB2LPENR, 12U)
   #define RCC_LPEN_SDIO()    SET_BIT(RCC_APB2LPENR, 11U)
-  #define RCC_LPEN_ADC1()    SET_BIT(RCC_APB2LPENELPERSR, 8U)
+  #define RCC_LPEN_ADC1()    SET_BIT(RCC_APB2LPENR, 8U)
   #define RCC_LPEN_USART6()  SET_BIT(RCC_APB2LPENR, 5U)
   #define RCC_LPEN_USART1()  SET_BIT(RCC_APB2LPENR, 4U)
   #define RCC_LPEN_TIM1()    SET_BIT(RCC_APB2LPENR, 0U)

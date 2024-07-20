@@ -40,17 +40,12 @@
 @ data section used by syscalls
 .section .data.system, "aw", %progbits
 
-@ callback array for SYSTICK
-stk_clbk:
-  .word 0x0  @ add the functions to be called by systick here
-  .word 0x0  @ add the functions to be called by systick here
-  .word 0x0  @ add the functions to be called by systick here
-  .word 0x0  @ add the functions to be called by systick here
-
+@ Application Process system break
 p_brk:
-  .word _sheap       @ Application Process system break 
+  .word _sheap 
+@ kernel system break
 k_brk:
-  .word _skheap      @ kernel system break
+  .word _skheap
 
   .align 2
 
@@ -62,6 +57,15 @@ k_brk:
 
 @ uninitialized data section used by syscalls
 .section .bss.system, "aw", %nobits
+
+@ Pointer to the first free block in app heap
+free_blocks: .word
+
+@ Pointer to the first free block in kernel heap
+kfree_blocks: .word
+
+@ array of linker list head pointers for each external IRQ (55*4 = 220bytes)
+ll_heads:   .space 220
 
 stk_cntrs:
   .short     @ Milliseconds used by systick
@@ -82,24 +86,21 @@ last_IRQ:
 
 
 .section .rodata.SVC_handlers, "a", %progbits
+
 @ number of SVC handlers
 .equ NUM_SVC_HANDLERS, 100
+@ Noide size for linked lists: 4 bytes for size and 4 bytes for next pointer
+.equ NODE_SIZE, 8
 
-@ generate N iteerations of extern ofor each SVC_HANDLER
-.macro SVC_HANLERS_EXTERN
-  .rept NUM_SVC_HANDLERS
-  .extern SVC\@_Handler
-  .endr
-.endm
-SVC_HANLERS_EXTERN
-
-@ generate N iterations of extern ofor each SVC_HANDLER
+@ generate NUM_SVC_HANDLERS iterations of extern for each SVC_HANDLER
 .macro SVC_HANDLERS_TABLE
-SVC_Table:
-  .rept NUM_SVC_HANDLERS
-  .word SVC\@_Handler
-  .endr
+  SVC_Table:
+    .rept NUM_SVC_HANDLERS
+    .extern SVC\@_Handler
+    .word SVC\@_Handler
+    .endr
 .endm
+
 SVC_HANDLERS_TABLE
 .align 2
 

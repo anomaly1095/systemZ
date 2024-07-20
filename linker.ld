@@ -63,7 +63,6 @@ k_min_heap = 0x400
 min_stack = 0x400
 min_heap = 0x400
 
-
 SECTIONS
 {
   /*-----------------------------------------------*/
@@ -124,7 +123,8 @@ SECTIONS
   {
     ALIGN(4);
     _skheap = .;
-    . = . + min_kheap;
+    . = . + k_min_heap;
+    assert_kheap = .;
     ALIGN(4);
   } > K_SRAM
 
@@ -132,7 +132,8 @@ SECTIONS
   .kstack (NOLOAD): 
   {
     ALIGN(4);
-    . = . + min_kstack;
+    . = . + k_min_stack;
+    assert_kstack = .;
     ALIGN(4);
   } > K_SRAM
 
@@ -197,6 +198,7 @@ SECTIONS
     ALIGN(4);
     _sheap = .;
     . = . + min_heap;
+    assert_heap = .;
     ALIGN(4);
   } > APP_SRAM
 
@@ -205,10 +207,19 @@ SECTIONS
   {
     ALIGN(4);
     . = . + min_stack;
+    assert_stack = .;
     ALIGN(4);
   } > APP_SRAM
 
   /* Assertions to ensure memory allocations are within limits */
+
+  /* Kernel assertions */
+  assert_kheap <= ORIGIN(K_SRAM) + LENGTH(K_SRAM)
+  assert_kstack <= ORIGIN(K_SRAM) + LENGTH(K_SRAM)
+
+  /* Application assertions */
+  assert_heap <= ORIGIN(APP_SRAM) + LENGTH(APP_SRAM)
+  assert_stack <= ORIGIN(APP_SRAM) + LENGTH(APP_SRAM)
 
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }

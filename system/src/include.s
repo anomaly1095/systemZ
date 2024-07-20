@@ -231,15 +231,15 @@
   LDR     r0, =ACTLR
   LDR     r1, [r0]
   LDR     r2, =\state
-  CBZ     r2, .enable   @ check if state is 0 (enable)
-  .disable:
+  CBZ     r2, 2f   @ check if state is 0 (enable)
+  1:
   @ Disable features: Set bits
   ORR     r1, r1, 0x207 @ mask for disabling features
-  B       .exit
-  .enable:
+  B       3f
+  2:
   @ Enable features: Clear bits
   BIC     r1, r1, 0x207 @ mask for enabling features
-  .exit:
+  3:
   DSB                 @ Data Synchronization Barrier
   ISB                 @ Instruction Synchronization Barrier
   STR     r1, [r0]    @ write back the modified value to ACTLR
@@ -356,29 +356,29 @@
   CMP     r2, #0
   ITT     EQ
   ORREQ   r1, r1, #0x700      @ Set new PRIGROUP bits: 0 groups - 16 subgroups
-  BEQ     .exit
+  BEQ     1f
 
   CMP     r2, #2
   ITT     EQ
   ORREQ   r1, r1, #0x600      @ Set new PRIGROUP bits: 2 groups - 8 subgroups
-  BEQ     .exit
+  BEQ     1f
 
   CMP     r2, #4
   ITT     EQ
   ORREQ   r1, r1, #0x500      @ Set new PRIGROUP bits: 4 groups - 4 subgroups
-  BEQ     .exit
+  BEQ     1f
   
   CMP     r2, #8
   ITT     EQ
   ORREQ   r1, r1, #0x400      @ Set new PRIGROUP bits: 8 groups - 2 subgroups
-  BEQ     .exit
+  BEQ     1f
 
   @ Default: 16 groups - 0 subgroups (no additional MOV needed)
 
-.exit:
-  MOVT    r1, #0x5FA         @ Write key to allow write access to AIRCR
-  STR     r1, [r0]           @ Store modified value back to AIRCR
-  CPSIE   I                  @ Enable interrupts
+  1:
+    MOVT    r1, #0x5FA         @ Write key to allow write access to AIRCR
+    STR     r1, [r0]           @ Store modified value back to AIRCR
+    CPSIE   I                  @ Enable interrupts
 .endm
 
 @ Set new PRIGROUP bits: 0 groups - 16 subgroups
@@ -781,7 +781,120 @@
 
 @-----------------------------------------------------
 @-----------------------------------------------------
-@----------------------------------------------------- Memory management
+@----------------------------------------------------- Linked list functions
+@-----------------------------------------------------
+@-----------------------------------------------------
+
+
+@ brief: Adds new node at the start of the linked list
+@ this function puts new data in the head node in .bss section
+@ and allocates a new node in the heap with malloc and sets old data in new node 
+@ example before calling function do: LDR r0, =head_ptrs then offset it by n bytes
+@ n being multiple of 8
+@  r0: Address of head ptr 
+@  r1: Value to add to linked list
+@   malloc_addr: _malloc or _kmalloc
+.macro _ll_add_node malloc_addr:req
+  PUSH    {r0-r4, lr}          @ Save registers and return address
+
+  LDR     r2, [r0]             @ Load the value of data field from head_ptr
+  LDR     r3, [r0, #4]         @ Load the value of next_ptr field from head_ptr
+
+  CMP     r2, #0x0             @ Check if data field is null
+  IT      EQ                   @ If-Then condition for EQ (Equal)
+  STREQ   r1, [r0]             @ If data field is null, store the new value in head_ptr
+  BEQ     1f                   @ If data was null, exit the function
+
+  PUSH    {r0}                 @ Save the address of head ptr
+  MOVS    r0, #8               @ Move size 8 to r0 (malloc argument)
+  BL      \malloc_addr     @ Call malloc to allocate a new node
+  CMP     r0, #0               @ Check if malloc returned NULL
+  BEQ     1f                   @ If malloc failed, exit the function
+  POP     {r4}                 @ Recover the address of head ptr, set it in r4
+
+  STR     r2, [r0]             @ Store old data in the new node's data field
+  STR     r3, [r0, #4]         @ Store old next_ptr in the new node's next_ptr field
+
+  STR     r1, [r4]             @ Store new data in head_ptr's data field
+  STR     r0, [r4, #4]         @ Store address of new node in head_ptr's next_ptr field
+
+1:
+  POP     {r0-r4, pc}          @ Restore registers and return
+.endm
+
+
+
+@ brief: Removes node from the linked list that has the value in r1
+@ This function iterates over the linked list 
+@   - if head ptr is null it exits 
+@   - if head ptr is the one to remove and no next node we nullify it
+@   - if head ptr is the one to remove and theres a next node we copy next in head and free next from heap
+@   - else we iterate and when found we do the same thing copy next in node to remove and free it 
+@   - if none found we exit
+@ example before calling macro do: LDR r0, =head_ptrs then offset it by n bytes n being  multiple of 8
+@ and set r1 to the data field of node to remove
+@   r0: Address of head ptr 
+@   r1: Value to remove from linked list
+@   free_addr: _free or _kfree
+.macro _ll_rem_node free_addr:req
+  PUSH    {r0-r3, lr}           @ Save registers and return address
+  
+  LDR     r2, [r0]              @ Load the value of data field from head_ptr
+  CBZ     r2, 5f                @ Exit if data field of head pointer is null
+
+  CMP     r2, r1                @ Check if node to remove is the head node
+  BEQ     2f                    @ If head node is the node to remove
+
+@ loop
+1:
+  MOV     r3, r0                @ Save the address of the current node in r3
+  LDR     r0, [r0, #4]          @ Load the value of next_ptr field
+  CBZ     r0, 5f                @ Exit if no more nodes
+  LDR     r2, [r0]              @ Load the data field of the next node
+  CMP     r2, r1                @ Check if data field = data to remove
+  BEQ     3f                    @ Branch if data matches
+
+  LDR     r2, [r0, #4]          @ Load the value of next_ptr field of the next node
+  CBZ     r2, 5f                @ Exit if no more nodes
+  B       1f                    @ Continue loop
+
+@ remove_head
+2:
+  LDR     r2, [r0, #4]          @ Load the value of next_ptr field
+  CBZ     r2, 4f                @ If there's no next node, nullify head
+
+  @ Free the next node and set head node to the next node
+  LDR     r3, [r2]              @ Load the value of data field of next node
+  STR     r3, [r0]              @ Store the data field of next node in head node
+  LDR     r3, [r2, #4]          @ Load the value of next_ptr field of next node
+  STR     r3, [r0, #4]          @ Store the next_ptr field of next node in head node
+  MOV     r0, r2                @ Load the address of next node in r0
+  BL      \free_addr            @ Free the old head node
+  B       5f                    @ Exit
+
+@ remove_node
+3:
+  LDR     r1, [r0, #4]          @ Load the value of next_ptr field of node to remove
+  STR     r1, [r3, #4]          @ Link previous node to the next node
+  MOV     r0, r3                @ Load the address of node to remove in r0
+  BL      \free_addr            @ Free the node
+  B       5f                    @ Exit
+
+@ nullify_head
+4:
+  MOVS    r2, #0                @ Set head node data to 0
+  STR     r2, [r0]
+  STR     r2, [r0, #4]          @ Set head node next_ptr to 0
+
+@ exit
+5:
+  POP     {r0-r3, pc}           @ Restore registers and return
+.endm
+
+
+@-----------------------------------------------------
+@-----------------------------------------------------
+@----------------------------------------------------- Memory management functions
 @-----------------------------------------------------
 @-----------------------------------------------------
 
@@ -799,11 +912,11 @@
   
   ADD     r0, r2, r0          @ Calculate new system break address
   CMP     r0, r1              @ Compare with PSP
-  BGE     .exit                @ Return 0 if failed to allocate
+  BGE     1f                @ Return 0 if failed to allocate
 
   LDR     r2, =p_brk
   STR     r0, [r2]            @ Store the new system break
-  .exit:
+  1:
 .endm
 
 @-----------------------------------
@@ -818,14 +931,14 @@
   LDR     r2, [r2]            @ Load the address of app system break
   
   SUBS    r0, r2, r0          @ Subtract the requested amount of memory from the system break address
-  BLE     .exit                @ Return 0 if error (requested amount exceeds current heap size)
+  BLE     1f                @ Return 0 if error (requested amount exceeds current heap size)
 
   CMP     r0, r1              @ Compare new system break with end of .data
-  BLT     .exit                @ Return 0 if error (new system break is below end of .data)
+  BLT     1f                @ Return 0 if error (new system break is below end of .data)
 
   LDR     r2, =p_brk
   STR     r0, [r2]            @ Store the new system break
-  .exit:
+  1:
 .endm
 
 
@@ -842,16 +955,15 @@ _ksbrk:
   LDR     r2, [r2]           @ Load the address of kernel system break
   ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
   CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
-  BGE     .exit               @ Return 0 if failed to allocate
+  BGE     1f                 @ Return 0 if failed to allocate
 
   LDR     r2, =k_brk
   STR     r0, [r2]           @ Store the value of the process's new system break 
 
-  .exit:
+  1:
     BX      lr
   .align  2
   .size _ksbrk, .-_ksbrk
-
 
 
 @-----------------------------------
@@ -868,13 +980,13 @@ _ksbrk_free:
   
   SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
   CMP     r0, r1             @ Compare new system break to end of .kdata
-  BLS     .error             @ If new BRK <= _ekdata, return 0
+  BLS     1f             @ If new BRK <= _ekdata, return 0
 
   STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
   CPSIE   i                  @ Enable interrupts (CPSIE i clears PRIMASK)
   BX      lr                 @ Return with the new system break address
 
-  .error:
+  1:
     MOVS    r0, #0             @ Return 0 on error
     BX      lr
 
@@ -928,12 +1040,12 @@ memset_4:
   MOV     r3, r1              @ Move the byte value into r3
   ORR     r3, r3, r3, LSL #8  @ Set byte 2
   ORR     r3, r3, r3, LSL #16 @ Set byte 3 and byte 4
-  .loop:
+  1:
     STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
     SUBS    r2, r2, #4          @ Decrement length counter by 4
-    BNE     .loop               @ If length is not 0, continue loop
+    BNE     1f               @ If length is not 0, continue loop
 
-  .exit:
+  2:
     BX      lr                  @ Return from function
   .align    2
   .size memset_4, .-memset_4
@@ -962,14 +1074,12 @@ memset_1:
 .global memzero_4
 .type memzero_4, %function
 memzero_4:
-  MOV     r3, #0             @ Load zero into r3
-  .loop:
-    STR     r3, [r0], #4       @ Store zero to dest and increment dest by 4
-    SUBS    r2, r2, #4         @ Decrement length counter by 4
-    BNE     .loop              @ If length is not 0, continue loop
-
-  .exit:
-    BX      lr                 @ Return from function
+  MOV     r3, #0                @ Load zero into r3
+  1:
+    STR     r3, [r0], #4        @ Store zero to dest and increment dest by 4
+    SUBS    r2, r2, #4          @ Decrement length counter by 4
+    BNE     1f                  @ If length is not 0, continue loop
+    BX      lr                  @ Return from function
   .align    2
     .size memzero_4, .-memzero_4
 
@@ -980,14 +1090,12 @@ memzero_4:
 .global memzero_1
 .type memzero_1, %function
 memzero_1:
-  MOV     r3, #0             @ Load zero into r3
-  .loop:
-    STRB    r3, [r0], #1       @ Store zero to dest and increment dest by 1
-    SUBS    r2, r2, #1         @ Decrement length counter by 1
-    BNE     .loop              @ If length is not 0, continue loop
-
-  .exit:
-    BX      lr                 @ Return from function
+  MOV     r3, #0              @ Load zero into r3
+  1:
+    STRB    r3, [r0], #1      @ Store zero to dest and increment dest by 1
+    SUBS    r2, r2, #1        @ Decrement length counter by 1
+    BNE     1f                @ If length is not 0, continue loop
+    BX      lr                @ Return from function
   .align    2
     .size memzero_1, .-memzero_1
 
@@ -1003,15 +1111,15 @@ memzero_1:
 .global memcmp_1
 .type memcmp_1, %function
 memcmp_1:
-    LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
-    LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
-    CMP     r3, r4         @ Compare bytes
-    BNE     .fail          @ Exit loop if bytes are not equal
-    SUBS    r2, r2, #1     @ Decrement length counter
-    BNE     memcmp_1          @ Loop if length is not zero
-    MOV     r0, #0         @ If all bytes are equal, return 0
-    BX      lr
-  .fail:
+  LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
+  LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
+  CMP     r3, r4         @ Compare bytes
+  BNE     1f          @ Exit loop if bytes are not equal
+  SUBS    r2, r2, #1     @ Decrement length counter
+  BNE     memcmp_1          @ Loop if length is not zero
+  MOV     r0, #0         @ If all bytes are equal, return 0
+  BX      lr
+  1:
     MOV     r0, #1         @ If bytes are not equal, return non-zero
     BX      lr
   .align    2
@@ -1030,20 +1138,25 @@ memcmp_1:
 .global memcmp_4
 .type memcmp_4, %function
 memcmp_4:
-    LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
-    LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
-    CMP     r3, r4         @ Compare words
-    BNE     .fail          @ Exit loop if words are not equal
-    SUBS    r2, r2, #4     @ Decrement length counter by 4
-    BGE     memcmp_4          @ Loop if length is not zero or negative
-    MOV     r0, #0         @ If all words are equal, return 0
-    BX      lr             @ Return from function
-  .fail:
+  LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
+  LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
+  CMP     r3, r4         @ Compare words
+  BNE     1f          @ Exit loop if words are not equal
+  SUBS    r2, r2, #4     @ Decrement length counter by 4
+  BGE     memcmp_4          @ Loop if length is not zero or negative
+  MOV     r0, #0         @ If all words are equal, return 0
+  BX      lr             @ Return from function
+  1:
     MOV     r0, #1         @ If words are not equal, return non-zero
     BX      lr             @ Return from function
   .align    2
   .size memcmp_4, .-memcmp_4
 
+@-----------------------------------------------------
+@-----------------------------------------------------
+@----------------------------------------------------- Syscall list
+@-----------------------------------------------------
+@-----------------------------------------------------
 
 .macro SVC_HANDLERS
 @-------NVIC--------@
@@ -1446,4 +1559,10 @@ SVC99_Handler:
   NOP
   BX      lr
 .endm
+
+@-----------------------------------------------------
+@-----------------------------------------------------
+@----------------------------------------------------- Tasks
+@-----------------------------------------------------
+@-----------------------------------------------------
 

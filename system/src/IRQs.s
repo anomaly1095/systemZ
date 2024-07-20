@@ -112,19 +112,8 @@ SysTick_Handler:
   LDRH    r1, [r0]            @ Load number of milliseconds
   LDR     r1, [r0, #0x02]     @ Load number of seconds
   ADD     r1, r1, #1
-  
-  @ add callbacks (use for os scheduler)
-  PUSH    {r0-r3, lr}
-  LDR     r0, =stk_clbk
-  LDR     r1, [r0]
-  BLX     r1
-  LDR     r1, [r0, #0x04]
-  BLX     r1
-  LDR     r1, [r0, #0x08]
-  BLX     r1
-  LDR     r1, [r0, #0x0C]
-  BLX     r1
-  POP     {r0-r3, lr}
+
+  @ add functions to call (use for os scheduler)
 
   CMP     r1, #1000
   ITT     EQ
