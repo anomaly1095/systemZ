@@ -66,7 +66,7 @@ kfree_blocks: .word
 
 @ array of linker list head pointers for each external IRQ
 IRQ_head_nodes:
-  .space  55 * 8  @ Allocate space for 55 head nodes, each 8 bytes
+  .space  84 * 8  @ Allocate space for 84 entries in the ISRS vector table (only 55 will be valid head nodes)
 
 stk_cntrs:
   .short     @ Milliseconds used by systick
@@ -164,13 +164,13 @@ SVC_HANDLERS_TABLE
   @                     XN = 1    |   AP =  001   |  TEX =  000   |   S =  1    |   C = 0     |   B = 0     |SRD=00000000| SIZE = 19 | ENABLE 
   .equ SECTION7_MASK, (0b1 << 28) | (0b001 << 24) | (0b000 << 19) | (0b1 << 18) | (0b0 << 17) | (0b0 << 16) | (0x0 << 8) | (19 << 1) | 0b1
   
-  @----------------------------- Bit-Band Area of DMA Controller
+  @----------------------------- Bit-Band Area of DMA Controller (optional)
   .equ SECTION6_SIZE, 0x00020000    @ 128KB
   .equ SECTION6_BASE, 0x424C0000
   @                     XN = 1    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 0     |   B = 1     |SRD=00000000| SIZE = 16 | ENABLE 
   .equ SECTION6_MASK, (0b1 << 28) | (0b010 << 24) | (0b000 << 19) | (0b1 << 18) | (0b0 << 17) | (0b1 << 16) | (0x0 << 8) | (16 << 1) | 0b1
   
-  @----------------------------- DMA Controller
+  @----------------------------- DMA Controller (optional)
   .equ SECTION5_SIZE, 0x00001000    @ 4KB
   .equ SECTION5_BASE, 0x40026000
   @                     XN = 1    |   AP =  010   |  TEX =  000   |   S =  1    |   C = 0     |   B = 1     |SRD=00000000| SIZE = 11 | ENABLE 

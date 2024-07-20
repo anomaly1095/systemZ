@@ -413,35 +413,55 @@ void exit_nested_IRQs_on_ret(){ SVC_CALL(42U); }
  * @param prio 
  * @return 
  */   
-void Set_UsageFault_prio(uint8_t prio){ SVC_CALL(43U); }
+void Set_UsageFault_prio(uint8_t prio)
+{
+  register void *r0 __asm__("r0") = prio;
+  SVC_CALL(43U);
+}
 
 /**
  * @brief 
  * @param prio 
  * @return 
  */   
-void Set_MemMan_fault_prio(uint8_t prio){ SVC_CALL(44U); }
+void Set_MemMan_fault_prio(uint8_t prio)
+{
+  register void *r0 __asm__("r0") = prio;
+  SVC_CALL(44U);
+}
 
 /**
  * @brief 
  * @param prio 
  * @return 
  */   
-void Set_SVC_prio(uint8_t prio){ SVC_CALL(45U); }
+void Set_SVC_prio(uint8_t prio)
+{
+  register void *r0 __asm__("r0") = prio;
+  SVC_CALL(45U);
+}
 
 /**
  * @brief 
  * @param prio 
  * @return 
  */   
-void Set_SYSTICK_prio(uint8_t prio){ SVC_CALL(46U); }
+void Set_SYSTICK_prio(uint8_t prio)
+{
+  register void *r0 __asm__("r0") = prio;
+  SVC_CALL(46U);
+}
 
 /**
  * @brief 
  * @param prio 
  * @return 
  */   
-void Set_PendSV_prio(uint8_t prio){ SVC_CALL(47U); }
+void Set_PendSV_prio(uint8_t prio)
+{
+  register void *r0 __asm__("r0") = prio;
+  SVC_CALL(47U);
+}
 
 /**
  * @brief 
@@ -865,15 +885,26 @@ void *get_AuxFault_addr()
 }
 
 /**
- * @brief 
- * @return 
- */   
-void IRQ_add_callback(void *IRQ_headnode, void *IRQ_addr)
-  { SVC_CALL(89U); }
+ * @brief Adds the callback function to the list of functions to be called
+ * when that IRQ is triggered
+ * @param IRQ_number the IRQ number
+ * @param clbk_addr address of the callback function
+ */
+void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr) {
+    register uint8_t r0 __asm__("r0") = IRQ_number;
+    register void *r1 __asm__("r1") = clbk_addr;
+    SVC_CALL(89U);
+}
 
 /**
- * @brief 
- * @return 
- */   
-void IRQ_add_callback(void *IRQ_headnode, void *IRQ_addr)
-  { SVC_CALL(90U); }
+ * @brief Removes the callback function to the list of functions to be called
+ * when that IRQ is triggered
+ * @param IRQ_number the IRQ number
+ * @param clbk_addr address of the callback function
+ */
+void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr)
+{
+  register uint8_t r0 __asm__("r0") = IRQ_number;
+  register void *r1 __asm__("r1") = clbk_addr;
+  SVC_CALL(90U);
+}

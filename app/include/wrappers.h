@@ -583,20 +583,37 @@ uint8_t vect_table_HardFault();
  * @brief 
  * @return 
  */   
-uint32_t *get_MemManFault_addr();
+void *get_MemManFault_addr();
 
 /**
  * @brief 
  * @return 
  */   
-uint32_t *get_BusFault_addr();
+void *get_BusFault_addr();
 
 
 /**
  * @brief 
  * @return 
  */   
-uint32_t *get_AuxFault_addr();
+void *get_AuxFault_addr();
+
+
+/**
+ * @brief Adds the callback function to the list of functions to be called
+ * when that IRQ is triggered
+ * @param IRQ_number the IRQ number
+ * @param clbk_addr address of the callback function
+ */
+void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr);
+
+/**
+ * @brief Removes the callback function to the list of functions to be called
+ * when that IRQ is triggered
+ * @param IRQ_number the IRQ number
+ * @param clbk_addr address of the callback function
+ */
+void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr);
 
 
 //----------------------------------------
@@ -666,6 +683,5 @@ extern uint8_t memcmp_4(void *start1, void *start2, size_t len);
  * @return 0 if the memory blocks are equal, non-zero otherwise.
  */
 extern uint8_t memcmp_1(void *start1, void *start2, size_t len);
-
 
 #endif // !WRAPPERS_H 1

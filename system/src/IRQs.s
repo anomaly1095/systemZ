@@ -86,8 +86,425 @@ SVC_Handler:
   CPSIE   I                     @ Enable interrupts
   POP     {r4-r5, pc}           @ Restore r4, r5, and set pc = lr
 
-  SVC_HANDLERS
+  @-------NVIC--------@
+  SVC0_Handler:
+    _NVIC_enable_irq
+    BX      lr
+
+  SVC1_Handler:
+    _NVIC_disable_irq
+    BX      lr
+
+  SVC2_Handler:
+    _NVIC_set_pend_irq
+    BX      lr
+
+  SVC3_Handler:
+    _NVIC_clear_pend_irq
+    BX      lr
+
+  SVC4_Handler:
+    _NVIC_check_active_irq
+    BX      lr
+
+  SVC5_Handler:
+    _NVIC_set_prio_irq
+    BX      lr
+
+  SVC6_Handler:
+    _NVIC_get_prio_irq
+    BX      lr
+
+  SVC7_Handler:
+    _NVIC_soft_trigger_irq
+    BX      lr
+
+  @-------Memory management--------@
+  SVC8_Handler:
+    _sbrk
+    BX      lr
+
+  SVC9_Handler:
+    _sbrk_free
+    BX      lr
+
+  SVC10_Handler:
+    _malloc
+    BX      lr
+
+  SVC11_Handler:
+    _free
+    BX      lr
+
+  SVC12_Handler:
   
+    BX      lr
+
+  SVC13_Handler:
+    BX      lr
+
+  @-------SCB--------@
+
+  SVC14_Handler:
+    _DIS_OUTOFORDER_EXEC #1
+    BX      lr
+
+  SVC15_Handler:
+    _DIS_OUTOFORDER_EXEC #0
+    BX      lr
+
+  SVC16_Handler:
+    _GET_CPUID
+    BX      lr
+
+  SVC17_Handler:
+    _NMI_set_pending
+    BX      lr
+
+  SVC18_Handler:
+    _PENDSV_set_pending
+    BX      lr
+
+  SVC19_Handler:
+    _PENDSV_clear_pending
+    BX      lr
+
+  SVC20_Handler:
+    _SYSTICK_set_pending
+    BX      lr
+
+  SVC21_Handler:
+    _SYSTICK_clear_pending
+    BX      lr
+
+  SVC22_Handler:
+    _SYSTICK_check_pending
+    BX      lr
+
+  SVC23_Handler:
+    _ISR_check_pending
+    BX      lr
+
+  SVC24_Handler:
+    _prio_split16_0
+    BX      lr
+
+  SVC25_Handler:
+    _prio_split8_2
+    BX      lr
+
+  SVC26_Handler:
+    _prio_split4_4
+    BX      lr
+
+  SVC27_Handler:
+    _prio_split2_8
+    BX      lr
+
+  SVC28_Handler:
+    _prio_split0_16
+    BX      lr
+
+  SVC29_Handler:
+    _reset_request
+    BX      lr
+
+  SVC30_Handler:
+    _sev_on_pend
+    BX      lr
+
+  SVC31_Handler:
+    _sleep_deep
+    BX      lr
+
+  SVC32_Handler:
+    _sleep_on_exit
+    BX      lr
+
+  SVC33_Handler:
+    _stack_align_4
+    BX      lr
+
+  SVC34_Handler:
+    _stack_align_8
+    BX      lr
+
+  SVC35_Handler:
+    _NMI_HARDFAULT_dis_bus_fault_handling
+    BX      lr
+
+  SVC36_Handler:
+    _NMI_HARDFAULT_en_bus_fault_handling
+    BX      lr
+
+  SVC37_Handler:
+    _div0_notrap
+    BX      lr
+
+  SVC38_Handler:
+    _div0_trap
+    BX      lr
+
+  SVC39_Handler:
+    _unalign_notrap
+    BX      lr
+
+  SVC40_Handler:
+    _unalign_trap
+    BX      lr
+
+  SVC41_Handler:
+    _app_access_STIR
+    BX      lr
+
+  SVC42_Handler:
+    _exit_nested_irqs_on_return
+    BX      lr
+
+  SVC43_Handler:
+    _set_UsageFault_prio 
+    BX      lr
+
+  SVC44_Handler:
+    _set_MemMan_fault_prio
+    BX      lr
+
+  SVC45_Handler:
+    _set_SVC_prio
+    BX      lr
+
+  SVC46_Handler:
+    _set_SYSTICK_prio
+    BX      lr
+
+  SVC47_Handler:
+    _set_PendSV_prio
+    BX      lr
+
+  SVC48_Handler:
+    _enable_UsageFault
+    BX      lr
+
+  SVC49_Handler:
+    _enable_BusFault
+    BX      lr
+
+  SVC50_Handler:
+    _enable_MemMan_fault
+    BX      lr
+
+  SVC51_Handler:
+    _disable_UsageFault
+    BX      lr
+
+  SVC52_Handler:
+    _disable_BusFault
+    BX      lr
+
+  SVC53_Handler:
+    _disable_MemMan_fault
+    BX      lr
+
+  SVC54_Handler:
+    _is_SVC_pending
+    BX      lr
+
+  SVC55_Handler:
+    _is_BusFault_pending
+    BX      lr
+
+  SVC56_Handler:
+    _is_MemMan_fault_pending
+    BX      lr
+
+  SVC57_Handler:
+    _is_UsageFault_pending
+    BX      lr
+
+  SVC58_Handler:
+    _is_SYSTICK_active
+    BX      lr
+
+  SVC59_Handler:
+    _is_PendSV_active
+    BX      lr
+
+  SVC60_Handler:
+    _is_DBGMon_active
+    BX      lr
+
+  SVC61_Handler:
+    _is_SVC_active
+    BX      lr
+
+  SVC62_Handler:
+    _is_UsageFault_active
+    BX      lr
+
+  SVC63_Handler:
+    _is_BusFault_active
+    BX      lr
+
+  SVC64_Handler:
+    _is_MemMan_fault_active
+    BX      lr
+
+  SVC65_Handler:
+    _div_by0_UsageFault
+    BX      lr
+
+  SVC66_Handler:
+    _unalignement_UsageFault
+    BX      lr
+
+  SVC67_Handler:
+    _coprocessor_UsageFault
+    BX      lr
+
+  SVC68_Handler:
+    _invPC_UsageFault
+    BX      lr
+
+  SVC69_Handler:
+    _invEPSR_UsageFault
+    BX      lr
+
+  SVC70_Handler:
+    _BFAR_valid_addr
+    BX      lr
+
+  SVC71_Handler:
+    _FP_LazyState_BusFault
+    BX      lr
+
+  SVC72_Handler:
+    _push_BusFault
+    BX      lr
+
+  SVC73_Handler:
+    _pop_BusFault
+    BX      lr
+
+  SVC74_Handler:
+    _imprecise_BusFault
+    BX      lr
+
+  SVC75_Handler:
+    _precise_DBus_error
+    BX      lr
+
+  SVC76_Handler:
+    _IBus_error
+    BX      lr
+
+  SVC77_Handler:
+    _MMAR_valid_addr
+    BX      lr
+
+  SVC78_Handler:
+    _FP_LazyState_MemMan_fault
+    BX      lr
+
+  SVC79_Handler:
+    _push_MemMan_fault
+    BX      lr
+
+  SVC80_Handler:
+    _pop_MemMan_fault
+    BX      lr
+
+  SVC81_Handler:
+    _DataAccess_MemMan_fault
+    BX      lr
+
+  SVC82_Handler:
+    _ExecNot_section_MemMan_fault
+    BX      lr
+
+  SVC83_Handler:
+    _forced_HardFault
+    BX      lr
+
+  SVC84_Handler:
+    _push_MemMan_fault
+    BX      lr
+
+  SVC85_Handler:
+    _vect_table_HardFault
+    BX      lr
+
+  SVC86_Handler:
+    _get_MemManFault_addr
+    BX      lr
+
+  SVC87_Handler:
+    _get_BusFault_addr
+    BX      lr
+
+  SVC88_Handler:
+    _get_AuxFault_addr
+    BX      lr
+
+SVC89_Handler:
+    @ Check if IRQ number is valid
+    CMP     r0, #84               @ Compare with the maximum IRQ number (84)
+    BXHS    lr                    @ Branch if the IRQ number is out of range
+
+    LDR     r3, =IRQ_head_nodes   @ Load address of IRQ_head_nodes
+    LDR     r0, [r3, r0, LSL #3]  @ Load the head node pointer (8 bytes per node)
+
+    _add_callback                 @ Call the macro to add the node
+
+    BX      lr                    @ Return
+
+SVC90_Handler:
+    @ Check if IRQ number is valid
+    CMP     r0, #84               @ Compare with the maximum IRQ number (84)
+    BXHS    lr                    @ Branch if the IRQ number is out of range
+
+    LDR     r3, =IRQ_head_nodes   @ Load address of IRQ_head_nodes
+    LDR     r0, [r3, r0, LSL #3]  @ Load the head node pointer (8 bytes per node)
+
+    _rem_callback                 @ Call the macro to remove the node
+
+    BX      lr                    @ Return
+
+  SVC91_Handler:
+    NOP
+    BX      lr
+
+  SVC92_Handler:
+    NOP
+    BX      lr
+
+  SVC93_Handler:
+    NOP
+    BX      lr
+
+  SVC94_Handler:
+    NOP
+    BX      lr
+
+  SVC95_Handler:
+    NOP
+    BX      lr
+
+  SVC96_Handler:
+    NOP
+    BX      lr
+
+  SVC97_Handler:
+    NOP
+    BX      lr
+
+  SVC98_Handler:
+    NOP
+    BX      lr
+
+  SVC99_Handler:
+    NOP
+    BX      lr
+
   .align  2
   .size SVC_Handler, .-SVC_Handler
 
@@ -121,7 +538,7 @@ SysTick_Handler:
   MOVEQ   r1, #0              @ reset millisecond counter
   STRH    r1, [r0]            @ Store new number of milliseconds
   STR     r2, [r0, #0x02]     @ Store new number of seconds
-  CPSIE   I                     @ Enable interrupts
+  CPSIE   I                   @ Enable interrupts
   BX      lr
   .align  2
   .size SysTick_Handler, .-SysTick_Handler
@@ -129,6 +546,9 @@ SysTick_Handler:
 
 @---------------------------------------------------------------------- 
 @---------------------------------------------------------------------- 
+
+@ dont forget to make each isr check for it's callback linked list during emplementation 
+@ dont forget to go back to unprivileged mode before going to the callback for security reasons
 
 @ WWDG_IRQHandler
 @ PVD_IRQHandler
