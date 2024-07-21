@@ -2,6 +2,7 @@
   "C_Cpp.default.includePath": [
       "/path/to/includes",
       "${workspaceFolder}/app/include"
-  ]
+  ],
+  "C_Cpp.errorSquiggles": "enabled"
 }
 

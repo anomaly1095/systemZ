@@ -68,23 +68,73 @@
 // Create the SVC instruction with the given number
 #define SVC_NUM(N) "SVC    #" #N "\t\n"
 
-// Define the SVC call macro returns uint8_t
-#define SVC_CALL_RET(N, result)             \
-  __asm__ volatile (            \
-    SVC_NUM(N)                  \
-    "MOV    %[result], r0\t\n"  \
-    : [result] "=r" (result)    \
-    :                           \
-    : "memory"                  \
-  );
+// Define the SVC call macro for calls with no return value
+#define SVC_CALL(N, ...)                            \
+  do {                                              \
+    uint32_t args[] = { __VA_ARGS__ };              \
+    switch (sizeof(args) / sizeof(args[0])) {       \
+      case 0:                                       \
+        __asm__ volatile (                          \
+          SVC_NUM(N)                                \
+          :                                         \
+          :                                         \
+          : "memory"                                \
+        );                                          \
+        break;                                      \
+      case 1:                                       \
+        __asm__ volatile (                          \
+          SVC_NUM(N)                                \
+          :                                         \
+          : "r" (args[0])                           \
+          : "memory"                                \
+        );                                          \
+        break;                                      \
+      case 2:                                       \
+        __asm__ volatile (                          \
+          SVC_NUM(N)                                \
+          :                                         \
+          : "r" (args[0]), "r" (args[1])            \
+          : "memory"                                \
+        );                                          \
+        break;                                      \
+    }                                               \
+  } while (0)
 
-#define SVC_CALL(N)             \
-  __asm__ volatile (            \
-    SVC_NUM(N)                  \
-    :                           \
-    :                           \
-    : "memory"                  \
-  );
+// Define the SVC call macro for calls with a return value
+#define SVC_CALL_RET(N, result, ...)                \
+  do {                                              \
+    uint32_t args[] = { __VA_ARGS__ };              \
+    switch (sizeof(args) / sizeof(args[0])) {       \
+      case 0:                                       \
+        __asm__ volatile (                          \
+          SVC_NUM(N)                                \
+          "MOV    %[result], r0\t\n"                \
+          : [result] "=r" (result)                  \
+          :                                         \
+          : "memory"                                \
+        );                                          \
+        break;                                      \
+      case 1:                                       \
+        __asm__ volatile (                          \
+          SVC_NUM(N)                                \
+          "MOV    %[result], r0\t\n"                \
+          : [result] "=r" (result)                  \
+          : "r" (args[0])                           \
+          : "memory"                                \
+        );                                          \
+        break;                                      \
+      case 2:                                       \
+        __asm__ volatile (                          \
+          SVC_NUM(N)                                \
+          "MOV    %[result], r0\t\n"                \
+          : [result] "=r" (result)                  \
+          : "r" (args[0]), "r" (args[1])            \
+          : "memory"                                \
+        );                                          \
+        break;                                      \
+    }                                               \
+  } while (0)
+
 
 /* @-------NVIC--------@ */
 
@@ -92,25 +142,34 @@
  * @brief Enable an interrupt in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  */
-void NVIC_enable_irq(uint8_t IRQ_NUM){ SVC_CALL(0U); }
-
+void NVIC_enable_irq(uint8_t IRQ_NUM)
+{
+  SVC_CALL(0U, IRQ_NUM);
+}
 /**
  * @brief Disable an interrupt in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  */
-void NVIC_disable_irq(uint8_t IRQ_NUM){ SVC_CALL(1U); }
-
+void NVIC_disable_irq(uint8_t IRQ_NUM)
+{
+  SVC_CALL(1U, IRQ_NUM);
+}
 /**
  * @brief Set an interrupt as pending in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  */
-void NVIC_set_pend_irq(uint8_t IRQ_NUM){ SVC_CALL(2U); }
-
+void NVIC_set_pend_irq(uint8_t IRQ_NUM)
+{
+  SVC_CALL(2U, IRQ_NUM);
+}
 /**
  * @brief Clears an interrupt from pending list in NVIC using SVC syscall.
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  */
-void NVIC_clear_pend_irq(uint8_t IRQ_NUM){ SVC_CALL(3U); }
+void NVIC_clear_pend_irq(uint8_t IRQ_NUM)
+{
+  SVC_CALL(3U, IRQ_NUM);
+}
 
 /**
  * @brief Check if an interrupt is active in NVIC using SVC syscall.
@@ -120,7 +179,7 @@ void NVIC_clear_pend_irq(uint8_t IRQ_NUM){ SVC_CALL(3U); }
 uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM)
 {
   uint8_t result;
-  SVC_CALL_RET(4U, result);
+  SVC_CALL_RET(4U, result, IRQ_NUM);
   return result;
 }
 
@@ -130,7 +189,10 @@ uint8_t NVIC_check_active_irq(uint8_t IRQ_NUM)
  * @param PRIO The priority to assign to the interrupt.
  * @return Returns 0 upon successful execution of the syscall.
  */
-void NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO){ SVC_CALL(5U); }
+void NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO)
+{
+  SVC_CALL(5U, IRQ_NUM, PRIO);
+}
 
 /**
  * @brief Get the priority of an interrupt NVIC using SVC syscall.
@@ -140,7 +202,7 @@ void NVIC_set_prio_irq(uint8_t IRQ_NUM, uint8_t PRIO){ SVC_CALL(5U); }
 uint8_t NVIC_get_prio_irq(uint8_t IRQ_NUM)
 {
   uint8_t result;
-  SVC_CALL_RET(6U, result);
+  SVC_CALL_RET(6U, result, IRQ_NUM);
   return result;
 }
 
@@ -148,7 +210,10 @@ uint8_t NVIC_get_prio_irq(uint8_t IRQ_NUM)
  * @brief Triggers an interrupt of the IRQ specified in IRQ_NUM thru software
  * @param IRQ_NUM The number of the IRQ (0..239) to enable.
  */   
-void NVIC_soft_trigger_irq(uint8_t IRQ_NUM){ SVC_CALL(7U); }
+void NVIC_soft_trigger_irq(uint8_t IRQ_NUM)
+{
+  SVC_CALL(7U, IRQ_NUM);
+}
 
 /* @-------Memory management--------@ */
 
@@ -161,7 +226,7 @@ void NVIC_soft_trigger_irq(uint8_t IRQ_NUM){ SVC_CALL(7U); }
 void *sbrk(size_t increment)
 {
   void *result;
-  SVC_CALL_RET(8U, result);
+  SVC_CALL_RET(8U, result, increment);
   return result;
 }
 
@@ -174,7 +239,7 @@ void *sbrk(size_t increment)
 void *sbrk_free(size_t decrement)
 {
   void *result;
-  SVC_CALL_RET(9U, result);
+  SVC_CALL_RET(9U, result, decrement);
   return result;
 }
 
@@ -208,8 +273,8 @@ void *_free()
 // /**
 //  * @brief 
 //  * @param  
-//  * @return Returns the new pointer 
-//  * @return returns 0 ((void*)(0x0)) if failed to allocate SRAM
+//  * @return 
+//  * @return 
 //  */   
 // void *()
 // {
@@ -415,8 +480,7 @@ void exit_nested_IRQs_on_ret(){ SVC_CALL(42U); }
  */   
 void Set_UsageFault_prio(uint8_t prio)
 {
-  register void *r0 __asm__("r0") = prio;
-  SVC_CALL(43U);
+  SVC_CALL(43U, prio);
 }
 
 /**
@@ -426,8 +490,7 @@ void Set_UsageFault_prio(uint8_t prio)
  */   
 void Set_MemMan_fault_prio(uint8_t prio)
 {
-  register void *r0 __asm__("r0") = prio;
-  SVC_CALL(44U);
+  SVC_CALL(44U, prio);
 }
 
 /**
@@ -437,8 +500,7 @@ void Set_MemMan_fault_prio(uint8_t prio)
  */   
 void Set_SVC_prio(uint8_t prio)
 {
-  register void *r0 __asm__("r0") = prio;
-  SVC_CALL(45U);
+  SVC_CALL(45U, prio);
 }
 
 /**
@@ -448,8 +510,7 @@ void Set_SVC_prio(uint8_t prio)
  */   
 void Set_SYSTICK_prio(uint8_t prio)
 {
-  register void *r0 __asm__("r0") = prio;
-  SVC_CALL(46U);
+  SVC_CALL(46U, prio);
 }
 
 /**
@@ -459,8 +520,7 @@ void Set_SYSTICK_prio(uint8_t prio)
  */   
 void Set_PendSV_prio(uint8_t prio)
 {
-  register void *r0 __asm__("r0") = prio;
-  SVC_CALL(47U);
+  SVC_CALL(47U, prio);
 }
 
 /**
@@ -890,10 +950,9 @@ void *get_AuxFault_addr()
  * @param IRQ_number the IRQ number
  * @param clbk_addr address of the callback function
  */
-void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr) {
-    register uint8_t r0 __asm__("r0") = IRQ_number;
-    register void *r1 __asm__("r1") = clbk_addr;
-    SVC_CALL(89U);
+void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr)
+{
+  SVC_CALL(89U, IRQ_number, clbk_addr);
 }
 
 /**
@@ -904,7 +963,5 @@ void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr) {
  */
 void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr)
 {
-  register uint8_t r0 __asm__("r0") = IRQ_number;
-  register void *r1 __asm__("r1") = clbk_addr;
-  SVC_CALL(90U);
+  SVC_CALL(90U, IRQ_number, clbk_addr);
 }

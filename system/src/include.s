@@ -59,6 +59,15 @@
   CPSIE I
 .endm
 
+.macro STORE_R0_TO_PSP
+  MRS     r2, PSP                  @ Get the address of the process stack pointer
+  STR     r0, [r2, #0]             @ Store the value of r0 at the top of the process stack
+.endm
+
+.macro LOAD_R0_FROM_PSP
+  MRS     r2, PSP                  @ Get the address of the process stack pointer
+  LDR     r0, [r2, #0]             @ Load the value of r0 from the top of the process stack
+.endm
 
 .macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
   @ Enter critical section to ensure exclusive access to MPU registers
@@ -1088,7 +1097,7 @@ I_HARDFAULT_en_bus_fault_handling
 @-----------------------------------
 @ SYSCALL: Used by the app to expand the APP process heap towards the top
 @ arg0: amount of SRAM needed
-@ returns: pointer (address) of start of the allocated space, or 0 if failed to allocate SRAM
+@ returns: address of old system break, or NULL if failed to allocate SRAM
 @-----------------------------------
 .macro _sbrk
   ENTER_CRITICAL
@@ -1119,7 +1128,7 @@ I_HARDFAULT_en_bus_fault_handling
 @-----------------------------------
 @ SYSCALL: Used by the app to collapse the APP process heap towards the bottom freeing memory
 @ arg0: amount of SRAM to free
-@ returns: pointer (address) of new system break, or 0 on error
+@ returns: address of new system break, or NULL on error
 @-----------------------------------
 .macro _sbrk_free
   ENTER_CRITICAL
@@ -1153,8 +1162,8 @@ I_HARDFAULT_en_bus_fault_handling
 @-----------------------------------
 @ Used by the kernel to expand the KERNEL heap towards the top
 @ arg0: amount of SRAM needed
-@ returns pointer (address) of start of the allocated space
-@ returns 0 ((void*)(0x0)) if failed to allocate SRAM
+@ returns address of old system break
+@ returns NULL if failed to allocate SRAM
 @-----------------------------------
 .type _ksbrk, %function
 _ksbrk:
@@ -1185,13 +1194,12 @@ _ksbrk:
 @-----------------------------------
 @ Used by the kernel to collapse the KERNEL heap towards the bottom freeing memory
 @ arg0: amount of SRAM to free
-@ returns pointer (address) of new system break
+@ returns address of new system break
 @-----------------------------------
 .type _ksbrk_free, %function
 _ksbrk_free:
   ENTER_CRITICAL
   DSB
-  DMB
   LDR     r1, =_ekdata       @ Load the address of the end of .kdata in SRAM
 
   LDR     r2, =k_brk
@@ -1210,11 +1218,31 @@ _ksbrk_free:
 1:
   MOVS    r0, #0             @ Return 0 on error
   DSB
-  DMB
   EXIT_CRITICAL
   BX      lr
   .align    2
   .size _ksbrk_free, .-_ksbrk_free
+
+
+@-----------------------------------
+@ Used by the kernel to allocate memory from heap dynamically
+@ arg0: amount of SRAM to allocate
+@ returns pointer to the newly allocated block
+@ returns NULL on failure
+@-----------------------------------
+_kmalloc:
+
+
+
+@-----------------------------------
+@ Used by the kernel to free the allocated block
+@ arg0: pointer to the start of block
+@ returns 0 on success
+@ returns 1 on failure
+@-----------------------------------
+_kfree:
+
+
 
 
 
@@ -1254,7 +1282,7 @@ memcpy_1:
   LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
   STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
   SUBS    r2, r2, #1        @ Decrement length counter by 1
-  BNE     1b               @ If length is not 0, continue loop
+  BNE     1b                @ If length is not 0, continue loop
   DSB
   EXIT_CRITICAL
   BX      lr                @ Return from function
