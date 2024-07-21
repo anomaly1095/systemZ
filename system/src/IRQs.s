@@ -69,21 +69,17 @@ UsageFault_Handler:
   .global SVC_Handler
   .type SVC_Handler, %function
 SVC_Handler:
-  CPSID   I                     @ Disable interrupts
   PUSH    {r4-r5, lr}           @ Save r4, r5, and lr to the kernel stack
   MRS     r4, PSP               @ Get the address of the process stack pointer
   LDR     r4, [r4, #0x18]       @ Get the value of the PC saved on the process stack
   LDRB    r4, [r4, #-2]         @ Load the byte of the SVC instruction
-  BIC     r4, r4, #0xFFFFFF00   @ Extract the immediate value from the SVC instruction
-
+  AND     r4, r4, #0xFF         @ Mask to get the immediate value (0x00FF)
   LDR     r5, =SVC_Table        @ Load the address of the SVC table
   LDR     r4, [r5, r4, LSL #2]  @ Get the address of the SVC handler from the table
   BLX     r4                    @ Branch to the SVC handler
 
-  @ Store the return value of the syscall in the process stack
   MRS     r4, PSP               @ Get the address of the process stack pointer
   STR     r0, [r4]              @ Store the return value in the process stack
-  CPSIE   I                     @ Enable interrupts
   POP     {r4-r5, pc}           @ Restore r4, r5, and set pc = lr
 
   @-------NVIC--------@

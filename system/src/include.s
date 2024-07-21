@@ -51,18 +51,40 @@
 @ used by FLASH set_options function
 .define DEVELOPMENT_MODE 
 
-
-@ Macro used for configuring the various regions used by the system
-.macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
-  LDR     r0, =MPU_BASE
-	LDR     r1, =\region_base
-	MOVW    r2, #(0b10000 | \region_number) @ Region number, VALID bit
-	ORR     r1, r1, r2
-	STR     r1, [r0, #0x0C]                 @ MPU_RBAR reg
-
-	LDR     r2, =\region_mask
-	STR     r2, [r0, #0x10]                 @ MPU_RASR reg
+.macro ENTER_CRITICAL
+  CPSID I
 .endm
+
+.macro EXIT_CRITICAL
+  CPSIE I
+.endm
+
+
+.macro MPU_CONFIG_REGION region_base:req, region_number:req, region_mask:req
+  @ Enter critical section to ensure exclusive access to MPU registers
+  ENTER_CRITICAL
+  
+  LDR     r0, =MPU_BASE              @ Load the base address of the MPU
+  LDR     r1, =\region_base          @ Load the base address for the MPU region
+  MOVW    r2, #(0b10000 | \region_number) @ Configure the region number and VALID bit
+  ORR     r1, r1, r2                @ Combine base address with the region number
+  @ Ensure all previous memory accesses are complete
+  DSB
+  ISB
+
+  STR     r1, [r0, #0x0C]           @ Write to the MPU_RBAR register
+  LDR     r2, =\region_mask          @ Load the region attributes mask
+  STR     r2, [r0, #0x10]           @ Write to the MPU_RASR register
+  
+  @ Ensure all MPU configuration is complete before exiting critical section
+  DSB
+  ISB
+  
+  @ Exit critical section
+  EXIT_CRITICAL
+.endm
+
+
 
 @-----------------------------------
 @ Macro used to select which register to select in the NVIC (0..7)
@@ -107,93 +129,217 @@
 @ arg0: number of the IRQ (0..239)
 @-----------------------------------
 .macro _NVIC_enable_irq
-  @ Macro sets the address of the register in r2
-  @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
-  MOV     r3, #0b1
-  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
-  LDR     r1, [r2]              @ load the value of the NVIC_ISER
-  ORR     r1, r1, r3            @ Set the bit of the IRQ
-  STR     r1, [r2]              @ store the mask in the NVIC_ISER
-.endm
+  @ Enter critical section to ensure exclusive access to NVIC registers
+  ENTER_CRITICAL
   
-@-----------------------------------SYSCALL
-@ syscall used by apps (called by SVC)
+  @ Macro sets the address of the register in r2
+  @ Normalizes the IRQ number in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_ISER0  @ Select the appropriate NVIC_ISER register
+  
+  @ Create a mask for the IRQ bit position
+  MOV     r3, #0b1
+  LSL     r3, r3, r0            @ Shift the mask to the IRQ bit position
+  
+  @ Load the current value of the NVIC_ISER register
+  LDR     r1, [r2]
+  
+  @ Set the bit for the IRQ
+  ORR     r1, r1, r3
+  
+  @ Ensure all previous memory accesses are complete
+  DSB
+  ISB
+
+  @ Store the updated value back to the NVIC_ISER register
+  STR     r1, [r2]
+  
+  @ Ensure all NVIC updates are complete before exiting critical section
+  DSB
+  ISB
+  
+  @ Exit critical section
+  EXIT_CRITICAL
+.endm
+
+  
+@-----------------------------------
+@ Macro used by apps (called by SVC)
 @ called by software to disable an interrupt
 @ arg0: number of the IRQ (0..239)
 @-----------------------------------
 .macro _NVIC_disable_irq
+  @ Enter critical section to ensure exclusive access to NVIC registers
+  ENTER_CRITICAL
+  
   @ Macro sets the address of the register in r2
-  @ Normalizes the irq num in r0 to the start of register
+  @ Normalizes the irq_num in r0 to the start of register
   NVIC_REG_SELECT7  r0, NVIC_ICER0   @ Select the appropriate NVIC_ICER register
+  
+  @ Create a mask for the IRQ bit position
   MOV     r3, #0b1
-  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
-  LDR     r1, [r2]              @ load the value of the NVIC_ISER
-  ORR     r1, r1, r3            @ Set the bit of the IRQ
-  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  LSL     r3, r3, r0            @ Shift the mask to the IRQ bit position
+  
+  @ Load the current value of the NVIC_ICER register
+  LDR     r1, [r2]
+  
+  @ Set the bit to disable the IRQ
+  ORR     r1, r1, r3
+  
+  @ Ensure all previous memory accesses are complete
+  DSB
+  ISB
+
+  @ Store the updated value back to the NVIC_ICER register
+  STR     r1, [r2]
+  
+  @ Ensure all NVIC updates are complete before exiting critical section
+  DSB
+  ISB
+  
+  @ Exit critical section
+  EXIT_CRITICAL
 .endm
 
-@-----------------------------------SYSCALL
-@ syscall used by apps (called by SVC)
+
+@-----------------------------------
+@ Macro used by apps (called by SVC)
 @ called by software to set an interrupt as pending
 @ arg0: number of the IRQ (0..239)
 @-----------------------------------
 .macro _NVIC_set_pend_irq
+  @ Enter critical section to ensure exclusive access to NVIC registers
+  ENTER_CRITICAL
+  
   @ Macro sets the address of the register in r2
-  @ Normalizes the irq num in r0 to the start of register
+  @ Normalizes the irq_num in r0 to the start of register
   NVIC_REG_SELECT7  r0, NVIC_ISPR0   @ Select the appropriate NVIC_ISPR register
+  
+  @ Create a mask for the IRQ bit position
   MOV     r3, #0b1
-  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
-  LDR     r1, [r2]              @ load the value of the NVIC_ISER
-  ORR     r1, r1, r3            @ Set the bit of the IRQ
-  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  LSL     r3, r3, r0            @ Shift the mask to the IRQ bit position
+  
+  @ Load the current value of the NVIC_ISPR register
+  LDR     r1, [r2]
+  
+  @ Set the bit to make the IRQ pending
+  ORR     r1, r1, r3
+  
+  @ Ensure all previous memory accesses are complete
+  DSB
+  ISB
+
+  @ Store the updated value back to the NVIC_ISPR register
+  STR     r1, [r2]
+  
+  @ Ensure all NVIC updates are complete before exiting critical section
+  DSB
+  ISB
+  
+  @ Exit critical section
+  EXIT_CRITICAL
 .endm
 
-@-----------------------------------SYSCALL
-@ syscall used by apps (called by SVC)
-@ called by software to remove an interrupt from pending list
+
+@-----------------------------------
+@ Macro used by apps (called by SVC)
+@ called by software to remove an interrupt from the pending list
 @ arg0: number of the IRQ (0..239)
 @-----------------------------------
 .macro _NVIC_clear_pend_irq
+  @ Enter critical section to ensure exclusive access to NVIC registers
+  ENTER_CRITICAL
+
   @ Macro sets the address of the register in r2
-  @ Normalizes the irq num in r0 to the start of register
+  @ Normalizes the irq_num in r0 to the start of register
   NVIC_REG_SELECT7  r0, NVIC_ICPR0   @ Select the appropriate NVIC_ICPR register
+  
+  @ Create a mask for the IRQ bit position
   MOV     r3, #0b1
-  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
-  LDR     r1, [r2]              @ load the value of the NVIC_ISER
-  ORR     r1, r1, r3            @ Set the bit of the IRQ
-  STR     r1, [r2]              @ store the mask in the NVIC_ISER
+  LSL     r3, r3, r0            @ Shift the mask to the IRQ bit position
+  
+  @ Load the current value of the NVIC_ICPR register
+  LDR     r1, [r2]
+  
+  @ Set the bit to clear the IRQ from pending
+  ORR     r1, r1, r3
+  
+  @ Ensure all previous memory accesses are complete
+  DSB
+  ISB
+
+  @ Store the updated value back to the NVIC_ICPR register
+  STR     r1, [r2]
+  
+  @ Ensure all NVIC updates are complete before exiting critical section
+  DSB
+  ISB
+  
+  @ Exit critical section
+  EXIT_CRITICAL
 .endm
 
-@-----------------------------------SYSCALL
-@ syscall used by apps (called by SVC)
-@ called by software to check interrupt if the interrupt is active
+
+@-----------------------------------
+@ SYSCALL
+@ Used by apps (called by SVC)
+@ Checks if the interrupt is active
 @ arg0: number of the IRQ (0..239)
 @ return: 1 if active / 0 if idle
 @-----------------------------------
 .macro _NVIC_check_active_irq
-  @ Macro sets the address of the register in r2
-  @ Normalizes the irq num in r0 to the start of register
-  NVIC_REG_SELECT7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
-  MOV     r3, #0b1
-  LSL     r3, r3, r0            @ shift the mask to the IRQ bit position
-  LDR     r1, [r2]              @ load the value of the NVIC_ISER
-  TST     r1, r3                @ check if bit is set (IRQ active)
-  ITE     NE
-  MOVNE   r0, #1                @ bit is set (IRQ active)
-  MOVEQ   r0, #0                @ bit is not set (IRQ idle)
-.endm  
+  @ Enter critical section to ensure exclusive access to NVIC registers
+  ENTER_CRITICAL
 
-@-----------------------------------SYSCALL
-@ syscall used by apps (called by SVC)
-@ called by software to set the priority of the interrupt
+  @ Macro sets the address of the register in r2
+  @ Normalizes the irq_num in r0 to the start of register
+  NVIC_REG_SELECT7  r0, NVIC_IABR0   @ Select the appropriate NVIC_IABR register
+
+  @ Shift the mask to the IRQ bit position
+  MOV     r3, #0b1
+  LSL     r3, r3, r0
+
+  @ Load the value of the NVIC_IABR register
+  LDR     r1, [r2]
+
+  @ Check if bit is set (IRQ active)
+  TST     r1, r3
+  ITE     NE
+  MOVNE   r0, #1                @ Bit is set (IRQ active)
+  MOVEQ   r0, #0                @ Bit is not set (IRQ idle)
+  
+  @ Exit critical section
+  EXIT_CRITICAL
+.endm
+
+@-----------------------------------
+@ SYSCALL
+@ Used by apps (called by SVC)
+@ Sets the priority of the interrupt
 @ arg0: number of the IRQ (0..239)
 @ arg1: priority number
 @-----------------------------------
 .macro _NVIC_set_prio_irq
+  @ Enter critical section to ensure exclusive access to NVIC registers
+  ENTER_CRITICAL
+
+  @ Select the appropriate NVIC_IPR register
   NVIC_REG_SELECT59 r0, NVIC_IPR0   @ Select the appropriate NVIC_IPR register
-  STRB    r1, [r2]                @ Store the priority number in the selected register byte
+  
+  @ Ensure all previous memory accesses are complete
+  DSB
+  ISB
+
+  @ Store the priority number in the selected register byte
+  STRB    r1, [r2]
+  
+  @ Ensure all NVIC updates are complete before exiting critical section
+  DSB
+  ISB
+  
+  @ Exit critical section
+  EXIT_CRITICAL
 .endm
+
 
 @-----------------------------------SYSCALL
 @ syscall used by apps (called by SVC)
@@ -228,6 +374,7 @@
 /*--------ACTLR---------*/
 
 .macro DIS_OUTOFORDER_EXEC state:req
+  ENTER_CRITICAL
   LDR     r0, =ACTLR
   LDR     r1, [r0]
   LDR     r2, =\state
@@ -244,6 +391,7 @@
   STR     r1, [r0]    @ write back the modified value to ACTLR
   DSB                 @ Ensure the write is complete before continuing
   ISB                 @ Ensure the new instructions are fetched correctly
+  EXIT_CRITICAL
 .endm
 
 /*--------CPUID---------*/
@@ -260,31 +408,34 @@
 /*--------ICSR---------*/
 
 .macro SET_PENDING_BIT bit_mask:req
+  ENTER_CRITICAL
   LDR     r0, =ICSR        @ Load the address of ICSR
   LDR     r1, [r0]         @ Load the current value of ICSR
   ORR     r1, r1, #\bit_mask    @ Set the specified pending bit
   STR     r1, [r0]         @ Write back the modified value to ICSR
+  EXIT_CRITICAL
 .endm
 
 .macro CLEAR_PENDING_BIT bit_mask:req
+  ENTER_CRITICAL
   LDR     r0, =ICSR        @ Load the address of ICSR
   LDR     r1, [r0]         @ Load the current value of ICSR
   BIC     r1, r1, #\bit_mask    @ Clear the specified pending bit
   STR     r1, [r0]         @ Write back the modified value to ICSR
+  EXIT_CRITICAL
 .endm
 
 .macro CHECK_PENDING_BIT bit_mask:req
+  ENTER_CRITICAL
   LDR     r0, =ICSR        @ Load the address of ICSR
   LDR     r1, [r0]         @ Load the current value of ICSR
   MOV     r0, #0
   TST     r1, #\bit_mask        @ Check the specified pending bit
   IT      NE
   MOVNE   r0, #1
+  EXIT_CRITICAL
 .endm
 
-.macro NMI_set_pending
-  SET_PENDING_BIT 0x80000000 @ Set the NMI pending bit (bit 31)
-.endm
 
 .macro PENDSV_set_pending
   SET_PENDING_BIT 0x10000000 @ Set the PENDSV pending bit (bit 28)
@@ -315,13 +466,13 @@
 .endm
 
 .macro ISR_highest_pending
-  CPSID   I                 @ Disable interrupts
+  ENTER_CRITICAL                 @ Disable interrupts
   LDR     r0, =ICSR         @ Load the address of ICSR
   LDR     r1, [r0]          @ Load the current value of ICSR
   MOVW    r2, #0xF000       @ bottom 4 bits of mask for VECTPENDING
   MOVT    r2, #7            @ top 3 bits of mask
   AND     r0, r1, r2        @ Check the specified pending bit
-  CPSIE   I                 @ Enable interrupts
+  EXIT_CRITICAL                 @ Enable interrupts
 .endm
 
 .macro ISR_check_preempted
@@ -329,10 +480,12 @@
 .endm
 
 .macro ISR_str_actv_num
+  ENTER_CRITICAL
   MRS     r0, IPSR                  @ Read IPSR into r0 (contains active exception number)
   MOV     r1, r0                    @ Move exception number to r1 (to ensure 8-bit value)
-  LDRB    r0, last_IRQ              @ load the address of the byte thjat will contain the last ISR num
+  LDRB    r0, =last_IRQ              @ load the address of the byte thjat will contain the last ISR num
   STRB    r1, r0                    @ Store active exception number in global byte variable
+  EXIT_CRITICAL
 .endm
 
 /*--------AIRCR---------*/
@@ -341,7 +494,7 @@
 @ Macro used in SCB manip to set the binary point separation
 @ that allows the config of number of groups prio and subgroup prio
 .macro SET_GRP_SPLIT grp_prios:req
-  CPSID   I                  @ Disable interrupts
+  ENTER_CRITICAL                  @ Disable interrupts
   LDR     r0, =AIRCR         @ Load address of AIRCR register
   LDR     r1, [r0]           @ Load current value of AIRCR
   BIC     r1, r1, #0x0700    @ Clear old PRIGROUP bits
@@ -349,22 +502,22 @@
   
   @ Check different priority grouping configurations and set the corresponding PRIGROUP bits
   CMP     r2, #0
-  ITT     EQ
+  IT      EQ
   ORREQ   r1, r1, #0x700      @ Set new PRIGROUP bits: 0 groups - 16 subgroups
   BEQ     1f
 
   CMP     r2, #2
-  ITT     EQ
+  IT      EQ
   ORREQ   r1, r1, #0x600      @ Set new PRIGROUP bits: 2 groups - 8 subgroups
   BEQ     1f
 
   CMP     r2, #4
-  ITT     EQ
+  IT      EQ
   ORREQ   r1, r1, #0x500      @ Set new PRIGROUP bits: 4 groups - 4 subgroups
   BEQ     1f
   
   CMP     r2, #8
-  ITT     EQ
+  IT      EQ
   ORREQ   r1, r1, #0x400      @ Set new PRIGROUP bits: 8 groups - 2 subgroups
   BEQ     1f
 
@@ -373,7 +526,7 @@
   1:
     MOVT    r1, #0x5FA         @ Write key to allow write access to AIRCR
     STR     r1, [r0]           @ Store modified value back to AIRCR
-    CPSIE   I                  @ Enable interrupts
+    EXIT_CRITICAL                  @ Enable interrupts
 .endm
 
 @ Set new PRIGROUP bits: 0 groups - 16 subgroups
@@ -404,16 +557,19 @@
 @   mask: Bitmask to apply
 @   operation: Operation to perform (BIC or ORR)
 .macro manipulate_register reg:req, mask:req, operation:req
+  ENTER_CRITICAL
   LDR     r0, =\reg       @ Load address of the register
   LDR     r1, [r0]        @ Load current value from the register
   \operation r1, r1, #\mask   @ Perform specified operation with the bitmask
   STR     r1, [r0]        @ Store modified value back to the register
+  EXIT_CRITICAL
 .endm
 
 @ Macro to set the reset request in AIRCR
 .macro reset_request
-  manipulate_register AIRCR, 0b100, ORR   @ Set bit 2 in AIRCR (Reset Request)
+  manipulate_register AIRCR, 0x4, ORR   @ Set bit 2 in AIRCR (Reset Request)
 .endm
+
 
 /*--------SCR---------*/
 /*--------SCR---------*/
@@ -452,7 +608,9 @@
 .endm
 
 @ Macro to enable NMI and HardFault handlers to ignore bus faults caused by load and store instructions
-.macro NMI_HARDFAULT_en_bus_fault_handling
+.macro NMmanipulate_register CCR, 0b1, ORR
+.endm
+I_HARDFAULT_en_bus_fault_handling
   manipulate_register CCR, 0x2000000, ORR
 .endm
 
@@ -483,22 +641,21 @@
 
 @ Macro to enable returning to thread mode from any level under an EXC_RETURN in CCR
 .macro exit_nested_irqs_on_return
-  manipulate_register CCR, 0b1, ORR
-.endm
-
+  
 
 /*--------SHPRx---------*/
 /*--------SHPRx---------*/
 
-@ Macro to set priority for various system exceptions
+/@ Macro to set priority for various system exceptions
 .macro set_exception_priority reg:req, bit_offset:req
-  LDR     r1, =\reg                              @ Load the address of the priority register
-  LDR     r2, [r1]                               @ Load the current value of the register
-  BIC     r2, r2, #(0xFF << \bit_offset)         @ Clear the current priority bits
-  ORR     r2, r2, r0, LSL \bit_offset            @ Set new priority bits from r0
-  STR     r2, [r1]                               @ Store the new value back into the register
+  ENTER_CRITICAL                  @ Disable interrupts to ensure atomic operation
+  LDR     r1, =\reg               @ Load the address of the priority register
+  LDR     r2, [r1]                @ Load the current value of the register
+  BIC     r2, r2, #(0xFF << \bit_offset)  @ Clear the current priority bits
+  ORR     r2, r2, r0, LSL \bit_offset     @ Set new priority bits from r0
+  STR     r2, [r1]                @ Store the new value back into the register
+  EXIT_CRITICAL                   @ Enable interrupts after operation
 .endm
-
 
 @ Macro to set Usage Fault priority in SHPR1
 .macro set_UsageFault_prio prio:req
@@ -536,18 +693,22 @@
 
 @ Macro to enable a specific system handler
 .macro enable_handler bit_offset:req
+  ENTER_CRITICAL
   LDR     r0, =SHCSR
   LDR     r1, [r0]
   ORR     r1, r1, #(1 << \bit_offset)
   STR     r1, [r0]
+  EXIT_CRITICAL
 .endm
 
 @ Macro to disable a specific system handler
 .macro disable_handler bit_offset:req
+  ENTER_CRITICAL
   LDR     r0, =SHCSR
   LDR     r1, [r0]
   BIC     r1, r1, #(1 << \bit_offset)
   STR     r1, [r0]
+  EXIT_CRITICAL
 .endm
 
 @ Macro to check if a specific system handler is pending
@@ -790,11 +951,12 @@
 @  r1: Value to add to linked list
 @   malloc_addr: _malloc or _kmalloc
 .macro _ll_add_node malloc_addr:req
-  PUSH    {r0-r4, lr}          @ Save registers and return address
+  PUSH    {r4, lr}
 
   LDR     r2, [r0]             @ Load the value of data field from head_ptr
   LDR     r3, [r0, #4]         @ Load the value of next_ptr field from head_ptr
 
+  ENTER_CRITICAL
   CMP     r2, #0x0             @ Check if data field is null
   IT      EQ                   @ If-Then condition for EQ (Equal)
   STREQ   r1, [r0]             @ If data field is null, store the new value in head_ptr
@@ -814,7 +976,8 @@
   STR     r0, [r4, #4]         @ Store address of new node in head_ptr's next_ptr field
 
 1:
-  POP     {r0-r4, pc}          @ Restore registers and return
+  EXIT_CRITICAL
+  POP     {r4, lr}          @ Restore link register
 .endm
 
 
@@ -831,9 +994,8 @@
 @   r0: Address of head ptr 
 @   r1: Value to remove from linked list
 @   free_addr: _free or _kfree
-.macro _ll_rem_node free_addr:req
-  PUSH    {r0-r3, lr}           @ Save registers and return address
-  
+.macro _ll_rem_node free_addr:req  
+  PUSH    {lr}
   LDR     r2, [r0]              @ Load the value of data field from head_ptr
   CBZ     r2, 5f                @ Exit if data field of head pointer is null
 
@@ -855,6 +1017,7 @@
 
 @ remove_head
 2:
+  ENTER_CRITICAL
   LDR     r2, [r0, #4]          @ Load the value of next_ptr field
   CBZ     r2, 4f                @ If there's no next node, nullify head
 
@@ -869,6 +1032,7 @@
 
 @ remove_node
 3:
+  ENTER_CRITICAL
   LDR     r1, [r0, #4]          @ Load the value of next_ptr field of node to remove
   STR     r1, [r3, #4]          @ Link previous node to the next node
   MOV     r0, r3                @ Load the address of node to remove in r0
@@ -877,13 +1041,15 @@
 
 @ nullify_head
 4:
+  ENTER_CRITICAL
   MOVS    r2, #0                @ Set head node data to 0
   STR     r2, [r0]
   STR     r2, [r0, #4]          @ Set head node next_ptr to 0
 
 @ exit
 5:
-  POP     {r0-r3, pc}           @ Restore registers and return
+  EXIT_CRITICAL
+  POP    {lr}
 .endm
 
 
@@ -892,25 +1058,23 @@
 @ return: address of node if found
 @ return 0(null): if not found
 .macro _ll_search_node
-  PUSH    {r1, r2, lr}   @ Save r1, r2, and lr
 @ search
 1:
   LDR     r2, [r0]       @ Load the value of the data field in r2
   CMP     r2, r1         @ Compare it with the search value
-  BEQ     2f             @ Branch if found
+  BEQ     3f             @ Branch if found
 
   LDR     r0, [r0, #4]   @ Load the next_ptr field into r0
   CMP     r0, #0         @ Check if next_ptr is null
-  BEQ     3f             @ Branch if not found
+  BEQ     2f             @ Branch if not found
 
   B       1b             @ Continue searching
 @ return success
 2:
-  POP     {r1, r2, pc}   @ Restore registers and return
+  MOVS    r0, #0         @ Set return value to 0 (null)
 @ return fail
 3:
-  MOVS    r0, #0         @ Set return value to 0 (null)
-  POP     {r1, r2, pc}   @ Restore registers and return
+
 .endm
 
 
@@ -927,6 +1091,8 @@
 @ returns: pointer (address) of start of the allocated space, or 0 if failed to allocate SRAM
 @-----------------------------------
 .macro _sbrk
+  ENTER_CRITICAL
+  DSB
   MRS     r1, PSP             @ Get PSP (Process Stack Pointer)
   
   LDR     r2, =p_brk
@@ -934,11 +1100,20 @@
   
   ADD     r0, r2, r0          @ Calculate new system break address
   CMP     r0, r1              @ Compare with PSP
-  BGE     1f                @ Return 0 if failed to allocate
+  BGE     1f                  @ Return 0 if new system break is beyond PSP
 
   LDR     r2, =p_brk
   STR     r0, [r2]            @ Store the new system break
-  1:
+
+  DSB
+  EXIT_CRITICAL
+  BX      lr                 @ Return new system break address
+
+1:
+  MOVS    r0, #0             @ Return 0 on failure
+  DSB
+  EXIT_CRITICAL
+  BX      lr
 .endm
 
 @-----------------------------------
@@ -947,21 +1122,32 @@
 @ returns: pointer (address) of new system break, or 0 on error
 @-----------------------------------
 .macro _sbrk_free
+  ENTER_CRITICAL
+  DSB
   LDR     r1, =_edata         @ Load the address of the end of .data in SRAM
 
   LDR     r2, =p_brk
   LDR     r2, [r2]            @ Load the address of app system break
   
-  SUBS    r0, r2, r0          @ Subtract the requested amount of memory from the system break address
-  BLE     1f                @ Return 0 if error (requested amount exceeds current heap size)
+  SUBS    r0, r2, r0          @ Compute new system break address
+  BLE     1f                  @ Return 0 if new system break is invalid (less than current break)
 
   CMP     r0, r1              @ Compare new system break with end of .data
-  BLT     1f                @ Return 0 if error (new system break is below end of .data)
+  BLT     1f                  @ Return 0 if new system break is below end of .data
 
-  LDR     r2, =p_brk
   STR     r0, [r2]            @ Store the new system break
-  1:
+
+  DSB
+  EXIT_CRITICAL
+  BX      lr                 @ Return new system break address
+
+1:
+  MOVS    r0, #0             @ Return 0 on error
+  DSB
+  EXIT_CRITICAL
+  BX      lr
 .endm
+
 
 
 @-----------------------------------
@@ -972,18 +1158,26 @@
 @-----------------------------------
 .type _ksbrk, %function
 _ksbrk:
-
+  ENTER_CRITICAL
+  DSB
   LDR     r2, =k_brk
   LDR     r2, [r2]           @ Load the address of kernel system break
   ADD     r0, r2, r0         @ Add the system break address to the requested amount of memory
   CMP     r0, r12            @ Compare new system break to MSP address (CURRENT DEFAULT SP)
-  BGE     1f                 @ Return 0 if failed to allocate
+  BGE     1f                 @ If new system break is beyond MSP, allocation failed
 
   LDR     r2, =k_brk
-  STR     r0, [r2]           @ Store the value of the process's new system break 
+  STR     r0, [r2]           @ Update the system break address
 
-  1:
-    BX      lr
+  DSB
+  EXIT_CRITICAL
+  BX      lr                 @ Return new system break address
+
+1:
+  MOVS    r0, #0             @ Return 0 on failure
+  DSB
+  EXIT_CRITICAL
+  BX      lr
   .align  2
   .size _ksbrk, .-_ksbrk
 
@@ -995,23 +1189,33 @@ _ksbrk:
 @-----------------------------------
 .type _ksbrk_free, %function
 _ksbrk_free:
+  ENTER_CRITICAL
+  DSB
+  DMB
   LDR     r1, =_ekdata       @ Load the address of the end of .kdata in SRAM
 
   LDR     r2, =k_brk
   LDR     r2, [r2]           @ Load the address of kernel system break
-  
-  SUBS    r0, r2, r0         @ Subtract the requested amount of memory from the system break address
-  CMP     r0, r1             @ Compare new system break to end of .kdata
-  BLS     1f                 @ If new BRK <= _ekdata, return 0
 
-  STR     r0, [r2]           @ Store the value of the KERNEL's new system break 
-  BX      lr                 @ Return with the new system break address
+  SUBS    r0, r2, r0         @ Compute new system break address
+  CMP     r0, r1             @ Check if new system break is valid
+  BLS     1f                 @ If new system break <= _ekdata, allocation failed
 
-  1:
-    MOVS    r0, #0             @ Return 0 on error
-    BX      lr
+  STR     r0, [r2]           @ Update the system break address
+
+  DSB
+  EXIT_CRITICAL
+  BX      lr                 @ Return new system break address
+
+1:
+  MOVS    r0, #0             @ Return 0 on error
+  DSB
+  DMB
+  EXIT_CRITICAL
+  BX      lr
   .align    2
-.size _ksbrk_free, .-_ksbrk_free
+  .size _ksbrk_free, .-_ksbrk_free
+
 
 
 @ This function can be used by kernel or by app and does not require SVC
@@ -1023,16 +1227,19 @@ _ksbrk_free:
 .global memcpy_4
 .type memcpy_4, %function
 memcpy_4:
+  ENTER_CRITICAL
+  DSB
   LDR     r3, [r0], #4      @ Load word from src and increment src by 4
   STR     r3, [r1], #4      @ Store word to dest and increment dest by 4
   SUBS    r2, r2, #4        @ Decrement length counter by 4
   BNE     memcpy_4          @ If length is not 0, continue loop
+  DSB
+  EXIT_CRITICAL
   BX      lr                @ Return from function
   .align    2
   .size memcpy_4, .-memcpy_4
 
-@ This function can be used by kernel or by app and does not require SVC
-@ Function copies 1 byte at a time so no buffer alignment required
+@ This function copies 1 byte at a time so no buffer alignment required
 @ Arguments:
 @ r0: src (source address)
 @ r1: dest (destination address)
@@ -1040,13 +1247,20 @@ memcpy_4:
 .global memcpy_1
 .type memcpy_1, %function
 memcpy_1:
+  ENTER_CRITICAL
+  DSB
+  @ Loop to copy bytes
+1:
   LDRB    r3, [r0], #1      @ Load byte from src and increment src by 1
   STRB    r3, [r1], #1      @ Store byte to dest and increment dest by 1
   SUBS    r2, r2, #1        @ Decrement length counter by 1
-  BNE     memcpy_1             @ If length is not 0, continue loop
+  BNE     1b               @ If length is not 0, continue loop
+  DSB
+  EXIT_CRITICAL
   BX      lr                @ Return from function
   .align    2
   .size memcpy_1, .-memcpy_1
+
 
 @ This function sets memory with a 4-byte aligned value.
 @ Arguments:
@@ -1056,22 +1270,25 @@ memcpy_1:
 .global memset_4
 .type memset_4, %function
 memset_4:
+  ENTER_CRITICAL
+  DSB
   @ Make a word ready containing 4 bytes of the required byte value
   MOV     r3, r1              @ Move the byte value into r3
   ORR     r3, r3, r3, LSL #8  @ Set byte 2
   ORR     r3, r3, r3, LSL #16 @ Set byte 3 and byte 4
-  1:
-    STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
-    SUBS    r2, r2, #4          @ Decrement length counter by 4
-    BNE     1b               @ If length is not 0, continue loop
-
-  2:
-    BX      lr                  @ Return from function
+  @ Loop to set memory
+1:
+  STR     r3, [r0], #4        @ Store word to dest and increment dest by 4
+  SUBS    r2, r2, #4          @ Decrement length counter by 4
+  BNE     1b                 @ If length is not 0, continue loop
+  DSB
+  EXIT_CRITICAL
+  BX      lr                  @ Return from function
   .align    2
   .size memset_4, .-memset_4
 
-@ This function can be used by kernel or by app and does not require SVC
-@ Function sets 1 byte at a time so no buffer alignment required
+
+@ This function sets 1 byte at a time so no buffer alignment required
 @ Arguments:
 @ r0: dest (destination address)
 @ r1: value (byte value to set)
@@ -1079,12 +1296,25 @@ memset_4:
 .global memset_1
 .type memset_1, %function
 memset_1:
-    STRB    r1, [r0], #1        @ Store byte to dest and increment dest by 1
-    SUBS    r2, r2, #1          @ Decrement length counter by 1
-    BNE     memset_1               @ If length is not 0, continue loop
-    BX      lr                  @ Return from function
-  .align    2
-    .size memset_1, .-memset_1
+  @ Check if length is zero
+  CMP     r2, #0
+  BEQ     1f                 @ If length is zero, exit
+  ENTER_CRITICAL
+
+  @ Set up loop
+  MOV     r3, r1             @ Load the byte value into r3
+
+  1: 
+    STRB    r3, [r0], #1     @ Store byte to dest and increment dest by 1
+    SUBS    r2, r2, #1       @ Decrement length counter by 1
+    BNE     1b               @ If length is not zero, continue loop
+
+  @ Exit critical section
+  EXIT_CRITICAL
+  BX      lr                 @ Return from function
+  .align  2
+  .size memset_1, .-memset_1
+
 
 @ This function can be used by kernel or by app and does not require SVC
 @ It assumes the memory size to zero out is 4 bytes aligned
@@ -1095,13 +1325,21 @@ memset_1:
 .type memzero_4, %function
 memzero_4:
   MOV     r3, #0                @ Load zero into r3
-  1:
-    STR     r3, [r0], #4        @ Store zero to dest and increment dest by 4
-    SUBS    r2, r2, #4          @ Decrement length counter by 4
-    BNE     1b                  @ If length is not 0, continue loop
-    BX      lr                  @ Return from function
-  .align    2
-    .size memzero_4, .-memzero_4
+  DSB
+  CMP     r2, #0                @ Check if length is 0
+  BEQ     2f                  @ If length is 0, skip loop
+@ loop
+1:
+  STR     r3, [r0], #4         @ Store zero to dest and increment dest by 4
+  SUBS    r2, r2, #4           @ Decrement length counter by 4
+  BNE     1b                 @ If length is not 0, continue loop
+@ exit
+2:
+  DSB
+  BX      lr                   @ Return from function
+  .align  2
+  .size memzero_4, .-memzero_4
+
 
 @ This function can be used by kernel or by app and does not require SVC
 @ Arguments:
@@ -1110,11 +1348,13 @@ memzero_4:
 .global memzero_1
 .type memzero_1, %function
 memzero_1:
+  DSB
   MOV     r3, #0              @ Load zero into r3
   1:
     STRB    r3, [r0], #1      @ Store zero to dest and increment dest by 1
     SUBS    r2, r2, #1        @ Decrement length counter by 1
     BNE     1b                @ If length is not 0, continue loop
+    DSB
     BX      lr                @ Return from function
   .align    2
     .size memzero_1, .-memzero_1
@@ -1131,6 +1371,8 @@ memzero_1:
 .global memcmp_1
 .type memcmp_1, %function
 memcmp_1:
+  DSB
+  PUSH    {r4}
   LDRB    r3, [r0], #1   @ Load byte from src1 and increment src1
   LDRB    r4, [r1], #1   @ Load byte from src2 and increment src2
   CMP     r3, r4         @ Compare bytes
@@ -1141,6 +1383,8 @@ memcmp_1:
   BX      lr
   1:
     MOV     r0, #1         @ If bytes are not equal, return non-zero
+    DSB
+    POP    {r4}
     BX      lr
   .align    2
   .size memcmp_1, .-memcmp_1
@@ -1158,6 +1402,8 @@ memcmp_1:
 .global memcmp_4
 .type memcmp_4, %function
 memcmp_4:
+  DSB
+  PUSH    {r4}
   LDR     r3, [r0], #4   @ Load word from src1 and increment src1 by 4
   LDR     r4, [r1], #4   @ Load word from src2 and increment src2 by 4
   CMP     r3, r4         @ Compare words
@@ -1167,7 +1413,9 @@ memcmp_4:
   MOV     r0, #0         @ If all words are equal, return 0
   BX      lr             @ Return from function
   1:
+    DSB
     MOV     r0, #1         @ If words are not equal, return non-zero
+    POP    {r4}
     BX      lr             @ Return from function
   .align    2
   .size memcmp_4, .-memcmp_4

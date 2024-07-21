@@ -358,13 +358,11 @@ _default_handler:
 _reset_handler:
   @ disable interrupts with configurable priority levels
   LDR     sp, _ekstack       @ Load kernel stack pointer
-
-  CPSID   I         @ disable interrupts till end of system initialization
   
   @ check definition in include.asm
   DIS_OUTOFORDER_EXEC #0
 
-  @ set stack alignement
+  @ set stack alignement at 4bytes
   BL      stack_align_4
   
   @ Copy .kdata section from FLASH to SRAM
@@ -474,15 +472,16 @@ _SYSTICK_config:
   @ save link register 
   LDR     r0, =SYSTICK_BASE
   
-  @ load the systick counter value (10499) in ST_LOAD to prooduce a tick each 1ms  
+  @ load the systick counter value (10499) in ST_LOAD to produce a tick each 1ms  
   MOVW    r1, =SYSTICK_COUNTER
   STR     r1, [r0, #0x04]           @ STK_LOAD
   MOVW    r1, #0
   STR     r1, [r0, #0x08]           @ STK_VAL
+  ISB
   @ CLKSOURCE = AHB/8, enable SYSTICK interrupt, enable SYSTICK
   MOVW    r1, #0b011
   STR     r1, [r0, #0x08]           @ STK_VAL
-
+  ISB
   @ recover link register and return 0
   MOV     r0, #0
   BX      lr
@@ -765,9 +764,13 @@ _MPU_config:
   MPU_CONFIG_REGION SECTION7_BASE, 7, SECTION7_MASK
 @  Enable background map, enable mpu during NMI AND FAULTS, enable MPU
 3:
+  DSB
+  ISB
   LDR     r1, [r0, #0x04]       @ MPU_CTRL reg
   ORR     r1, r1, #0b111        @ Set ENABLE, PRIVDEFENA, and HFNMIENA bits
   STR     r1, [r0, #0x04]       @ MPU_CTRL reg
+  DSB
+  ISB
   MOV     r0, #0
   BX      lr
   .align  2
