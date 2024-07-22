@@ -81,9 +81,12 @@ SECTIONS
   .ktext :
   {
     ALIGN(4);
+    *(.text.default_handler)
     *(.text.reset_handler)
     *(.text.sysinit)
-    *(.text.syscalls)
+    *(.text.IRQS)
+    *(.text.system)
+    
     ALIGN(4);
   } > K_FLASH
 
@@ -91,8 +94,7 @@ SECTIONS
   .krodata : 
   {
     ALIGN(4);
-    *(.rodata.k_sections)
-    *(.rodata.k_registers.*)
+    *(.rodata.system*)
     ALIGN(4);
   } > K_FLASH
 
@@ -103,7 +105,7 @@ SECTIONS
   {
     ALIGN(4);
     _skdata = .;
-    /* add data sections */
+    *(.data.system*)
     _ekdata = .;
     ALIGN(4);
   } > K_SRAM AT> K_FLASH
@@ -113,6 +115,7 @@ SECTIONS
   {
     ALIGN(4);
     _skbss = .;
+    *(.bss.system*)
     *(COMMON)
     _ekbss = .;
     ALIGN(4);
@@ -146,7 +149,6 @@ SECTIONS
   {
     ALIGN(4);
     *(.text)
-
     *(.glue_7)         /* glue arm to thumb code */
     *(.glue_7t)        /* glue thumb to arm code */
     *(.eh_frame)
@@ -157,7 +159,7 @@ SECTIONS
   .rodata : 
   {
     ALIGN(4);
-    *(.rodata.sections)
+    *(.rodata)
     ALIGN(4);
   } > APP_FLASH
 

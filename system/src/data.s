@@ -31,8 +31,6 @@
 .thumb
 
 
-@--------------------------------------------------------
-@--------------------------------------------------------
 @------------------------------------------------------------.data
 @--------------------------------------------------------
 @--------------------------------------------------------
@@ -42,15 +40,13 @@
 
 @ Application Process system break
 p_brk:
-  .word _sheap 
+  .word _sheap
 @ kernel system break
 k_brk:
   .word _skheap
 
   .align 2
 
-@--------------------------------------------------------
-@--------------------------------------------------------
 @------------------------------------------------------------.bss
 @--------------------------------------------------------
 @--------------------------------------------------------
@@ -58,19 +54,29 @@ k_brk:
 @ uninitialized data section used by syscalls
 .section .bss.system, "aw", %nobits
 
-@ Pointer to the first free block in app heap
-free_blocks: .word
+@ Array of app heap memory block addresses
+blocks: .space 4 * MAX_HEAP_BLOCKS
+@ Array of app heap memory block sizes
+blocks_sizes: .space 2 * MAX_HEAP_BLOCKS 
+@ Counter for number of free blocks
+blocks_cntr: .byte
 
-@ Pointer to the first free block in kernel heap
-kfree_blocks: .word
 
-@ array of linker list head pointers for each external IRQ
+@ Counter for number of free blocks
+kblocks_cntr: .byte
+  .align 2
+@ Array of kernel heap memory blocks adddresses
+kblocks_addr: .space 4 * KMAX_HEAP_BLOCKS
+@ Array of kernel heap memory blocks sizes
+kblocks_sizes: .space 2 * KMAX_HEAP_BLOCKS
+  .align 2
+
+@ array of linked list head pointers for each external IRQ
 IRQ_head_nodes:
   .space  84 * 8  @ Allocate space for 84 entries in the ISRS vector table (only 55 will be valid head nodes)
-
-stk_cntrs:
-  .short     @ Milliseconds used by systick
+SYSTICK_cntrs:
   .word      @ Seconds used by systick
+  .short     @ Milliseconds used by systick
 
 @ Global variable to hold last exception number, initialized to 0
 last_IRQ: 
@@ -78,15 +84,17 @@ last_IRQ:
 
   .align 2
 
-@--------------------------------------------------------
-@--------------------------------------------------------
 @------------------------------------------------------------.rodata
+@-------------------------------------------------------- 
 @--------------------------------------------------------
-@--------------------------------------------------------
+.section .rodata.system, "a", %progbits
+  @ Max number of heap blocks to allocate
+  .equ MAX_HEAP_BLOCKS, 128
+  .equ KMAX_HEAP_BLOCKS, 64
+.align 2
 
 
-
-.section .rodata.SVC_handlers, "a", %progbits
+.section .rodata.system.SVC_handlers, "a", %progbits
 @ generate NUM_SVC_HANDLERS iterations of extern for each SVC_HANDLER
 .macro SVC_HANDLERS_TABLE
   SVC_Table:
@@ -103,8 +111,8 @@ SVC_HANDLERS_TABLE
 
 .align 2
 
-.section .rodata.SCB, "a", %progbits
-@      Name   Address           Type    Req privilege Reset val
+.section .rodata.system.SCB, "a", %progbits
+@      Name   Address            Type    Req privilege Reset val
  .equ  ACTLR,  0xE000E008        @ RW    Privileged    0x00000000
  .equ  CPUID,  0xE000ED00        @ RO    Privileged    0x410FC241
  .equ  ICSR,   0xE000ED04        @ RW    Privileged    0x00000000
@@ -126,7 +134,7 @@ SVC_HANDLERS_TABLE
  .equ  AFSR,   0xE000ED3C        @ RW    Privileged    0x00000000
 
 @-----------------------------------------------
-.section .rodata.NVIC, "a", %progbits
+.section .rodata.system.NVIC, "a", %progbits
   .equ NVIC_ISER0, 0xE000E100     @ 7 register
   .equ NVIC_ICER0, 0xE000E180     @ 7 register
   .equ NVIC_ISPR0, 0xE000E200     @ 7 register
@@ -135,27 +143,27 @@ SVC_HANDLERS_TABLE
   .equ NVIC_IPR0,  0xE000E400     @ 59 register
   .equ NVIC_STIR,  0xE000EF00     @ 1 register
 @-----------------------------------------------
-.section .rodata.SYSTICK, "a", %progbits
+.section .rodata.system.SYSTICK, "a", %progbits
   .equ SYSTCK_BASE, 0xE000E010
   .equ SYSTICK_COUNTER, 10499   @ value to be laded in STK_LOAD
 @-----------------------------------------------
-  .section .rodata.FLASH, "a", %progbits
+  .section .rodata.system.FLASH, "a", %progbits
   .equ FLASH_BASE, 0x40023C00      @ FLASH base address
   .equ FLASH_KEY1, 0x45670123
   .equ FLASH_KEY2, 0xCDEF89AB
   .equ FLASH_OPTKEY1, 0x08192A3B
   .equ FLASH_OPTKEY2, 0x4C5D6E7F
 @------------------------------------------------
-.section .rodata.PWR, "a", %progbits
+.section .rodata.system.PWR, "a", %progbits
   .equ PWR_BASE, 0x40007000
   .equ PWR_CR_MASK, 0x8EFD
 @-----------------------------------------------
-.section .rodata.RCC, "a", %progbits
+.section .rodata.system.RCC, "a", %progbits
   .equ RCC_BASE, 0x40023800       @ RCC bit-band base address
   .equ RCC_BASE_BB, 0x42470000    @ RCC base address
   .equ RCC_PLLCFGR_MASK, 0xF437FFF
 @-----------------------------------------------
-.section .rodata.MPU, "a", %progbits
+.section .rodata.system.MPU, "a", %progbits
   .equ MPU_BASE, 0xE000ED90
 
   @----------------------------- System Peripheral Space

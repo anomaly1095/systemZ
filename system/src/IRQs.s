@@ -561,11 +561,11 @@ PendSV_Handler:
   .global SysTick_Handler
   .type SysTick_Handler, %function
 SysTick_Handler:
-  CPSID   I                     @ Disable interrupts
-  LDR     r0, =stk_cntrs
-  LDRH    r1, [r0]            @ Load number of milliseconds
-  LDR     r1, [r0, #0x02]     @ Load number of seconds
-  ADD     r1, r1, #1
+  ENTER_CRITICAL                    @ enble interrupts
+  LDR     r0, =SYSTICK_cntrs
+  LDRH    r1, [r0, #0x04]           @ Load number of milliseconds
+  LDR     r2, [r0]                  @ Load number of seconds
+  ADD     r1, r1, #1                @ add 1 millisecond
 
   @ add functions to call (use for os scheduler)
 
@@ -573,9 +573,9 @@ SysTick_Handler:
   ITT     EQ
   ADDEQ   r2, r2, #1          @ Store new number of seconds
   MOVEQ   r1, #0              @ reset millisecond counter
-  STRH    r1, [r0]            @ Store new number of milliseconds
-  STR     r2, [r0, #0x02]     @ Store new number of seconds
-  CPSIE   I                   @ Enable interrupts
+  STRH    r1, [r0, #0x04]     @ Store new number of milliseconds
+  STR     r2, [r0]            @ Store new number of seconds
+  EXIT_CRITICAL               @ enable interrupts
   BX      lr
   .align  2
   .size SysTick_Handler, .-SysTick_Handler

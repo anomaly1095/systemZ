@@ -8,8 +8,7 @@ _start:
 	MOVW	r0, #0x60
 	MOVW	r1, #0xFF
 	MOVW	r2, #0x20
-	BL		memset_4
-
+	BL		memset_4  
 _exit:
 	B .
 	

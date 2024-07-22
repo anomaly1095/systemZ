@@ -32,6 +32,7 @@
 
 .include "data.s"
 
+.section .text.system, "ax", %progbits
 
 /**
   * Functions that will be rarely used or get called by 
@@ -973,7 +974,7 @@ I_HARDFAULT_en_bus_fault_handling
 
   PUSH    {r0}                 @ Save the address of head ptr
   MOVS    r0, #8               @ Move size 8 to r0 (malloc argument)
-  BL      \malloc_addr     @ Call malloc to allocate a new node
+  BL      \malloc_addr         @ Call malloc to allocate a new node
   CMP     r0, #0               @ Check if malloc returned NULL
   BEQ     1f                   @ If malloc failed, exit the function
   POP     {r4}                 @ Recover the address of head ptr, set it in r4
@@ -1158,7 +1159,6 @@ I_HARDFAULT_en_bus_fault_handling
 .endm
 
 
-
 @-----------------------------------
 @ Used by the kernel to expand the KERNEL heap towards the top
 @ arg0: amount of SRAM needed
@@ -1223,26 +1223,243 @@ _ksbrk_free:
   .align    2
   .size _ksbrk_free, .-_ksbrk_free
 
+@-----------------------------------SYSCALL
+@ Used by the apps as syscall to allocate memory from heap dynamically
+@ Uses the arrays in .bss.system to manage free heap blocks
+@ arg0: amount of SRAM to allocate
+@ returns pointer to the newly allocated block
+@ returns NULL on failure
+@-----------------------------------
+.macro _malloc:
+  CMP     r0, #0                      @ Exit if mem to allocate is 0 and return NULL
+  BXEQ    lr
+
+  PUSH    {r4-r8}                     @ Save registers and return address
+
+  LDR     r1, =blocks_addr            @ Load the address of the array list
+  LDR     r2, =blocks_sizes           @ Load the address of the sizes of the blocks
+  LDR     r3, =MAX_HEAP_BLOCKS        @ Load the number of indexes (number of blocks)
+  LDRB    r8, =blocks_cntr            @ Load the free blocks counter
+
+  CBZ     r8, 4f                      @ If no free blocks, expand heap
+
+  MOVW    r4, #0xFFFF                 @ Initialize best fit size to max possible value
+  MOV     r5, #0                      @ Initialize index for best fit block
+  MOV     r6, #0                      @ Initialize index counter
+
+@ Loop through the array to find an adequate block using best fit
+1:
+  LDRH    r7, [r2, r6, LSL #1]        @ Load the size of the current block
+  CBZ     r7, 2f                      @ If size is 0, skip (optional for performance)
+  CMP     r7, r0                      @ Compare size with required size
+  BEQ     3f                          @ If found perfect fit, branch
+  BLT     2f                          @ If block is too small, skip
+  CMP     r7, r4                      @ Compare current block size with best fit size
+  ITT     LO                          @ If current block is a better fit
+  MOVLO   r4, r7                      @ Update best fit size
+  MOVLO   r5, r6                      @ Update best fit index
+2:
+  ADD     r6, r6, #1                  @ Increment index
+  CMP     r6, r3                      @ Check if index reached max
+  BNE     1b                          @ If not, continue searching
+
+@ No suitable block found, expand the heap
+  CMP     r4, #0xFFFF                 @ Check if no free blocks found at all
+  BEQ     4f                          @ Expand heap if no block found
+
+@ Use the best fit block found
+3:
+  ENTER_CRITICAL
+  LDR     r0, [r1, r5, LSL #2]        @ Load the address of the block to return it in r0
+  MOV     r7, #0
+  STRH    r7, [r2, r5, LSL #1]        @ Nullify the size to indicate it's no longer free
+  SUB     r8, r8, #1                  @ Decrement the free block counter
+  STRB    r8, =blocks_cntr            @ Store the updated counter value
+  EXIT_CRITICAL
+  B       5f                          @ Exit
+
+@ Expand kernel system break with r0 as arg0
+4:
+  PUSH    {lr}                        @ save lr before branching with link 
+  BL      _sbrk                       @ Call _ksbrk to expand the heap
+  POP     {lr}
+
+@ Exit
+5:
+  POP     {r4-r8}                 @ Restore registers and return
+.endm
+
+@-----------------------------------SYSCALL
+@ Used by the apps as syscall to free memory allocated from the heap
+@ Uses the arrays in .bss.system to manage free heap blocks
+@ arg0: pointer to the start of block
+@ arg1: size of the block to free
+@ returns 0 on success
+@ returns 1 on failure
+@-----------------------------------
+.macro _free
+  CMP     r0, #0                      @ Exit if the pointer to free is NULL
+  BXEQ    lr
+  CMP     r1, #0                      @ Exit if size is 0
+  BXEQ    lr
+
+  PUSH    {r4-r7}                 @ Save registers and return address
+
+  LDR     r1, =blocks_addr           @ Load the address of the array list
+  LDR     r2, =blocks_sizes          @ Load the address of the sizes of the blocks
+  LDR     r3, =MAX_HEAP_BLOCKS       @ Load the number of indexes (number of blocks)
+
+
+  @ Find the index of the block to free
+  MOV     r4, #0                      @ Initialize index counter
+
+1:
+  LDR     r5, [r1, r4, LSL #2]        @ Load the address of the block
+  CMP     r5, r0                      @ Compare the block address
+  BEQ     2f                          @ If found, branch to restore it
+  ADD     r4, r4, #1                  @ Increment index
+  CMP     r4, r3                      @ Check if index reached max
+  BNE     1b                          @ If not, continue searching
+
+  @ If block was not found, return (or handle error if needed)
+  POP     {r4-r5}                 @ Restore registers and return
+  BX      lr
+
+@ Restore the block to the free list
+2:
+  ENTER_CRITICAL
+  @ Restore the block's size back in the sizes array
+  STRH    r1, [r2, r4, LSL #1]        @ Store the block size in the list
+  @ Update the free block counter
+  LDR     r3, =blocks_cntr
+  LDRB    r4, [r3]                    @ Load the free blocks counter
+  ADD     r4, r4, #1                  @ Increment the free block counter
+  STRB    r4, [r3]                    @ Store the updated counter value
+  EXIT_CRITICAL
+
+  POP     {r4-r5}                 @ Restore registers and return
+.endm
+
 
 @-----------------------------------
 @ Used by the kernel to allocate memory from heap dynamically
+@ Uses the arrays in .bss.system to manage free heap blocks
 @ arg0: amount of SRAM to allocate
 @ returns pointer to the newly allocated block
 @ returns NULL on failure
 @-----------------------------------
 _kmalloc:
+  CMP     r0, #0                      @ Exit if mem to allocate is 0 and return NULL
+  BXEQ    lr
 
+  PUSH    {r4-r8, lr}                 @ Save registers and return address
+
+  LDR     r1, =kblocks_addr           @ Load the address of the array list
+  LDR     r2, =kblocks_sizes          @ Load the address of the sizes of the blocks
+  LDR     r3, =KMAX_HEAP_BLOCKS       @ Load the number of indexes (number of blocks)
+  LDRB    r8, =kblocks_cntr           @ Load the free blocks counter
+
+  CBZ     r8, 4f                      @ If no free blocks, expand heap
+
+  MOVW    r4, #0xFFFF                 @ Initialize best fit size to max possible value
+  MOV     r5, #0                      @ Initialize index for best fit block
+  MOV     r6, #0                      @ Initialize index counter
+
+@ Loop through the array to find an adequate block using best fit
+1:
+  LDRH    r7, [r2, r6, LSL #1]        @ Load the size of the current block
+  CBZ     r7, 2f                      @ If size is 0, skip (optional for performance)
+  CMP     r7, r0                      @ Compare size with required size
+  BEQ     3f                          @ If found perfect fit, branch
+  BLT     2f                          @ If block is too small, skip
+  CMP     r7, r4                      @ Compare current block size with best fit size
+  ITT     LO                          @ If current block is a better fit
+  MOVLO   r4, r7                      @ Update best fit size
+  MOVLO   r5, r6                      @ Update best fit index
+2:
+  ADD     r6, r6, #1                  @ Increment index
+  CMP     r6, r3                      @ Check if index reached max
+  BNE     1b                          @ If not, continue searching
+
+@ No suitable block found, expand the heap
+  CMP     r4, #0xFFFF                 @ Check if no free blocks found at all
+  BEQ     4f                          @ Expand heap if no block found
+
+@ Use the best fit block found
+3:
+  ENTER_CRITICAL
+  LDR     r0, [r1, r5, LSL #2]        @ Load the address of the block to return it in r0
+  MOV     r7, #0
+  STRH    r7, [r2, r5, LSL #1]        @ Nullify the size to indicate it's no longer free
+  SUB     r8, r8, #1                  @ Decrement the free block counter
+  STRB    r8, =kblocks_cntr           @ Store the updated counter value
+  EXIT_CRITICAL
+  B       5f                          @ Exit
+
+@ Expand kernel system break with r0 as arg0
+4:
+  BL      _ksbrk                      @ Call _ksbrk to expand the heap
+
+@ Exit
+5:
+  POP     {r4-r8, pc}                 @ Restore registers and return
+  .align  2
+  .size _kmalloc, .-_kmalloc
 
 
 @-----------------------------------
-@ Used by the kernel to free the allocated block
+@ Used by the kernel to free memory allocated from the heap
+@ Uses the arrays in .bss.system to manage free heap blocks
 @ arg0: pointer to the start of block
+@ arg1: size of the block to free
 @ returns 0 on success
 @ returns 1 on failure
 @-----------------------------------
 _kfree:
+.global _kfree
+_kfree:
+  CMP     r0, #0                      @ Exit if the pointer to free is NULL
+  BXEQ    lr
+  CMP     r1, #0                      @ Exit if size is 0
+  BXEQ    lr
+
+  PUSH    {r4-r7, lr}                 @ Save registers and return address
+
+  LDR     r1, =kblocks_addr           @ Load the address of the array list
+  LDR     r2, =kblocks_sizes          @ Load the address of the sizes of the blocks
+  LDR     r3, =KMAX_HEAP_BLOCKS       @ Load the number of indexes (number of blocks)
 
 
+  @ Find the index of the block to free
+  MOV     r4, #0                      @ Initialize index counter
+
+1:
+  LDR     r5, [r1, r4, LSL #2]        @ Load the address of the block
+  CMP     r5, r0                      @ Compare the block address
+  BEQ     2f                          @ If found, branch to restore it
+  ADD     r4, r4, #1                  @ Increment index
+  CMP     r4, r3                      @ Check if index reached max
+  BNE     1b                          @ If not, continue searching
+
+  @ If block was not found, return (or handle error if needed)
+  POP     {r4-r7, pc}                 @ Restore registers and return
+  BX      lr
+
+@ Restore the block to the free list
+2:
+  ENTER_CRITICAL
+  @ Restore the block's size back in the sizes array
+  STRH    r1, [r2, r4, LSL #1]        @ Store the block size in the list
+  @ Update the free block counter
+  LDR     r3, =kblocks_cntr
+  LDRB    r4, [r3]                    @ Load the free blocks counter
+  ADD     r4, r4, #1                  @ Increment the free block counter
+  STRB    r4, [r3]                    @ Store the updated counter value
+  EXIT_CRITICAL
+
+  POP     {r4-r7, pc}                 @ Restore registers and return
+  .align  2
+  .size _kfree, .-_kfree
 
 
 
