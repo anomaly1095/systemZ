@@ -29,14 +29,14 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-.include "include.s"
+.include "src/include.s"
 
 @----------------------------------------------------------------------
 @----------------------------------------------------------------------
 @----------------------------------------------------------------------ISR handlers
 @----------------------------------------------------------------------
 @---------------------------------------------------------------------- 
-  .section .text.IRQs, "ax", %progbits
+  .section .text.system, "ax", %progbits
 
 
   .global NMI_Handler
@@ -260,255 +260,257 @@ SVC_Handler:
     BX      lr
 
   SVC42_Handler:
-    _exit_nested_irqs_on_return
+    _no_enter_thread_mode_on_active_exc
     BX      lr
-
+  
   SVC43_Handler:
+    _enter_thread_mode_on_active_exc
+    BX      lr
+  
+  SVC44_Handler:
     _set_UsageFault_prio 
     BX      lr
-
-  SVC44_Handler:
+    
+  SVC45_Handler:
     _set_MemMan_fault_prio
     BX      lr
 
-  SVC45_Handler:
+  SVC46_Handler:
     _set_SVC_prio
     BX      lr
 
-  SVC46_Handler:
+  SVC47_Handler:
     _set_SYSTICK_prio
     BX      lr
 
-  SVC47_Handler:
+  SVC48_Handler:
     _set_PendSV_prio
     BX      lr
 
-  SVC48_Handler:
+  SVC49_Handler:
     _enable_UsageFault
     BX      lr
 
-  SVC49_Handler:
+  SVC50_Handler:
     _enable_BusFault
     BX      lr
 
-  SVC50_Handler:
+  SVC51_Handler:
     _enable_MemMan_fault
     BX      lr
 
-  SVC51_Handler:
+  SVC52_Handler:
     _disable_UsageFault
     BX      lr
 
-  SVC52_Handler:
+  SVC53_Handler:
     _disable_BusFault
     BX      lr
 
-  SVC53_Handler:
+  SVC54_Handler:
     _disable_MemMan_fault
     BX      lr
 
-  SVC54_Handler:
+  SVC55_Handler:
     _is_SVC_pending
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC55_Handler:
+  SVC56_Handler:
     _is_BusFault_pending
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC56_Handler:
+  SVC57_Handler:
     _is_MemMan_fault_pending
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC57_Handler:
+  SVC58_Handler:
     _is_UsageFault_pending
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC58_Handler:
+  SVC59_Handler:
     _is_SYSTICK_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC59_Handler:
+  SVC60_Handler:
     _is_PendSV_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC60_Handler:
+  SVC61_Handler:
     _is_DBGMon_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC61_Handler:
+  SVC62_Handler:
     _is_SVC_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC62_Handler:
+  SVC63_Handler:
     _is_UsageFault_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC63_Handler:
+  SVC64_Handler:
     _is_BusFault_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC64_Handler:
+  SVC65_Handler:
     _is_MemMan_fault_active
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC65_Handler:
+  SVC66_Handler:
     _div_by0_UsageFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC66_Handler:
+  SVC67_Handler:
     _unalignement_UsageFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC67_Handler:
+  SVC68_Handler:
     _coprocessor_UsageFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC68_Handler:
+  SVC69_Handler:
     _invPC_UsageFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC69_Handler:
+  SVC70_Handler:
     _invEPSR_UsageFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC70_Handler:
+  SVC71_Handler:
     _BFAR_valid_addr
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC71_Handler:
+  SVC72_Handler:
     _FP_LazyState_BusFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC72_Handler:
+  SVC73_Handler:
     _push_BusFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC73_Handler:
+  SVC74_Handler:
     _pop_BusFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC74_Handler:
+  SVC75_Handler:
     _imprecise_BusFault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC75_Handler:
+  SVC76_Handler:
     _precise_DBus_error
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC76_Handler:
+  SVC77_Handler:
     _IBus_error
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC77_Handler:
+  SVC78_Handler:
     _MMAR_valid_addr
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC78_Handler:
+  SVC79_Handler:
     _FP_LazyState_MemMan_fault
     STORE_R0_TO_PSP   @ Store r0 value for return
     BX      lr
 
-  SVC79_Handler:
-    _push_MemMan_fault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC80_Handler:
+  @   _push_MemMan_fault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC80_Handler:
-    _pop_MemMan_fault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC81_Handler:
+  @   _pop_MemMan_fault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC81_Handler:
-    _DataAccess_MemMan_fault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC82_Handler:
+  @   _DataAccess_MemMan_fault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC82_Handler:
-    _ExecNot_section_MemMan_fault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC83_Handler:
+  @   _ExecNot_section_MemMan_fault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC83_Handler:
-    _forced_HardFault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC84_Handler:
+  @   _forced_HardFault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC84_Handler:
-    _push_MemMan_fault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC85_Handler:
+  @   _push_MemMan_fault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC85_Handler:
-    _vect_table_HardFault
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC86_Handler:
+  @   _vect_table_HardFault
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC86_Handler:
-    _get_MemManFault_addr
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC87_Handler:
+  @   _get_MemManFault_addr
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC87_Handler:
-    _get_BusFault_addr
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC88_Handler:
+  @   _get_BusFault_addr
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC88_Handler:
-    _get_AuxFault_addr
-    STORE_R0_TO_PSP   @ Store r0 value for return
-    BX      lr
+  @ SVC89_Handler:
+  @   _get_AuxFault_addr
+  @   STORE_R0_TO_PSP   @ Store r0 value for return
+  @   BX      lr
 
-  SVC89_Handler:
-    @ Check if IRQ number is valid
-    CMP     r0, #85               @ Compare with the maximum IRQ number (84)
-    BXHS    lr                    @ Branch if the IRQ number is out of range
+  @ SVC90_Handler:
+  @   Check if IRQ number is valid
+  @   CMP     r0, #85               @ Compare with the maximum IRQ number (84)
+  @   IT      HS
+  @   BXHS    lr                    @ Branch if the IRQ number is out of range
 
-    LDR     r3, =IRQ_head_nodes   @ Load address of IRQ_head_nodes
-    LDR     r0, [r3, r0, LSL #3]  @ Load the head node pointer (8 bytes per node)
+  @   LDR     r3, =IRQ_head_nodes   @ Load address of IRQ_head_nodes
+  @   LDR     r0, [r3, r0, LSL #3]  @ Load the head node pointer (8 bytes per node)
 
-    _add_callback                 @ Call the macro to add the node
+  @   _add_callback                 @ Call the macro to add the node
 
-    BX      lr                    @ Return
+  @   BX      lr                    @ Return
 
-  SVC90_Handler:
-    @ Check if IRQ number is valid
-    CMP     r0, #85               @ Compare with the maximum IRQ number (84)
-    BXHS    lr                    @ Branch if the IRQ number is out of range
+  @ SVC91_Handler:
+  @   Check if IRQ number is valid
+  @   CMP     r0, #85               @ Compare with the maximum IRQ number (84)
+  @   IT      HS
+  @   BXHS    lr                    @ Branch if the IRQ number is out of range
 
-    LDR     r3, =IRQ_head_nodes   @ Load address of IRQ_head_nodes
-    LDR     r0, [r3, r0, LSL #3]  @ Load the head node pointer (8 bytes per node)
+  @   LDR     r3, =IRQ_head_nodes   @ Load address of IRQ_head_nodes
+  @   LDR     r0, [r3, r0, LSL #3]  @ Load the head node pointer (8 bytes per node)
 
-    _rem_callback                 @ Call the macro to remove the node
+  @   _rem_callback                 @ Call the macro to remove the node
 
-    BX      lr                    @ Return
-
-  SVC91_Handler:
-    NOP
-    BX      lr
+  @   BX      lr                    @ Return
 
   SVC92_Handler:
     NOP
@@ -541,6 +543,7 @@ SVC_Handler:
   SVC99_Handler:
     NOP
     BX      lr
+
 
   .align  2
   .size SVC_Handler, .-SVC_Handler

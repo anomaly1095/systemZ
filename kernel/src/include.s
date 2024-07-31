@@ -30,7 +30,7 @@
 .fpu fpv4-sp-d16
 .thumb
 
-.include "data.s"
+#include "src/data.s"
 
 .section .text.system, "ax", %progbits
 
@@ -47,10 +47,10 @@
 @-----------------------------------------------------
 @----------------------------------------------------- 
 
-.define LITTLE_ENDIAN
+#define LITTLE_ENDIAN
 
 @ used by FLASH set_options function
-.define DEVELOPMENT_MODE 
+#define DEVELOPMENT_MODE 
 
 .macro ENTER_CRITICAL
   CPSID I
@@ -383,18 +383,20 @@
 /*--------ACTLR---------*/
 /*--------ACTLR---------*/
 
-.macro DIS_OUTOFORDER_EXEC state:req
+.macro _DIS_OUTOFORDER_EXEC state:req
   ENTER_CRITICAL
   LDR     r0, =ACTLR
   LDR     r1, [r0]
   LDR     r2, =\state
   CBZ     r2, 1f   @ check if state is 0 (enable)
   @ Disable features: Set bits
-  ORR     r1, r1, 0x207 @ mask for disabling features
+  MOVW    r2, #0x207
+  ORR     r1, r1, r2  @ mask for disabling features
   B       2f
   1:
   @ Enable features: Clear bits
-  BIC     r1, r1, 0x207 @ mask for enabling features
+  MOVW    r2, #0x207
+  BIC     r1, r1, r2 @ mask for enabling features
   2:
   DSB                 @ Data Synchronization Barrier
   ISB                 @ Instruction Synchronization Barrier
@@ -408,7 +410,7 @@
 /*--------CPUID---------*/
 
 @ returns CPUID in r0
-.macro GET_CPUID
+.macro _GET_CPUID
   LDR     r0, =CPUID
   LDR     r0, [r0]
 .endm
@@ -447,35 +449,39 @@
 .endm
 
 
-.macro PENDSV_set_pending
+.macro _NMI_set_pending
+  SET_PENDING_BIT 0x80000000 @ Set the NMI pending bit (bit 28)
+.endm
+
+.macro _PENDSV_set_pending
   SET_PENDING_BIT 0x10000000 @ Set the PENDSV pending bit (bit 28)
 .endm
 
-.macro PENDSV_clear_pending
+.macro _PENDSV_clear_pending
   SET_PENDING_BIT 0x8000000 @ Clear the PENDSV pending bit (bit 27)
 .endm
 
-.macro PENDSV_check_pending
+.macro _PENDSV_check_pending
   CHECK_PENDING_BIT 0x10000000 @ Check the PENDSV pending bit (bit 28)
 .endm
 
-.macro SYSTICK_set_pending
+.macro _SYSTICK_set_pending
   SET_PENDING_BIT 0x4000000 @ Set the SYSTICK pending bit (bit 26)
 .endm
 
-.macro SYSTICK_clear_pending
+.macro _SYSTICK_clear_pending
   SET_PENDING_BIT 0x2000000 @ Clear the SYSTICK pending bit (bit 25)
 .endm
 
-.macro SYSTICK_check_pending
+.macro _SYSTICK_check_pending
   CHECK_PENDING_BIT 0x4000000 @ Check the SYSTICK pending bit (bit 26)
 .endm
 
-.macro ISR_check_pending
+.macro _ISR_check_pending
   CHECK_PENDING_BIT 0x400000 @ Check if any ISR is pending excluding NMI and Faults.
 .endm
 
-.macro ISR_highest_pending
+.macro _ISR_highest_pending
   ENTER_CRITICAL                 @ Disable interrupts
   LDR     r0, =ICSR         @ Load the address of ICSR
   LDR     r1, [r0]          @ Load the current value of ICSR
@@ -485,11 +491,11 @@
   EXIT_CRITICAL                 @ Enable interrupts
 .endm
 
-.macro ISR_check_preempted
+.macro _ISR_check_preempted
   CHECK_PENDING_BIT 0x800   @ checks if there are any preempted interrupt routines
 .endm
 
-.macro ISR_str_actv_num
+.macro _ISR_str_actv_num
   ENTER_CRITICAL
   MRS     r0, IPSR                  @ Read IPSR into r0 (contains active exception number)
   MOV     r1, r0                    @ Move exception number to r1 (to ensure 8-bit value)
@@ -540,23 +546,23 @@
 .endm
 
 @ Set new PRIGROUP bits: 0 groups - 16 subgroups
-.macro prio_split16_0
+.macro _prio_split16_0
   SET_GRP_SPLIT 16
 .endm
 @ Set new PRIGROUP bits: 2 groups - 8 subgroups
-.macro prio_split8_2
+.macro _prio_split8_2
   SET_GRP_SPLIT 8
 .endm
 @ Set new PRIGROUP bits: 4 groups - 4 subgroups
-.macro prio_split4_4
+.macro _prio_split4_4
   SET_GRP_SPLIT 4
 .endm
 @ Set new PRIGROUP bits: 4 groups - 4 subgroups
-.macro prio_split2_8
+.macro _prio_split2_8
   SET_GRP_SPLIT 2
 .endm
 @ Set new PRIGROUP bits: 8 groups - 2 subgroups
-.macro prio_split0_16
+.macro _prio_split0_16
   SET_GRP_SPLIT 0
 .endm
 
@@ -576,7 +582,7 @@
 .endm
 
 @ Macro to set the reset request in AIRCR
-.macro reset_request
+.macro _reset_request
   manipulate_register AIRCR, 0x4, ORR   @ Set bit 2 in AIRCR (Reset Request)
 .endm
 
@@ -585,17 +591,17 @@
 /*--------SCR---------*/
 
 @ Macro to set the SEVONPEND bit in SCR
-.macro sev_on_pend
+.macro _sev_on_pend
   manipulate_register SCR, 0b10000, ORR    @ Set SEVONPEND bit in SCR
 .endm
 
 @ Macro to set the SLEEPDEEP bit in SCR
-.macro sleep_deep
+.macro _sleep_deep
   manipulate_register SCR, 0b100, ORR      @ Set SLEEPDEEP bit in SCR
 .endm
 
 @ Macro to set the SLEEPONEXIT bit in SCR
-.macro sleep_on_exit
+.macro _sleep_on_exit
   manipulate_register SCR, 0b10, ORR       @ Set SLEEPONEXIT bit in SCR
 .endm
 
@@ -603,60 +609,66 @@
 /*--------CCR---------*/
 
 @ Macro to clear stack alignment to 4 bytes aligned in CCR
-.macro stack_align_4
+.macro _stack_align_4
   manipulate_register CCR, 0x200, BIC
 .endm
 
 @ Macro to set stack alignment to 8 bytes aligned in CCR
-.macro stack_align_8
+.macro _stack_align_8
   manipulate_register CCR, 0x200, ORR
 .endm
 
 @ Macro to Disable NMI and HardFault handlers to ignore bus faults caused by load and store instructions
-.macro NMI_HARDFAULT_dis_bus_fault_handling
+.macro _NMI_HARDFAULT_dis_bus_fault_handling
   manipulate_register CCR, 0x2000000, BIC
 .endm
 
 @ Macro to enable NMI and HardFault handlers to ignore bus faults caused by load and store instructions
-.macro NMmanipulate_register CCR, 0b1, ORR
-.endm
-I_HARDFAULT_en_bus_fault_handling
+
+.macro _NMI_HARDFAULT_en_bus_fault_handling
   manipulate_register CCR, 0x2000000, ORR
 .endm
 
 @ Macro to disable trapping on division by zero in CCR
-.macro div0_notrap
+.macro _div0_notrap
   manipulate_register CCR, 0b10000, BIC
 .endm
 
 @ Macro to enable trapping on division by zero in CCR
-.macro div0_trap
+.macro _div0_trap
   manipulate_register CCR, 0b10000, ORR
 .endm
 
 @ Macro to disable trapping on unaligned halfword and word accesses in CCR
-.macro unalign_notrap
+.macro _unalign_notrap
   manipulate_register CCR, 0b1000, BIC
 .endm
 
 @ Macro to enable trapping on unaligned halfword and word accesses in CCR
-.macro unalign_trap
+.macro _unalign_trap
   manipulate_register CCR, 0b1000, ORR
 .endm
 
 @ Macro to allow access to the STIR register in CCR
-.macro app_access_STIR
+.macro _app_access_STIR
   manipulate_register CCR, 0b10, ORR
 .endm
 
+@ Macro to disable returning to thread mode when some exceptions are active
+.macro _no_enter_thread_mode_on_active_exc
+  manipulate_register CCR, 0b1, BIC
+.endm
+
 @ Macro to enable returning to thread mode from any level under an EXC_RETURN in CCR
-.macro exit_nested_irqs_on_return
-  
+.macro _enter_thread_mode_on_active_exc
+  manipulate_register CCR, 0b1, ORR
+.endm
+
 
 /*--------SHPRx---------*/
 /*--------SHPRx---------*/
 
-/@ Macro to set priority for various system exceptions
+@ Macro to set priority for various system exceptions
 .macro set_exception_priority reg:req, bit_offset:req
   ENTER_CRITICAL                  @ Disable interrupts to ensure atomic operation
   LDR     r1, =\reg               @ Load the address of the priority register
@@ -668,32 +680,32 @@ I_HARDFAULT_en_bus_fault_handling
 .endm
 
 @ Macro to set Usage Fault priority in SHPR1
-.macro set_UsageFault_prio prio:req
+.macro _set_UsageFault_prio
   set_exception_priority SHPR1, 20        @ Set Usage Fault priority (bit offset 20)
 .endm
 
 @ Macro to set Bus Fault priority in SHPR1
-.macro set_BusFault_prio prio:req
+.macro _set_BusFault_prio
   set_exception_priority SHPR1, 12        @ Set Bus Fault priority (bit offset 12)
 .endm
 
 @ Macro to set Memory Management Fault priority in SHPR1
-.macro set_MemMan_fault_prio prio:req
+.macro _set_MemMan_fault_prio
   set_exception_priority SHPR1, 4         @ Set Memory Management Fault priority (bit offset 4)
 .endm
 
 @ Macro to set SVCall priority in SHPR2
-.macro set_SVC_prio prio:req
+.macro _set_SVC_prio 
   set_exception_priority SHPR2, 28        @ Set SVCall priority (bit offset 28)
 .endm
 
 @ Macro to set SysTick priority in SHPR3
-.macro set_SYSTICK_prio prio:req
+.macro _set_SYSTICK_prio
   set_exception_priority SHPR3, 28        @ Set SysTick priority (bit offset 28)
 .endm
 
 @ Macro to set PendSV priority in SHPR3
-.macro set_PendSV_prio prio:req
+.macro _set_PendSV_prio
   set_exception_priority SHPR3, 20        @ Set PendSV priority (bit offset 20)
 .endm
 
@@ -742,74 +754,74 @@ I_HARDFAULT_en_bus_fault_handling
 .endm
 
 @ Macros to enable specific system handlers
-.macro enable_UsageFault
+.macro _enable_UsageFault
   enable_handler 18
 .endm
 
-.macro enable_BusFault
+.macro _enable_BusFault
   enable_handler 17
 .endm
 
-.macro enable_MemMan_fault
+.macro _enable_MemMan_fault
   enable_handler 16
 .endm
 
 @ Macros to disable specific system handlers
-.macro disable_UsageFault
+.macro _disable_UsageFault
   disable_handler 18
 .endm
 
-.macro disable_BusFault
+.macro _disable_BusFault
   disable_handler 17
 .endm
 
-.macro disable_MemMan_fault
+.macro _disable_MemMan_fault
   disable_handler 16
 .endm
 
 @ Macros to check if specific system handlers are pending
-.macro is_SVC_pending
+.macro _is_SVC_pending
   is_handler_pending 15
 .endm
 
-.macro is_BusFault_pending
+.macro _is_BusFault_pending
   is_handler_pending 14
 .endm
 
-.macro is_MemMan_fault_pending
+.macro _is_MemMan_fault_pending
   is_handler_pending 13
 .endm
 
-.macro is_UsageFault_pending
+.macro _is_UsageFault_pending
   is_handler_pending 12
 .endm
 
 @ Macros to check if specific system handlers are active
-.macro is_SYSTICK_active
+.macro _is_SYSTICK_active
   is_handler_active 11
 .endm
 
-.macro is_PendSV_active
+.macro _is_PendSV_active
   is_handler_active 10
 .endm
 
-.macro is_DBGMon_active
+.macro _is_DBGMon_active
   is_handler_active 8
 .endm
 
-.macro is_SVC_active
+.macro _is_SVC_active
   is_handler_active 7
 .endm
 
-.macro is_UsageFault_active
+.macro _is_UsageFault_active
   is_handler_active 3
 .endm
 
-.macro is_BusFault_active
+.macro _is_BusFault_active
   is_handler_active 1
 .endm
 
-.macro is_MemMan_fault_active
+.macro _is_MemMan_fault_active
   is_handler_active 0
 .endm
 
@@ -820,109 +832,109 @@ I_HARDFAULT_en_bus_fault_handling
 .macro check_fault_bit reg:req, bit_offset:req
   LDR     r0, =\reg
   LDR     r1, [r0]
-  TST     r1, r1, #(0b1 << bit_offset)
+  TST     r1, #(0b1 << \bit_offset)
   ITE     NE
   MOVNE   r0, #1  @ bit set
   MOVEQ   r0, #0  @ bit not set
 .endm
 
-.macro div_by0_UsageFault
+.macro _div_by0_UsageFault
   check_fault_bit UFSR, 25
 .endm
 
-.macro unalignement_UsageFault
+.macro _unalignement_UsageFault
   check_fault_bit UFSR, 24
 .endm
 
-.macro coprocessor_UsageFault
+.macro _coprocessor_UsageFault
   check_fault_bit UFSR, 19
 .endm
 
-.macro invPC_UsageFault
+.macro _invPC_UsageFault
   check_fault_bit UFSR, 18
 .endm
 
-.macro invEPSR_UsageFault
+.macro _invEPSR_UsageFault
   check_fault_bit UFSR, 17
 .endm
 
-.macro undef_instr_UsageFault
+.macro _undef_instr_UsageFault
   check_fault_bit UFSR, 16
 .endm
 
 /*--------BFSR---------*/
 /*--------BFSR---------*/
 
-.macro BFAR_valid_addr
+.macro _BFAR_valid_addr
   check_fault_bit BFSR, 15
 .endm
 
-.macro FP_LazyState_BusFault
+.macro _FP_LazyState_BusFault
   check_fault_bit BFSR, 13
 .endm
 
-.macro push_BusFault
+.macro _push_BusFault
   check_fault_bit BFSR, 12
 .endm
 
-.macro pop_BusFault
+.macro _pop_BusFault
   check_fault_bit BFSR, 11
 .endm
 
-.macro imprecise_BusFault
+.macro _imprecise_BusFault
   check_fault_bit BFSR, 10
 .endm
 
-.macro precise_DBus_error
+.macro _precise_DBus_error
   check_fault_bit BFSR, 9
 .endm
 
-.macro IBus_error
+.macro _IBus_error
   check_fault_bit BFSR, 8
 .endm
 
 /*--------MMFSR---------*/
 /*--------MMFSR---------*/
 
-.macro MMAR_valid_addr
+.macro _MMAR_valid_addr
   check_fault_bit MMFSR, 7
 .endm
 
-.macro FP_LazyState_MemMan_fault
+.macro _FP_LazyState_MemMan_fault
   check_fault_bit MMFSR, 5
 .endm
 
-.macro push_MemMan_fault
+.macro _push_MemMan_fault
   check_fault_bit MMFSR, 4
 .endm
 
-.macro pop_MemMan_fault
+.macro _pop_MemMan_fault
   check_fault_bit MMFSR, 3
 .endm
 
-.macro DataAccess_MemMan_fault
+.macro _DataAccess_MemMan_fault
   check_fault_bit MMFSR, 1
 .endm
 
-.macro ExecNot_section_MemMan_fault
+.macro _ExecNot_section_MemMan_fault
   check_fault_bit MMFSR, 0
 .endm
 
 /*--------HFSR---------*/
 /*--------HFSR---------*/
 
-.macro forced_HardFault
+.macro _forced_HardFault
   check_fault_bit HFSR, 30         @ Check for Forced Hard Fault
 .endm
 
-.macro vect_table_HardFault
+.macro _vect_table_HardFault
   check_fault_bit HFSR, 1          @ Check for Vector Table Read Fault
 .endm
 
 /*--------MMFAR---------*/
 /*--------MMFAR---------*/
 
-.macro get_MemManFault_addr
+.macro _get_MemManFault_addr
   LDR     r0, =MMFAR
   LDR     r0, [r0]      @ load the address of the memory management fault
 .endm
@@ -930,7 +942,7 @@ I_HARDFAULT_en_bus_fault_handling
 /*--------BFAR---------*/
 /*--------BFAR---------*/
 
-.macro get_BusFault_addr
+.macro _get_BusFault_addr
   LDR     r0, =BFAR
   LDR     r0, [r0]      @ load the address of the BUS fault
 .endm
@@ -938,7 +950,7 @@ I_HARDFAULT_en_bus_fault_handling
 /*--------AFSR---------*/
 /*--------AFSR---------*/
 
-.macro get_AuxFault_addr
+.macro _get_AuxFault_addr
   LDR     r0, =AFSR
   LDR     r0, [r0]      @ load the Auxiliary fault status register
 .endm
@@ -1220,7 +1232,7 @@ _ksbrk_free:
   DSB
   EXIT_CRITICAL
   BX      lr
-  .align    2
+  .align  2
   .size _ksbrk_free, .-_ksbrk_free
 
 @-----------------------------------SYSCALL
@@ -1230,8 +1242,9 @@ _ksbrk_free:
 @ returns pointer to the newly allocated block
 @ returns NULL on failure
 @-----------------------------------
-.macro _malloc:
+.macro _malloc
   CMP     r0, #0                      @ Exit if mem to allocate is 0 and return NULL
+  IT      EQ
   BXEQ    lr
 
   PUSH    {r4-r8}                     @ Save registers and return address
@@ -1239,9 +1252,10 @@ _ksbrk_free:
   LDR     r1, =blocks_addr            @ Load the address of the array list
   LDR     r2, =blocks_sizes           @ Load the address of the sizes of the blocks
   LDR     r3, =MAX_HEAP_BLOCKS        @ Load the number of indexes (number of blocks)
-  LDRB    r8, =blocks_cntr            @ Load the free blocks counter
-
-  CBZ     r8, 4f                      @ If no free blocks, expand heap
+  LDR     r8, =blocks_cntr            @ Load the free blocks counter
+  LDRB    r8, [r8]
+  CMP     r8, #0                      @ If no free blocks, expand heap
+  BEQ     4f
 
   MOVW    r4, #0xFFFF                 @ Initialize best fit size to max possible value
   MOV     r5, #0                      @ Initialize index for best fit block
@@ -1264,7 +1278,8 @@ _ksbrk_free:
   BNE     1b                          @ If not, continue searching
 
 @ No suitable block found, expand the heap
-  CMP     r4, #0xFFFF                 @ Check if no free blocks found at all
+  MOV     r6, #0xFFFF
+  CMP     r4, r6                      @ Check if no free blocks found at all
   BEQ     4f                          @ Expand heap if no block found
 
 @ Use the best fit block found
@@ -1274,7 +1289,8 @@ _ksbrk_free:
   MOV     r7, #0
   STRH    r7, [r2, r5, LSL #1]        @ Nullify the size to indicate it's no longer free
   SUB     r8, r8, #1                  @ Decrement the free block counter
-  STRB    r8, =blocks_cntr            @ Store the updated counter value
+  LDR     r7, =blocks_cntr
+  STRB    r8, [r7]                    @ Store the updated counter value
   EXIT_CRITICAL
   B       5f                          @ Exit
 
@@ -1299,15 +1315,17 @@ _ksbrk_free:
 @-----------------------------------
 .macro _free
   CMP     r0, #0                      @ Exit if the pointer to free is NULL
+  IT      EQ
   BXEQ    lr
   CMP     r1, #0                      @ Exit if size is 0
+  IT      EQ
   BXEQ    lr
 
-  PUSH    {r4-r7}                 @ Save registers and return address
+  PUSH    {r4-r7}                     @ Save registers and return address
 
-  LDR     r1, =blocks_addr           @ Load the address of the array list
-  LDR     r2, =blocks_sizes          @ Load the address of the sizes of the blocks
-  LDR     r3, =MAX_HEAP_BLOCKS       @ Load the number of indexes (number of blocks)
+  LDR     r1, =blocks_addr            @ Load the address of the array list
+  LDR     r2, =blocks_sizes           @ Load the address of the sizes of the blocks
+  LDR     r3, =MAX_HEAP_BLOCKS        @ Load the number of indexes (number of blocks)
 
 
   @ Find the index of the block to free
@@ -1348,8 +1366,11 @@ _ksbrk_free:
 @ returns pointer to the newly allocated block
 @ returns NULL on failure
 @-----------------------------------
+.global _kmalloc
+.type _kmalloc, %function
 _kmalloc:
   CMP     r0, #0                      @ Exit if mem to allocate is 0 and return NULL
+  IT      EQ
   BXEQ    lr
 
   PUSH    {r4-r8, lr}                 @ Save registers and return address
@@ -1357,9 +1378,11 @@ _kmalloc:
   LDR     r1, =kblocks_addr           @ Load the address of the array list
   LDR     r2, =kblocks_sizes          @ Load the address of the sizes of the blocks
   LDR     r3, =KMAX_HEAP_BLOCKS       @ Load the number of indexes (number of blocks)
-  LDRB    r8, =kblocks_cntr           @ Load the free blocks counter
+  LDR     r8, =kblocks_cntr           @ Load the free blocks counter
+  LDRB    r8, [r8]
 
-  CBZ     r8, 4f                      @ If no free blocks, expand heap
+  CMP     r8, #0                      @ If no free blocks, expand heap
+  BEQ     4f
 
   MOVW    r4, #0xFFFF                 @ Initialize best fit size to max possible value
   MOV     r5, #0                      @ Initialize index for best fit block
@@ -1382,7 +1405,8 @@ _kmalloc:
   BNE     1b                          @ If not, continue searching
 
 @ No suitable block found, expand the heap
-  CMP     r4, #0xFFFF                 @ Check if no free blocks found at all
+  MOV     r6, #0xFFFF
+  CMP     r4, r6                      @ Check if no free blocks found at all
   BEQ     4f                          @ Expand heap if no block found
 
 @ Use the best fit block found
@@ -1392,7 +1416,8 @@ _kmalloc:
   MOV     r7, #0
   STRH    r7, [r2, r5, LSL #1]        @ Nullify the size to indicate it's no longer free
   SUB     r8, r8, #1                  @ Decrement the free block counter
-  STRB    r8, =kblocks_cntr           @ Store the updated counter value
+  LDR     r8, =kblocks_cntr           @ Load the free blocks counter
+  STRB    r8, [r7]           @ Store the updated counter value
   EXIT_CRITICAL
   B       5f                          @ Exit
 
@@ -1406,7 +1431,6 @@ _kmalloc:
   .align  2
   .size _kmalloc, .-_kmalloc
 
-
 @-----------------------------------
 @ Used by the kernel to free memory allocated from the heap
 @ Uses the arrays in .bss.system to manage free heap blocks
@@ -1415,12 +1439,14 @@ _kmalloc:
 @ returns 0 on success
 @ returns 1 on failure
 @-----------------------------------
-_kfree:
 .global _kfree
+.type _kfree, %function
 _kfree:
   CMP     r0, #0                      @ Exit if the pointer to free is NULL
+  IT      EQ
   BXEQ    lr
   CMP     r1, #0                      @ Exit if size is 0
+  IT      EQ
   BXEQ    lr
 
   PUSH    {r4-r7, lr}                 @ Save registers and return address
@@ -1688,4 +1714,3 @@ memcmp_4:
 @----------------------------------------------------- Tasks
 @-----------------------------------------------------
 @-----------------------------------------------------
-

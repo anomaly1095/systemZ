@@ -29,7 +29,7 @@
 .cpu cortex-m4
 .fpu fpv4-sp-d16
 .thumb
-.include "include.s"
+.include "src/include.s"
 
 
 
@@ -357,10 +357,7 @@ _default_handler:
 
 _reset_handler:
   @ disable interrupts with configurable priority levels
-  LDR     sp, _ekstack       @ Load kernel stack pointer
-  
-  @ check definition in include.asm
-  DIS_OUTOFORDER_EXEC #0
+  LDR     sp, =_ekstack       @ Load kernel stack pointer
 
   @ set stack alignement at 4bytes
   BL      stack_align_4
@@ -435,27 +432,33 @@ _sysinit:
   
   @ CLOCK configuration
 	BL      _RCC_config
-  CBNZ    r0, _default_handler  @ Branch to default handler on error
+  CMP     r0, #0
+  BNE     _default_handler  @ Branch to default handler on error
   
   @ POWER configuration
 	BL      _PWR_config
-  CBNZ    r0, _default_handler
+    CMP     r0, #0
+  BNE     _default_handler  @ Branch to default handler on error
 
 	@ MPU configuration
 	BL      _MPU_config
-  CBNZ    r0, _default_handler
+  CMP     r0, #0
+  BNE     _default_handler  @ Branch to default handler on error
 
 	@ FLASH configuration
 	BL      _FLASH_config
-  CBNZ    r0, _default_handler
+  CMP     r0, #0
+  BNE     _default_handler  @ Branch to default handler on error
 
 	@ NVIC configuration
   BL      _NVIC_config
-  CBNZ    r0, _default_handler
-  
+  CMP     r0, #0
+  BNE     _default_handler  @ Branch to default handler on error
+
   @ SYSTICK configuration
   BL      _SYSTICK_config
-  CBNZ    r0, _default_handler
+  CMP     r0, #0
+  BNE     _default_handler  @ Branch to default handler on error
 
   POP     {pc}               @ Restore the link register
   .align  2
@@ -473,7 +476,7 @@ _SYSTICK_config:
   LDR     r0, =SYSTICK_BASE
   
   @ load the systick counter value (10499) in ST_LOAD to produce a tick each 1ms  
-  MOVW    r1, =SYSTICK_COUNTER
+  LDR     r1, =SYSTICK_COUNTER
   STR     r1, [r0, #0x04]           @ STK_LOAD
   MOVW    r1, #0
   STR     r1, [r0, #0x08]           @ STK_VAL

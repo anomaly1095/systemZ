@@ -244,11 +244,10 @@ void *sbrk_free(size_t decrement)
 }
 
 /**
- * @brief 
- * @param  
- * @return Returns the new pointer 
- * @return returns 0 ((void*)(0x0)) if failed to allocate SRAM
- */   
+ * @brief Allocates memory from SRAM
+ * @return Returns the new pointer
+ * @return Returns 0 ((void*)(0x0)) if failed to allocate SRAM
+ */
 void *_malloc()
 {
   void *result;
@@ -257,10 +256,9 @@ void *_malloc()
 }
 
 /**
- * @brief  
- * @param 
- * @return 
- * @return 
+ * @brief Frees allocated memory
+ * @return Returns the pointer to the freed memory
+ * @return Returns 0 ((void*)(0x0)) if failed to free memory
  */
 void *_free()
 {
@@ -269,699 +267,826 @@ void *_free()
   return result;
 }
 
-
-// /**
-//  * @brief 
-//  * @param  
-//  * @return 
-//  * @return 
-//  */   
-// void *()
-// {
-//   void *result;
-//   SVC_CALL_RET(10U, result);
-//   return result;
-// }
-
-// /**
-//  * @brief  
-//  * @param 
-//  * @return 
-//  * @return 
-//  */
-// void *()
-// {
-//   void *result;
-//   SVC_CALL_RET(11U, result);
-//   return result;
-// }
-
-
 /* @-------System control--------@ */
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Enables out-of-order execution
+ */
 void enable_outoforder_exec(){ SVC_CALL(14U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Disables out-of-order execution
+ */
 void disable_outoforder_exec(){ SVC_CALL(15U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Retrieves the CPUID
+ */
 void get_CPUID(){ SVC_CALL(16U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the NMI interrupt pending
+ */
 void NMI_set_pend(){ SVC_CALL(17U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the PendSV interrupt pending
+ */
 void PendSV_set_pend(){ SVC_CALL(18U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Clears the PendSV interrupt pending
+ */
 void PendSV_clear_pend(){ SVC_CALL(19U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the SysTick interrupt pending
+ */
 void SYSTICK_set_pend(){ SVC_CALL(20U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Clears the SysTick interrupt pending
+ */
 void SYSTICK_clear_pend(){ SVC_CALL(21U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Checks if the SysTick interrupt is pending
+ */
 void SYSTICK_check_pend(){ SVC_CALL(22U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Checks if any interrupt is pending
+ */
 void ISR_check_pend(){ SVC_CALL(23U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets priority grouping to 16 pre-emption priority bits, 0 subpriority bits
+ */
 void prio_set_split16_0(){ SVC_CALL(24U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets priority grouping to 8 pre-emption priority bits, 2 subpriority bits
+ */
 void prio_set_split8_2(){ SVC_CALL(25U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets priority grouping to 4 pre-emption priority bits, 4 subpriority bits
+ */
 void prio_set_split4_4(){ SVC_CALL(26U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets priority grouping to 2 pre-emption priority bits, 8 subpriority bits
+ */
 void prio_set_split2_8(){ SVC_CALL(27U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets priority grouping to 0 pre-emption priority bits, 16 subpriority bits
+ */
 void prio_set_split0_16(){ SVC_CALL(28U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Requests a system reset
+ */
 void RESET_request(){ SVC_CALL(29U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the SEVONPEND bit
+ */
 void SEV_on_pend(){ SVC_CALL(30U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the SLEEPDEEP bit
+ */
 void sleep_is_sleep_deep(){ SVC_CALL(31U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the SLEEPONEXIT bit
+ */
 void sleep_on_exit(){ SVC_CALL(32U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the stack alignment to 4 bytes
+ */
 void Stack_align4bytes(){ SVC_CALL(33U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Sets the stack alignment to 8 bytes
+ */
 void Stack_align8bytes(){ SVC_CALL(34U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Disables fault handling for NMI and HardFault
+ */
 void NMI_HardF_dis_fault_handling(){ SVC_CALL(35U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Enables fault handling for NMI and HardFault
+ */
 void NMI_HardF_en_fault_handling(){ SVC_CALL(36U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Disables trapping of division by zero
+ */
 void DIV0_notrap(){ SVC_CALL(37U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Enables trapping of division by zero
+ */
 void DIV0_trap(){ SVC_CALL(38U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Disables trapping of unaligned accesses
+ */
 void unalign_NTrap(){ SVC_CALL(39U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Enables trapping of unaligned accesses
+ */
 void unalign_Trap(){ SVC_CALL(40U); }
 
 /**
- * @brief 
- * @return 
- */   
+ * @brief Allows application to access the STIR register
+ */
 void APP_access_STIR(){ SVC_CALL(41U); }
 
 /**
- * @brief 
- * @return 
- */   
-void exit_nested_IRQs_on_ret(){ SVC_CALL(42U); }
+ * @brief Prevents entry into Thread mode on return from an active exception
+ */
+void no_enter_thread_mode_on_active_exc(){ SVC_CALL(42U); }
 
 /**
- * @brief 
- * @param prio 
- * @return 
- */   
+ * @brief Prevents entry into Thread mode on return from an active exception (duplicate function)
+ */
+void no_enter_thread_mode_on_active_exc(){ SVC_CALL(43U); }
+
+/**
+ * @brief Sets the priority of the Usage Fault exception
+ * @param prio Priority value
+ */
 void Set_UsageFault_prio(uint8_t prio)
-{
-  SVC_CALL(43U, prio);
-}
-
-/**
- * @brief 
- * @param prio 
- * @return 
- */   
-void Set_MemMan_fault_prio(uint8_t prio)
 {
   SVC_CALL(44U, prio);
 }
 
 /**
- * @brief 
- * @param prio 
- * @return 
- */   
-void Set_SVC_prio(uint8_t prio)
-{
+ * @brief Sets the priority of the Memory Management Fault
+ * @param prio Priority value
+ */
+void Set_MemMan_fault_prio(uint8_t prio) {
   SVC_CALL(45U, prio);
 }
 
 /**
- * @brief 
- * @param prio 
- * @return 
- */   
-void Set_SYSTICK_prio(uint8_t prio)
-{
+ * @brief Sets the priority of the Supervisor Call (SVC)
+ * @param prio Priority value
+ */
+void Set_SVC_prio(uint8_t prio) {
   SVC_CALL(46U, prio);
 }
 
 /**
- * @brief 
- * @param prio 
- * @return 
- */   
-void Set_PendSV_prio(uint8_t prio)
-{
+ * @brief Sets the priority of the SysTick
+ * @param prio Priority value
+ */
+void Set_SYSTICK_prio(uint8_t prio) {
   SVC_CALL(47U, prio);
 }
 
 /**
- * @brief 
- * @return 
- */   
-void en_UsageFault(){ SVC_CALL(48U); }
-
-/**
- * @brief 
- * @return 
- */   
-void en_BusFault(){ SVC_CALL(49U); }
-
-/**
- * @brief 
- * @return 
- */   
-void en_MemMan_fault(){ SVC_CALL(50U); }
-
-/**
- * @brief 
- * @return 
- */   
-void dis_UsageFault(){ SVC_CALL(51U); }
-
-/**
- * @brief 
- * @return 
- */   
-void dis_BusFault(){ SVC_CALL(52U); }
-
-/**
- * @brief 
- * @return 
- */   
-void dis_MemMan_fault(){ SVC_CALL(53U); }
-
-/**
- * @brief 
- * @return 
- */   
-uint8_t is_SVC_pend()
-{
-  uint8_t result;
-  SVC_CALL_RET(54U, result);
-  return result;
+ * @brief Sets the priority of the PendSV
+ * @param prio Priority value
+ */
+void Set_PendSV_prio(uint8_t prio) {
+  SVC_CALL(48U, prio);
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_BusFault_pend()
-{
+ * @brief Enables the Usage Fault
+ */
+void en_UsageFault() { SVC_CALL(49U); }
+
+/**
+ * @brief Enables the Bus Fault
+ */
+void en_BusFault() { SVC_CALL(50U); }
+
+/**
+ * @brief Enables the Memory Management Fault
+ */
+void en_MemMan_fault() { SVC_CALL(51U); }
+
+/**
+ * @brief Disables the Usage Fault
+ */
+void dis_UsageFault() { SVC_CALL(52U); }
+
+/**
+ * @brief Disables the Bus Fault
+ */
+void dis_BusFault() { SVC_CALL(53U); }
+
+/**
+ * @brief Disables the Memory Management Fault
+ */
+void dis_MemMan_fault() { SVC_CALL(54U); }
+
+/**
+ * @brief Checks if SVC is pending
+ * @return 1 if pending, 0 otherwise
+ */
+uint8_t is_SVC_pend() {
   uint8_t result;
   SVC_CALL_RET(55U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_MemMan_fault_pend()
-{
+ * @brief Checks if Bus Fault is pending
+ * @return 1 if pending, 0 otherwise
+ */
+uint8_t is_BusFault_pend() {
   uint8_t result;
   SVC_CALL_RET(56U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_UsageFault_pend()
-{
+ * @brief Checks if Memory Management Fault is pending
+ * @return 1 if pending, 0 otherwise
+ */
+uint8_t is_MemMan_fault_pend() {
   uint8_t result;
   SVC_CALL_RET(57U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_SYSTICK_actv()
-{
+ * @brief Checks if Usage Fault is pending
+ * @return 1 if pending, 0 otherwise
+ */
+uint8_t is_UsageFault_pend() {
   uint8_t result;
   SVC_CALL_RET(58U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_PendSV_actv()
-{
+ * @brief Checks if SysTick is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_SYSTICK_actv() {
   uint8_t result;
   SVC_CALL_RET(59U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_DBGMon_actv()
-{
+ * @brief Checks if PendSV is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_PendSV_actv() {
   uint8_t result;
   SVC_CALL_RET(60U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_SVC_actv()
-{
+ * @brief Checks if Debug Monitor is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_DBGMon_actv() {
   uint8_t result;
   SVC_CALL_RET(61U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_UsageFault_actv()
-{
+ * @brief Checks if SVC is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_SVC_actv() {
   uint8_t result;
   SVC_CALL_RET(62U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_BusFault_active()
-{
+ * @brief Checks if Usage Fault is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_UsageFault_actv() {
   uint8_t result;
   SVC_CALL_RET(63U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t is_MemMan_fault_active()
-{
+ * @brief Checks if Bus Fault is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_BusFault_active() {
   uint8_t result;
   SVC_CALL_RET(64U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t div_by0_UsageFault()
-{
+ * @brief Checks if Memory Management Fault is active
+ * @return 1 if active, 0 otherwise
+ */
+uint8_t is_MemMan_fault_active() {
   uint8_t result;
   SVC_CALL_RET(65U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t unalignement_UsageFault()
-{
+ * @brief Checks if division by zero caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t div_by0_UsageFault() {
   uint8_t result;
   SVC_CALL_RET(66U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t coprocessor_UsageFault()
-{
+ * @brief Checks if unaligned access caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t unalignement_UsageFault() {
   uint8_t result;
   SVC_CALL_RET(67U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t invPC_UsageFault()
-{
+ * @brief Checks if coprocessor access caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t coprocessor_UsageFault() {
   uint8_t result;
   SVC_CALL_RET(68U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t invEPSR_UsageFault()
-{
+ * @brief Checks if an invalid PC value caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t invPC_UsageFault() {
   uint8_t result;
   SVC_CALL_RET(69U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t BFAR_valid_addr()
-{
+ * @brief Checks if an invalid EPSR value caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t invEPSR_UsageFault() {
   uint8_t result;
   SVC_CALL_RET(70U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t FP_LazyState_BusFault()
-{
+ * @brief Checks if BFAR contains a valid address
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t BFAR_valid_addr() {
   uint8_t result;
   SVC_CALL_RET(71U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t push_BusFault()
-{
+ * @brief Checks if lazy state preservation caused a Bus Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t FP_LazyState_BusFault() {
   uint8_t result;
   SVC_CALL_RET(72U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t pop_BusFault()
-{
+ * @brief Checks if a push operation caused a Bus Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t push_BusFault() {
   uint8_t result;
   SVC_CALL_RET(73U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t imprecise_BusFault()
-{
+ * @brief Checks if a pop operation caused a Bus Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t pop_BusFault() {
   uint8_t result;
   SVC_CALL_RET(74U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t precise_DBus_error()
-{
+ * @brief Checks if an imprecise Bus Fault occurred
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t imprecise_BusFault() {
   uint8_t result;
   SVC_CALL_RET(75U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t IBus_error()
-{
+ * @brief Checks if a precise data bus error occurred
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t precise_DBus_error() {
   uint8_t result;
   SVC_CALL_RET(76U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t MMAR_valid_addr()
-{
+ * @brief Checks if an instruction bus error occurred
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t IBus_error() {
   uint8_t result;
   SVC_CALL_RET(77U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t FP_LazyState_MemMan_fault()
-{
+ * @brief Checks if MMAR contains a valid address
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t MMAR_valid_addr() {
   uint8_t result;
   SVC_CALL_RET(78U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t push_MemMan_fault()
-{
+ * @brief Checks if lazy state preservation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t FP_LazyState_MemMan_fault() {
   uint8_t result;
   SVC_CALL_RET(79U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t pop_MemMan_fault()
-{
+ * @brief Checks if a push operation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t push_MemMan_fault() {
   uint8_t result;
   SVC_CALL_RET(80U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t DataAccess_MemMan_fault()
-{
+ * @brief Checks if a pop operation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t pop_MemMan_fault() {
   uint8_t result;
   SVC_CALL_RET(81U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t ExecNot_section_MemMan_fault()
-{
+ * @brief Checks if division by zero caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t div_by0_UsageFault() {
+  uint8_t result;
+  SVC_CALL_RET(66U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if unaligned access caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t unalignement_UsageFault() {
+  uint8_t result;
+  SVC_CALL_RET(67U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if coprocessor access caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t coprocessor_UsageFault() {
+  uint8_t result;
+  SVC_CALL_RET(68U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if an invalid PC value caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t invPC_UsageFault() {
+  uint8_t result;
+  SVC_CALL_RET(69U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if an invalid EPSR value caused a Usage Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t invEPSR_UsageFault() {
+  uint8_t result;
+  SVC_CALL_RET(70U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if BFAR contains a valid address
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t BFAR_valid_addr() {
+  uint8_t result;
+  SVC_CALL_RET(71U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if lazy state preservation caused a Bus Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t FP_LazyState_BusFault() {
+  uint8_t result;
+  SVC_CALL_RET(72U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if a push operation caused a Bus Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t push_BusFault() {
+  uint8_t result;
+  SVC_CALL_RET(73U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if a pop operation caused a Bus Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t pop_BusFault() {
+  uint8_t result;
+  SVC_CALL_RET(74U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if an imprecise Bus Fault occurred
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t imprecise_BusFault() {
+  uint8_t result;
+  SVC_CALL_RET(75U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if a precise data bus error occurred
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t precise_DBus_error() {
+  uint8_t result;
+  SVC_CALL_RET(76U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if an instruction bus error occurred
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t IBus_error() {
+  uint8_t result;
+  SVC_CALL_RET(77U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if MMAR contains a valid address
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t MMAR_valid_addr() {
+  uint8_t result;
+  SVC_CALL_RET(78U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if lazy state preservation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t FP_LazyState_MemMan_fault() {
+  uint8_t result;
+  SVC_CALL_RET(79U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if a push operation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t push_MemMan_fault() {
+  uint8_t result;
+  SVC_CALL_RET(80U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if a pop operation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t pop_MemMan_fault() {
+  uint8_t result;
+  SVC_CALL_RET(81U, result);
+  return result;
+}
+
+/**
+ * @brief Checks if a data access violation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t data_access_violation_MemMan_fault() {
   uint8_t result;
   SVC_CALL_RET(82U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t forced_HardFault()
-{
+ * @brief Checks if an instruction access violation caused a Memory Management Fault
+ * @return 1 if true, 0 otherwise
+ */
+uint8_t instr_access_violation_MemMan_fault() {
   uint8_t result;
   SVC_CALL_RET(83U, result);
   return result;
 }
 
+
 /**
- * @brief 
- * @return 
- */   
-uint8_t push_MemMan_fault()
-{
-  uint8_t result;
+ * @brief Retrieves the address that caused the Memory Management Fault
+ * @return Address that caused the fault
+ */
+void *get_MemMan_fault_address() {
+  void *result;
   SVC_CALL_RET(84U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-uint8_t vect_table_HardFault()
-{
-  uint8_t result;
+ * @brief Retrieves the address that caused the Bus Fault
+ * @return Address that caused the fault
+ */
+void *get_BusFault_address() {
+  void *result;
   SVC_CALL_RET(85U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-void *get_MemManFault_addr()
-{
-  void *result;
+ * @brief Retrieves the address that caused the precise data bus error
+ * @return Address that caused the error
+ */
+uint32_t get_precise_DBus_error_address() {
+  uint32_t result;
   SVC_CALL_RET(86U, result);
-  return (void*)result;
+  return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-void *get_BusFault_addr()
-{
-  void *result;
+ * @brief Retrieves the address that caused the instruction bus error
+ * @return Address that caused the error
+ */
+uint32_t get_IBus_error_address() {
+  uint32_t result;
   SVC_CALL_RET(87U, result);
   return result;
 }
 
 /**
- * @brief 
- * @return 
- */   
-void *get_AuxFault_addr()
-{
-  void *result;
+ * @brief Retrieves the Memory Management Fault Status Register (MMFSR) value
+ * @return MMFSR value
+ */
+uint8_t get_MMFSR() {
+  uint8_t result;
   SVC_CALL_RET(88U, result);
   return result;
 }
 
 /**
- * @brief Adds the callback function to the list of functions to be called
- * when that IRQ is triggered
- * @param IRQ_number the IRQ number
- * @param clbk_addr address of the callback function
+ * @brief Retrieves the Bus Fault Status Register (BFSR) value
+ * @return BFSR value
  */
-void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr)
-{
-  SVC_CALL(89U, IRQ_number, clbk_addr);
+uint8_t get_BFSR() {
+  uint8_t result;
+  SVC_CALL_RET(89U, result);
+  return result;
 }
 
 /**
- * @brief Removes the callback function to the list of functions to be called
- * when that IRQ is triggered
- * @param IRQ_number the IRQ number
- * @param clbk_addr address of the callback function
+ * @brief Retrieves the Usage Fault Status Register (UFSR) value
+ * @return UFSR value
  */
-void IRQ_add_callback(uint8_t IRQ_number, void *clbk_addr)
-{
-  SVC_CALL(90U, IRQ_number, clbk_addr);
+uint16_t get_UFSR() {
+  uint16_t result;
+  SVC_CALL_RET(90U, result);
+  return result;
+}
+
+/**
+ * @brief Retrieves the Application Program Status Register (APSR) value
+ * @return APSR value
+ */
+uint32_t get_APSR() {
+  uint32_t result;
+  SVC_CALL_RET(93U, result);
+  return result;
+}
+
+/**
+ * @brief Retrieves the Interrupt Program Status Register (IPSR) value
+ * @return IPSR value
+ */
+uint32_t get_IPSR() {
+  uint32_t result;
+  SVC_CALL_RET(94U, result);
+  return result;
+}
+
+/**
+ * @brief Retrieves the Special Purpose Program Status Register (SPPR) value
+ * @return SPPR value
+ */
+uint32_t get_SPPR() {
+  uint32_t result;
+  SVC_CALL_RET(95U, result);
+  return result;
+}
+
+/**
+ * @brief Retrieves the Control Register (CONTROL) value
+ * @return CONTROL value
+ */
+uint32_t get_CONTROL() {
+  uint32_t result;
+  SVC_CALL_RET(96U, result);
+  return result;
+}
+
+/**
+ * @brief Saves the current context and switches to a new context
+ * @param new_context Pointer to the new context
+ */
+void save_and_switch_context(void* new_context) {
+  SVC_CALL(97U, new_context);
+}
+
+/**
+ * @brief Restores the previous context
+ * @param prev_context Pointer to the previous context
+ */
+void restore_context(void* prev_context) {
+  SVC_CALL(98U, prev_context);
+}
+
+/**
+ * @brief Switches to the next context
+ */
+void switch_to_next_context() {
+  SVC_CALL(99U);
+}
+
+/**
+ * @brief Sets a handler for the specified system exception
+ * @param exception_id ID of the system exception
+ * @param handler Pointer to the handler function
+ */
+void set_exception_handler(uint8_t exception_id, void (*handler)()) {
+  SVC_CALL(100U, exception_id, handler);
+}
+
+/**
+ * @brief Clears the specified system exception
+ * @param exception_id ID of the system exception
+ */
+void clear_exception(uint8_t exception_id) {
+  SVC_CALL(101U, exception_id);
 }

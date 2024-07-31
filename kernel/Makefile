@@ -34,7 +34,7 @@ OBJCOPY = arm-none-eabi-objcopy
 # Compiler and linker flags
 DBG_FLAGS = -g -Wall
 ASM_FLAGS = -mcpu=cortex-m4 -mthumb $(DBG_FLAGS)
-LD_FLAGS = --script linker-script.ld -e reset_handler -Map=$(MAP2)
+LD_FLAGS = --script linker.ld -e _reset_handler -Map=$(MAP2)
 
 # Directories
 SRC = src
